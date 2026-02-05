@@ -25,6 +25,7 @@ export interface LibraryBook {
   id: string;
   name: string;
   doc: any;
+  pdfUrl: string; // Blob URL for dflip viewer
   coverUrl: string;
   totalPages: number;
   summary?: string;

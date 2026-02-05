@@ -3,50 +3,70 @@ import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Single animated box on conveyor
-function ConveyorBox({ 
+// Single animated book on conveyor
+function ConveyorBook({ 
   startPosition, 
   speed, 
-  color, 
-  size = [0.8, 0.8, 0.8] 
+  coverColor,
+  pagesColor = '#f5f5f0',
+  spineColor,
 }: { 
   startPosition: number; 
   speed: number; 
-  color: string;
-  size?: [number, number, number];
+  coverColor: string;
+  pagesColor?: string;
+  spineColor?: string;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const startX = startPosition;
 
   useFrame((state) => {
-    if (meshRef.current) {
+    if (groupRef.current) {
       // Move from right to left, then loop back
       const time = state.clock.getElapsedTime() * speed;
       const x = ((startX - time) % 12) + 6; // Loop every 12 units
-      meshRef.current.position.x = x > 6 ? x - 12 : x;
+      groupRef.current.position.x = x > 6 ? x - 12 : x;
       
       // Subtle bounce
-      meshRef.current.position.y = Math.sin(time * 2) * 0.05 + size[1] / 2 + 0.1;
+      groupRef.current.position.y = Math.sin(time * 2) * 0.03 + 0.5;
       
-      // Slight rotation
-      meshRef.current.rotation.y = time * 0.1;
+      // Slight wobble rotation
+      groupRef.current.rotation.z = Math.sin(time * 1.5) * 0.05;
     }
   });
 
   return (
-    <RoundedBox
-      ref={meshRef}
-      args={size}
-      radius={0.08}
-      smoothness={4}
-      position={[startX, size[1] / 2 + 0.1, 0]}
-    >
-      <meshStandardMaterial 
-        color={color} 
-        roughness={0.3}
-        metalness={0.1}
-      />
-    </RoundedBox>
+    <group ref={groupRef} position={[startX, 0.5, 0]}>
+      {/* Book cover - front */}
+      <RoundedBox args={[0.7, 1, 0.08]} radius={0.02} position={[0, 0, 0.21]} smoothness={4}>
+        <meshStandardMaterial color={coverColor} roughness={0.4} metalness={0.1} />
+      </RoundedBox>
+      
+      {/* Book cover - back */}
+      <RoundedBox args={[0.7, 1, 0.08]} radius={0.02} position={[0, 0, -0.21]} smoothness={4}>
+        <meshStandardMaterial color={coverColor} roughness={0.4} metalness={0.1} />
+      </RoundedBox>
+      
+      {/* Book pages (inside) */}
+      <RoundedBox args={[0.65, 0.95, 0.35]} radius={0.01} position={[0.02, 0, 0]} smoothness={4}>
+        <meshStandardMaterial color={pagesColor} roughness={0.8} metalness={0} />
+      </RoundedBox>
+      
+      {/* Book spine */}
+      <RoundedBox args={[0.08, 1, 0.5]} radius={0.02} position={[-0.35, 0, 0]} smoothness={4}>
+        <meshStandardMaterial color={spineColor || coverColor} roughness={0.3} metalness={0.2} />
+      </RoundedBox>
+      
+      {/* Decorative line on cover */}
+      <mesh position={[0, 0.3, 0.26]}>
+        <boxGeometry args={[0.4, 0.03, 0.01]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.2, 0.26]}>
+        <boxGeometry args={[0.3, 0.02, 0.01]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.3} opacity={0.7} transparent />
+      </mesh>
+    </group>
   );
 }
 
@@ -148,14 +168,14 @@ function FloatingCoin({ position }: { position: [number, number, number] }) {
 }
 
 export function ConveyorBelt({ darkMode }: { darkMode: boolean }) {
-  // Box configurations - different colors and speeds
-  const boxes = [
-    { startPosition: -4, speed: 0.4, color: '#f472b6', size: [0.7, 0.7, 0.7] as [number, number, number] },
-    { startPosition: -1, speed: 0.4, color: '#a78bfa', size: [0.9, 0.9, 0.9] as [number, number, number] },
-    { startPosition: 2, speed: 0.4, color: '#60a5fa', size: [0.6, 0.6, 0.6] as [number, number, number] },
-    { startPosition: 5, speed: 0.4, color: '#34d399', size: [0.8, 0.8, 0.8] as [number, number, number] },
-    { startPosition: 8, speed: 0.4, color: '#fbbf24', size: [0.75, 0.75, 0.75] as [number, number, number] },
-    { startPosition: 11, speed: 0.4, color: '#f87171', size: [0.65, 0.65, 0.65] as [number, number, number] },
+  // Book configurations - different colors representing different genres/categories
+  const books = [
+    { startPosition: -4, speed: 0.4, coverColor: '#8b5cf6', spineColor: '#7c3aed' }, // Purple - Fantasy
+    { startPosition: -1, speed: 0.4, coverColor: '#3b82f6', spineColor: '#2563eb' }, // Blue - Education
+    { startPosition: 2, speed: 0.4, coverColor: '#10b981', spineColor: '#059669' },  // Green - Nature
+    { startPosition: 5, speed: 0.4, coverColor: '#f472b6', spineColor: '#ec4899' },  // Pink - Romance
+    { startPosition: 8, speed: 0.4, coverColor: '#f59e0b', spineColor: '#d97706' },  // Orange - Adventure
+    { startPosition: 11, speed: 0.4, coverColor: '#ef4444', spineColor: '#dc2626' }, // Red - Action
   ];
 
   return (
@@ -164,9 +184,9 @@ export function ConveyorBelt({ darkMode }: { darkMode: boolean }) {
       <Belt />
       <ConveyorFrame />
       
-      {/* Animated boxes */}
-      {boxes.map((box, i) => (
-        <ConveyorBox key={i} {...box} />
+      {/* Animated books */}
+      {books.map((book, i) => (
+        <ConveyorBook key={i} {...book} />
       ))}
       
       {/* Decorative elements */}

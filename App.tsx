@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import Home from './components/Home';
 import Upload from './components/Upload';
 import BookViewer from './components/BookViewer';
+import DflipViewer from './components/DflipViewer';
 import Controls from './components/Controls';
 import Library from './components/Library';
 import LibraryActionModal from './components/LibraryActionModal';
@@ -16,6 +17,15 @@ import LandingPage from './components/LandingPage';
 import { getDocument } from './utils/pdfUtils';
 import { BookRef, LibraryBook, BookCategory } from './types';
 import type { LibraryFilter } from './components/Sidebar';
+import { 
+  uploadPDF, 
+  uploadCover, 
+  saveBookMetadata, 
+  loadBooks as loadBooksFromSupabase,
+  updateBook as updateBookInSupabase,
+  deleteBook as deleteBookFromSupabase,
+  type StoredBook 
+} from './src/lib/bookStorage';
 
 const App: React.FC = () => {
   const navigate = useNavigate();
@@ -58,6 +68,49 @@ const App: React.FC = () => {
   const view = getCurrentView();
   const libraryFilter = getCurrentFilter();
 
+  // Load books from Supabase on app start
+  useEffect(() => {
+    const loadSavedBooks = async () => {
+      try {
+        setLoadingStatus('Loading your library...');
+        const storedBooks = await loadBooksFromSupabase();
+        
+        // Convert stored books to LibraryBook format
+        const libraryBooks: LibraryBook[] = await Promise.all(
+          storedBooks.map(async (stored) => {
+            // Load the PDF document from the URL
+            const response = await fetch(stored.pdf_url);
+            const blob = await response.blob();
+            const file = new File([blob], stored.original_filename, { type: 'application/pdf' });
+            const doc = await getDocument(file);
+            
+            return {
+              id: stored.id,
+              name: stored.title,
+              doc: doc,
+              pdfUrl: stored.pdf_url,
+              coverUrl: stored.cover_url || '',
+              totalPages: stored.total_pages,
+              summary: stored.summary || undefined,
+              category: stored.category || undefined,
+              isFavorite: stored.is_favorite
+            };
+          })
+        );
+        
+        setBooks(libraryBooks);
+        setLoadingStatus(null);
+        console.log(`Loaded ${libraryBooks.length} books from Supabase`);
+      } catch (error) {
+        console.error('Failed to load books from Supabase:', error);
+        setLoadingStatus(null);
+        // Continue with empty library - user can still upload new books
+      }
+    };
+
+    loadSavedBooks();
+  }, []);
+
   const extractCover = async (doc: any): Promise<string> => {
     const page = await doc.getPage(1);
     const viewport = page.getViewport({ scale: 0.5 });
@@ -83,24 +136,54 @@ const App: React.FC = () => {
       
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        setLoadingStatus(`Importing Book ${i + 1} of ${total}...`);
+        setLoadingStatus(`Uploading Book ${i + 1} of ${total}...`);
         
+        // Parse PDF first
         const doc = await getDocument(file);
-        const coverUrl = await extractCover(doc);
+        const coverBase64 = await extractCover(doc);
+        
+        setLoadingStatus(`Saving Book ${i + 1} of ${total} to cloud...`);
+        
+        // Upload PDF to Supabase Storage
+        const pdfUrl = await uploadPDF(file);
+        
+        // Generate temporary ID for cover upload
+        const tempId = Math.random().toString(36).substr(2, 9) + Date.now();
+        
+        // Upload cover to Supabase Storage
+        let coverUrl = coverBase64; // fallback to base64
+        try {
+          coverUrl = await uploadCover(coverBase64, tempId);
+        } catch (e) {
+          console.warn('Cover upload failed, using base64:', e);
+        }
+        
+        // Save metadata to Supabase database
+        const savedBook = await saveBookMetadata({
+          title: file.name.replace('.pdf', ''),
+          original_filename: file.name,
+          pdf_url: pdfUrl,
+          cover_url: coverUrl,
+          total_pages: doc.numPages,
+          file_size: file.size
+        });
         
         newBooks.push({
-          id: Math.random().toString(36).substr(2, 9) + Date.now(),
-          name: file.name,
+          id: savedBook.id,
+          name: savedBook.title,
           doc: doc,
-          coverUrl: coverUrl,
-          totalPages: doc.numPages
+          pdfUrl: savedBook.pdf_url,
+          coverUrl: savedBook.cover_url || coverBase64,
+          totalPages: savedBook.total_pages,
+          category: savedBook.category || undefined,
+          isFavorite: savedBook.is_favorite
         });
       }
 
       setLoadingStatus(null);
       setSidebarOpen(false);
       
-      // Add books to library first
+      // Add books to library
       setBooks(prev => [...prev, ...newBooks]);
       
       // Queue all books for category selection (one by one)
@@ -108,42 +191,68 @@ const App: React.FC = () => {
         setUploadedBooksPending(newBooks);
       }
       
+      setConversionToast(`Successfully uploaded ${newBooks.length} book(s) to cloud!`);
+      setTimeout(() => setConversionToast(null), 4000);
+      
     } catch (error) {
-      console.error("Failed to load PDF", error);
+      console.error("Failed to upload PDF", error);
       setLoadingStatus(null);
       setConversionToast("Conversion failed. Please ensure your files are valid PDFs and try again.");
       setTimeout(() => setConversionToast(null), 5000);
     }
   };
 
-  const handleUploadCategoryConfirm = (bookId: string, category?: BookCategory, isFavorite?: boolean) => {
-    // Update the book with category
+  const handleUploadCategoryConfirm = async (bookId: string, category?: BookCategory, isFavorite?: boolean) => {
+    // Update the book with category in local state
     setBooks(prev => prev.map(book => 
       book.id === bookId 
         ? { ...book, category, isFavorite: isFavorite || false }
         : book
     ));
     
-      // Remove this book from pending queue and show next
-      setUploadedBooksPending(prev => {
-        const remaining = prev.slice(1);
-        if (remaining.length === 0) {
-          // All books categorized, go to library
-          navigate('/library');
-          setConversionToast(
-            prev.length === 1 
-              ? "Your flipbook has been added to the library!" 
-              : "All flipbooks have been added to the library!"
-          );
-          setTimeout(() => setConversionToast(null), 4000);
-        }
-        return remaining;
+    // Save to Supabase
+    try {
+      await updateBookInSupabase(bookId, { 
+        category: category || null, 
+        is_favorite: isFavorite || false 
       });
-    };
+    } catch (e) {
+      console.error('Failed to update book in Supabase:', e);
+    }
+    
+    // Remove this book from pending queue and show next
+    setUploadedBooksPending(prev => {
+      const remaining = prev.slice(1);
+      if (remaining.length === 0) {
+        // All books categorized, go to library
+        navigate('/library');
+        setConversionToast(
+          prev.length === 1 
+            ? "Your flipbook has been added to the library!" 
+            : "All flipbooks have been added to the library!"
+        );
+        setTimeout(() => setConversionToast(null), 4000);
+      }
+      return remaining;
+    });
+  };
 
-  const handleRemoveBook = (bookId: string) => {
+  const handleRemoveBook = async (bookId: string) => {
+    const book = books.find(b => b.id === bookId);
+    
+    // Remove from local state immediately
     setBooks(prev => prev.filter(b => b.id !== bookId));
     if (pendingBook?.id === bookId) setPendingBook(null);
+    
+    // Delete from Supabase
+    if (book) {
+      try {
+        await deleteBookFromSupabase(bookId, book.pdfUrl, book.coverUrl);
+        console.log('Book deleted from Supabase');
+      } catch (e) {
+        console.error('Failed to delete book from Supabase:', e);
+      }
+    }
   };
 
   const handleSummarize = async (bookId: string): Promise<string | null> => {
@@ -174,24 +283,45 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpdateSummary = (bookId: string, summary: string) => {
+  const handleUpdateSummary = async (bookId: string, summary: string) => {
     setBooks(prev => prev.map(b => b.id === bookId ? { ...b, summary: summary } : b));
     if (pendingBook?.id === bookId) {
       setPendingBook(prev => prev ? { ...prev, summary: summary } : null);
     }
+    // Save to Supabase
+    try {
+      await updateBookInSupabase(bookId, { summary });
+    } catch (e) {
+      console.error('Failed to save summary to Supabase:', e);
+    }
   };
 
-  const handleUpdateBookCategory = (bookId: string, category?: import('./types').BookCategory) => {
+  const handleUpdateBookCategory = async (bookId: string, category?: import('./types').BookCategory) => {
     setBooks(prev => prev.map(b => b.id === bookId ? { ...b, category } : b));
     if (pendingBook?.id === bookId) {
       setPendingBook(prev => prev ? { ...prev, category } : null);
     }
+    // Save to Supabase
+    try {
+      await updateBookInSupabase(bookId, { category: category || null });
+    } catch (e) {
+      console.error('Failed to save category to Supabase:', e);
+    }
   };
 
-  const handleToggleFavorite = (bookId: string) => {
-    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, isFavorite: !b.isFavorite } : b));
+  const handleToggleFavorite = async (bookId: string) => {
+    const book = books.find(b => b.id === bookId);
+    const newFavoriteState = !book?.isFavorite;
+    
+    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, isFavorite: newFavoriteState } : b));
     if (pendingBook?.id === bookId) {
-      setPendingBook(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null);
+      setPendingBook(prev => prev ? { ...prev, isFavorite: newFavoriteState } : null);
+    }
+    // Save to Supabase
+    try {
+      await updateBookInSupabase(bookId, { is_favorite: newFavoriteState });
+    } catch (e) {
+      console.error('Failed to save favorite to Supabase:', e);
     }
   };
 
@@ -373,80 +503,40 @@ const App: React.FC = () => {
             <Route path="/reader/:bookId" element={
               selectedBook && (
             <div className="w-full h-full min-h-0 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 overflow-hidden relative">
-              {/* Apple-Style Clean Background - Black & White Theme */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100">
-                {/* Subtle radial gradient for depth */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.02),transparent_70%)]" />
-              </div>
+              {/* Light Purple/Lavender Background - matching dflip style */}
+              <div className="absolute inset-0 bg-[#E8E4EF]" />
               
-              {/* Minimal Ambient Orbs - Grayscale */}
-              <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-gray-200/20 rounded-full blur-[120px] pointer-events-none" />
-              <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-gray-300/15 rounded-full blur-[100px] pointer-events-none" />
-              
-              {/* Fine Texture Overlay */}
-              <div 
-                className="absolute inset-0 opacity-[0.02] pointer-events-none mix-blend-multiply"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                }}
-              />
-              
-              {/* Progress Bar Above Book - Apple Style */}
-              <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 w-full max-w-3xl px-8">
-                <div className="bg-white/90 backdrop-blur-xl rounded-full shadow-lg border border-gray-200 p-1">
-                  <div className="relative h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-gray-800 to-gray-600 rounded-full transition-all duration-300 ease-out"
-                      style={{ width: `${((currentPage + 1) / selectedBook.totalPages) * 100}%` }}
-                    />
-                  </div>
-                  {/* Book Title Below Progress */}
-                  <div className="mt-2 text-center">
-                    <p className="text-xs font-medium text-gray-700 truncate">
-                      {selectedBook.name.replace('.pdf', '')}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              {/* Close button */}
+              <button 
+                onClick={() => navigate('/library')}
+                className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
               
               {readerMode === 'preview' && (
-                <div className="absolute top-36 left-1/2 -translate-x-1/2 z-10 bg-gray-900/90 backdrop-blur-xl text-white px-5 py-2.5 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase flex items-center gap-2 border border-gray-700 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 bg-gray-900/90 backdrop-blur-xl text-white px-5 py-2.5 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase flex items-center gap-2 border border-gray-700 shadow-xl animate-in fade-in slide-in-from-top-4 duration-500">
                   <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                   Preview Mode
                 </div>
               )}
 
-              {/* Book container - perfectly centered */}
-              <div className="relative z-10 flex-1 flex items-center justify-center w-full">
-                <BookViewer 
-                  pdfDocument={selectedBook.doc} 
+              {/* DFlip Viewer - full screen with built-in controls */}
+              <div className="relative z-10 w-full h-full">
+                <DflipViewer 
+                  pdfUrl={selectedBook.pdfUrl}
                   onFlip={setCurrentPage}
-                  onBookInit={(b) => bookRef.current = { pageFlip: () => b.pageFlip() }}
                   mode={readerMode}
-                  zoomLevel={zoomLevel}
-                  onZoomChange={setZoomLevel}
                 />
               </div>
-              
-              {/* Controls below the book */}
-              {readerMode === 'manual' && (
-                <div className="relative z-20 pb-6">
-                  <Controls 
-                    currentPage={currentPage} 
-                    totalPages={selectedBook.totalPages} 
-                    zoomLevel={zoomLevel}
-                    onZoomChange={setZoomLevel}
-                    onNext={() => bookRef.current?.pageFlip()?.flipNext()} 
-                    onPrev={() => bookRef.current?.pageFlip()?.flipPrev()}
-                    onFullscreen={() => !document.fullscreenElement ? document.documentElement.requestFullscreen() : document.exitFullscreen()}
-                  />
-                </div>
-              )}
 
               {readerMode === 'preview' && (
                 <button 
                   onClick={() => setReaderMode('manual')}
-                  className="relative z-20 mb-8 bg-white/90 backdrop-blur-xl text-black px-10 py-4 rounded-full font-bold text-sm shadow-2xl hover:bg-white transition-all active:scale-95 border border-white/50"
+                  className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 bg-white/90 backdrop-blur-xl text-black px-10 py-4 rounded-full font-bold text-sm shadow-2xl hover:bg-white transition-all active:scale-95 border border-white/50"
                 >
                   Start Reading
                 </button>

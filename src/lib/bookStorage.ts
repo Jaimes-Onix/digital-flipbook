@@ -1,0 +1,182 @@
+import { supabase } from './supabase';
+import type { BookCategory } from '../../types';
+
+// Type for book in database
+export interface StoredBook {
+  id: string;
+  title: string;
+  original_filename: string;
+  pdf_url: string;
+  cover_url: string | null;
+  total_pages: number;
+  file_size: number | null;
+  category: BookCategory | null;
+  is_favorite: boolean;
+  summary: string | null;
+  created_at: string;
+}
+
+/**
+ * Upload a PDF file to Supabase Storage
+ */
+export async function uploadPDF(file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+  const filePath = `books/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from('pdfs')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (error) {
+    console.error('Upload error:', error);
+    throw new Error(`Failed to upload PDF: ${error.message}`);
+  }
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('pdfs')
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
+
+/**
+ * Upload a cover image (base64) to Supabase Storage
+ */
+export async function uploadCover(base64Data: string, bookId: string): Promise<string> {
+  // Convert base64 to blob
+  const response = await fetch(base64Data);
+  const blob = await response.blob();
+  
+  const fileName = `${bookId}-cover.jpg`;
+  const filePath = `covers/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from('covers')
+    .upload(filePath, blob, {
+      contentType: 'image/jpeg',
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) {
+    console.error('Cover upload error:', error);
+    throw new Error(`Failed to upload cover: ${error.message}`);
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('covers')
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
+
+/**
+ * Save book metadata to database
+ */
+export async function saveBookMetadata(book: {
+  title: string;
+  original_filename: string;
+  pdf_url: string;
+  cover_url: string | null;
+  total_pages: number;
+  file_size: number | null;
+  category?: BookCategory;
+  is_favorite?: boolean;
+  summary?: string;
+}): Promise<StoredBook> {
+  const { data, error } = await supabase
+    .from('books')
+    .insert({
+      title: book.title,
+      original_filename: book.original_filename,
+      pdf_url: book.pdf_url,
+      cover_url: book.cover_url,
+      total_pages: book.total_pages,
+      file_size: book.file_size,
+      category: book.category || null,
+      is_favorite: book.is_favorite || false,
+      summary: book.summary || null
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Save metadata error:', error);
+    throw new Error(`Failed to save book: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
+ * Load all books from database
+ */
+export async function loadBooks(): Promise<StoredBook[]> {
+  const { data, error } = await supabase
+    .from('books')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Load books error:', error);
+    throw new Error(`Failed to load books: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+/**
+ * Update book metadata (category, favorite, summary)
+ */
+export async function updateBook(
+  bookId: string, 
+  updates: Partial<Pick<StoredBook, 'category' | 'is_favorite' | 'summary'>>
+): Promise<void> {
+  const { error } = await supabase
+    .from('books')
+    .update(updates)
+    .eq('id', bookId);
+
+  if (error) {
+    console.error('Update book error:', error);
+    throw new Error(`Failed to update book: ${error.message}`);
+  }
+}
+
+/**
+ * Delete a book and its files
+ */
+export async function deleteBook(bookId: string, pdfUrl: string, coverUrl?: string): Promise<void> {
+  // Delete from database first
+  const { error: dbError } = await supabase
+    .from('books')
+    .delete()
+    .eq('id', bookId);
+
+  if (dbError) {
+    console.error('Delete book error:', dbError);
+    throw new Error(`Failed to delete book: ${dbError.message}`);
+  }
+
+  // Try to delete files from storage (extract path from URL)
+  try {
+    const pdfPath = pdfUrl.split('/pdfs/')[1];
+    if (pdfPath) {
+      await supabase.storage.from('pdfs').remove([`books/${pdfPath}`]);
+    }
+    
+    if (coverUrl) {
+      const coverPath = coverUrl.split('/covers/')[1];
+      if (coverPath) {
+        await supabase.storage.from('covers').remove([`covers/${coverPath}`]);
+      }
+    }
+  } catch (e) {
+    console.warn('Could not delete storage files:', e);
+  }
+}
