@@ -1,30 +1,9 @@
 import React, { useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { Float, MeshDistortMaterial } from '@react-three/drei';
 import { UploadCloud, ChevronRight, Heart } from 'lucide-react';
 import { LibraryBook } from '../types';
-
-// 3D Floating Shape Component
-function FloatingShape({ darkMode }: { darkMode: boolean }) {
-  return (
-    <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-      <mesh scale={1.5}>
-        <icosahedronGeometry args={[1, 1]} />
-        <MeshDistortMaterial
-          color={darkMode ? "#3b82f6" : "#8b5cf6"}
-          attach="material"
-          distort={0.4}
-          speed={2}
-          roughness={0.2}
-          metalness={0.8}
-          transparent
-          opacity={0.6}
-        />
-      </mesh>
-    </Float>
-  );
-}
+import { ConveyorBelt } from './3d/ConveyorBelt';
 
 interface HomeProps {
   books: LibraryBook[];
@@ -70,13 +49,17 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
         }}
       />
 
-      {/* 3D Floating Shape Background */}
-      <div className="absolute inset-0 pointer-events-none opacity-40">
-        <Canvas camera={{ position: [0, 0, 5] }}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
+      {/* 3D Conveyor Belt Background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ opacity: darkMode ? 0.5 : 0.7 }}>
+        <Canvas 
+          camera={{ position: [0, 2, 8], fov: 50 }}
+          style={{ background: 'transparent' }}
+        >
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[10, 10, 5]} intensity={1.2} color="#ffffff" />
+          <directionalLight position={[-5, 5, 5]} intensity={0.5} color="#f0abfc" />
           <Suspense fallback={null}>
-            <FloatingShape darkMode={darkMode} />
+            <ConveyorBelt darkMode={darkMode} />
           </Suspense>
         </Canvas>
       </div>
