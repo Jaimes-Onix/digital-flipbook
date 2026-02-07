@@ -47,6 +47,18 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        chunkSizeWarningLimit: 1500,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'three': ['three'],
+              'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+              'pdf': ['pdfjs-dist'],
+            }
+          }
+        }
       }
     };
 });
