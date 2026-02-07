@@ -57,7 +57,7 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
   );
 
   return (
-    <div className={`flex flex-col items-center justify-center h-full w-full px-4 fade-in relative transition-colors duration-300 ${darkMode ? 'bg-[#0D0D0F]' : ''}`}>
+    <div className={`flex flex-col items-center justify-center h-full w-full px-4 fade-in relative transition-colors duration-300`}>
       {onBack && !isLoading && (
         <button
           onClick={onBack}
@@ -70,11 +70,15 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
         </button>
       )}
 
-      <div className="max-w-md w-full text-center">
+      <div className={`max-w-md w-full text-center rounded-3xl px-8 py-10 ${
+        darkMode
+          ? 'bg-black/40 backdrop-blur-2xl shadow-2xl shadow-black/20 border border-white/10'
+          : 'bg-white/50 backdrop-blur-2xl shadow-2xl shadow-black/5 border border-white/60'
+      }`}>
         <h1 className={`text-4xl font-semibold mb-2 tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           Lifewood Flipbook
         </h1>
-        <p className={`mb-10 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <p className={`mb-10 text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           Create premium digital flipbooks from PDF.
         </p>
 
@@ -131,7 +135,7 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
                 <p className={`text-lg font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Import New PDF
                 </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   Select files to add to your library
                 </p>
               </div>
@@ -149,7 +153,7 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
         </div>
         
         {!isLoading && (
-          <div className={`mt-8 flex items-center justify-center gap-2 text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div className={`mt-8 flex items-center justify-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             <FileText size={16} />
             <span>Lifewood Standard PDF Support</span>
           </div>

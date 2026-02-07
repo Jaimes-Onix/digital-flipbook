@@ -16,9 +16,6 @@ export interface StoredBook {
   created_at: string;
 }
 
-/**
- * Upload a PDF file to Supabase Storage
- */
 export async function uploadPDF(file: File): Promise<string> {
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
@@ -28,11 +25,18 @@ export async function uploadPDF(file: File): Promise<string> {
     .from('pdfs')
     .upload(filePath, file, {
       cacheControl: '3600',
-      upsert: false
+      upsert: true  // Allow overwrites to prevent duplicate file errors
     });
 
   if (error) {
-    console.error('Upload error:', error);
+    console.error('===== SUPABASE UPLOAD ERROR DETAILS =====');
+    console.error('Error object:', JSON.stringify(error, null, 2));
+    console.error('Error message:', error.message);
+    console.error('Error name:', error.name);
+    console.error('File path attempted:', filePath);
+    console.error('File size:', file.size);
+    console.error('File type:', file.type);
+    console.error('=========================================');
     throw new Error(`Failed to upload PDF: ${error.message}`);
   }
 
@@ -51,7 +55,7 @@ export async function uploadCover(base64Data: string, bookId: string): Promise<s
   // Convert base64 to blob
   const response = await fetch(base64Data);
   const blob = await response.blob();
-  
+
   const fileName = `${bookId}-cover.jpg`;
   const filePath = `covers/${fileName}`;
 
@@ -60,7 +64,7 @@ export async function uploadCover(base64Data: string, bookId: string): Promise<s
     .upload(filePath, blob, {
       contentType: 'image/jpeg',
       cacheControl: '3600',
-      upsert: true
+      upsert: true  // Allow overwrites to prevent duplicate file errors
     });
 
   if (error) {
@@ -91,7 +95,7 @@ export async function saveBookMetadata(book: {
 }): Promise<StoredBook> {
   // Get current user (or use anonymous fallback)
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   const insertData: any = {
     title: book.title,
     original_filename: book.original_filename,
@@ -103,7 +107,7 @@ export async function saveBookMetadata(book: {
     is_favorite: book.is_favorite || false,
     summary: book.summary || null
   };
-  
+
   // Only add user_id if we have an authenticated user
   // Some RLS policies auto-fill this, others require it
   if (user) {
@@ -152,7 +156,7 @@ export async function loadBooks(): Promise<StoredBook[]> {
  * Update book metadata (category, favorite, summary)
  */
 export async function updateBook(
-  bookId: string, 
+  bookId: string,
   updates: Partial<Pick<StoredBook, 'category' | 'is_favorite' | 'summary'>>
 ): Promise<void> {
   const { error } = await supabase
@@ -187,7 +191,7 @@ export async function deleteBook(bookId: string, pdfUrl: string, coverUrl?: stri
     if (pdfPath) {
       await supabase.storage.from('pdfs').remove([`books/${pdfPath}`]);
     }
-    
+
     if (coverUrl) {
       const coverPath = coverUrl.split('/covers/')[1];
       if (coverPath) {

@@ -13,17 +13,18 @@ import Library from './components/Library';
 import LibraryActionModal from './components/LibraryActionModal';
 import UploadCategoryModal from './components/UploadCategoryModal';
 import FeaturedCarousel from './components/FeaturedCarousel';
+import VantaFogBackground from './components/VantaFogBackground';
 import { getDocument } from './utils/pdfUtils';
 import { BookRef, LibraryBook, BookCategory } from './types';
 import type { LibraryFilter } from './components/Sidebar';
-import { 
-  uploadPDF, 
-  uploadCover, 
-  saveBookMetadata, 
+import {
+  uploadPDF,
+  uploadCover,
+  saveBookMetadata,
   loadBooks as loadBooksFromSupabase,
   updateBook as updateBookInSupabase,
   deleteBook as deleteBookFromSupabase,
-  type StoredBook 
+  type StoredBook
 } from './src/lib/bookStorage';
 
 // Apple-style Success Modal Component
@@ -34,25 +35,25 @@ const ConversionSuccessModal: React.FC<{
   onViewBooks: () => void;
 }> = ({ isOpen, bookCount, onClose, onViewBooks }) => {
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center">
       {/* Backdrop with blur */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/40 backdrop-blur-md"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300">
         {/* Close button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <X size={20} />
         </button>
-        
+
         {/* Success icon with glow */}
         <div className="flex justify-center mb-6">
           <div className="relative">
@@ -62,20 +63,20 @@ const ConversionSuccessModal: React.FC<{
             </div>
           </div>
         </div>
-        
+
         {/* Title */}
         <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
           Conversion Successful
         </h2>
-        
+
         {/* Subtitle */}
         <p className="text-gray-500 text-center mb-8">
-          {bookCount === 1 
+          {bookCount === 1
             ? "Your PDF has been converted to a digital flipbook!"
             : `${bookCount} PDFs have been converted to digital flipbooks!`
           }
         </p>
-        
+
         {/* Buttons */}
         <div className="flex flex-col gap-3">
           <button
@@ -87,7 +88,7 @@ const ConversionSuccessModal: React.FC<{
               View in Library
             </span>
           </button>
-          
+
           <button
             onClick={onClose}
             className="w-full py-3.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all active:scale-[0.98]"
@@ -103,12 +104,12 @@ const ConversionSuccessModal: React.FC<{
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [darkMode, setDarkMode] = useState(true);
   const [homeVariant, setHomeVariant] = useState<1 | 2>(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [readerMode, setReaderMode] = useState<'manual' | 'preview'>('manual');
-  const [books, setBooks] = useState<LibraryBook[]>([]); 
+  const [books, setBooks] = useState<LibraryBook[]>([]);
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
   const [pendingBook, setPendingBook] = useState<LibraryBook | null>(null);
   const [uploadedBooksPending, setUploadedBooksPending] = useState<LibraryBook[]>([]);
@@ -118,13 +119,13 @@ const App: React.FC = () => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isLoadingBook, setIsLoadingBook] = useState(false);
-  
+
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successBookCount, setSuccessBookCount] = useState(0);
-  
+
   const bookRef = useRef<BookRef | null>(null);
-  
+
   // Derive current view and filter from route
   const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' => {
     if (location.pathname === '/' || location.pathname === '/home') return 'home';
@@ -132,7 +133,7 @@ const App: React.FC = () => {
     if (location.pathname.startsWith('/reader')) return 'reader';
     return 'library';
   };
-  
+
   const getCurrentFilter = (): LibraryFilter => {
     if (location.pathname === '/favorites') return 'favorites';
     if (location.pathname === '/philippines') return 'philippines';
@@ -141,7 +142,7 @@ const App: React.FC = () => {
     if (location.pathname === '/ph-interns') return 'ph_interns';
     return 'all';
   };
-  
+
   const view = getCurrentView();
   const libraryFilter = getCurrentFilter();
 
@@ -151,28 +152,28 @@ const App: React.FC = () => {
       try {
         setLoadingStatus('Loading your library...');
         const storedBooks = await loadBooksFromSupabase();
-        
+
         if (storedBooks.length === 0) {
           setLoadingStatus(null);
           return;
         }
-        
+
         // Load books in parallel with individual error handling
         const libraryBooks: LibraryBook[] = [];
-        
+
         await Promise.all(
           storedBooks.map(async (stored, index) => {
             try {
               setLoadingStatus(`Loading book ${index + 1} of ${storedBooks.length}...`);
-              
+
               // Fetch PDF and create document
               const response = await fetch(stored.pdf_url);
               if (!response.ok) throw new Error('Failed to fetch PDF');
-              
+
               const blob = await response.blob();
               const file = new File([blob], stored.original_filename, { type: 'application/pdf' });
               const doc = await getDocument(file);
-              
+
               libraryBooks.push({
                 id: stored.id,
                 name: stored.title,
@@ -190,7 +191,7 @@ const App: React.FC = () => {
             }
           })
         );
-        
+
         setBooks(libraryBooks);
         setLoadingStatus(null);
         console.log(`Loaded ${libraryBooks.length} of ${storedBooks.length} books from Supabase`);
@@ -210,12 +211,12 @@ const App: React.FC = () => {
     const context = canvas.getContext('2d');
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    
+
     await page.render({
       canvasContext: context,
       viewport: viewport,
     }).promise;
-    
+
     return canvas.toDataURL('image/jpeg', 0.8);
   };
 
@@ -225,13 +226,21 @@ const App: React.FC = () => {
 
     try {
       const newBooks: LibraryBook[] = [];
-      
+
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        
+
+        // Check file size before uploading (bucket limit: 500MB)
+        const MAX_FILE_SIZE_MB = 150;
+        const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+          const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+          throw new Error(`File "${file.name}" is ${fileSizeMB}MB which exceeds the ${MAX_FILE_SIZE_MB}MB upload limit. Please use a smaller PDF or compress it first.`);
+        }
+
         // Step 1: Converting PDF
         setLoadingStatus(`Converting PDF to Digital Book... (${i + 1}/${total})`);
-        
+
         // Parse PDF first
         let doc;
         try {
@@ -241,7 +250,7 @@ const App: React.FC = () => {
           console.error('PDF parsing failed:', pdfError);
           throw new Error(`PDF parsing failed: ${pdfError.message || 'Invalid PDF format'}`);
         }
-        
+
         let coverBase64;
         try {
           coverBase64 = await extractCover(doc);
@@ -250,10 +259,10 @@ const App: React.FC = () => {
           console.error('Cover extraction failed:', coverError);
           throw new Error(`Cover extraction failed: ${coverError.message}`);
         }
-        
-        // Step 2: Uploading to cloud
-        setLoadingStatus(`Uploading to cloud... (${i + 1}/${total})`);
-        
+
+        // Step 2: Uploading PDF
+        setLoadingStatus(`Uploading PDF... (${i + 1}/${total})`);
+
         // Upload PDF to Supabase Storage
         let pdfUrl;
         try {
@@ -263,10 +272,10 @@ const App: React.FC = () => {
           console.error('PDF upload failed:', uploadError);
           throw new Error(`PDF upload failed: ${uploadError.message}`);
         }
-        
+
         // Generate temporary ID for cover upload
         const tempId = Math.random().toString(36).substr(2, 9) + Date.now();
-        
+
         // Upload cover to Supabase Storage
         let coverUrl = coverBase64; // fallback to base64
         try {
@@ -275,10 +284,10 @@ const App: React.FC = () => {
         } catch (e) {
           console.warn('Cover upload failed, using base64:', e);
         }
-        
+
         // Step 3: Saving metadata
         setLoadingStatus(`Finalizing... (${i + 1}/${total})`);
-        
+
         // Save metadata to Supabase database
         let savedBook;
         try {
@@ -295,7 +304,7 @@ const App: React.FC = () => {
           console.error('Database save failed:', dbError);
           throw new Error(`Database save failed: ${dbError.message}`);
         }
-        
+
         newBooks.push({
           id: savedBook.id,
           name: savedBook.title,
@@ -310,23 +319,28 @@ const App: React.FC = () => {
 
       setLoadingStatus(null);
       setSidebarOpen(false);
-      
+
       // Add books to library
       setBooks(prev => [...prev, ...newBooks]);
-      
+
       // Show Apple-style success modal
       setSuccessBookCount(newBooks.length);
       setShowSuccessModal(true);
-      
+
       // Queue books for category selection after modal closes
       if (newBooks.length > 0) {
         setUploadedBooksPending(newBooks);
       }
-      
+
     } catch (error: any) {
-      console.error("Failed to upload PDF:", error);
+      console.error("===== UPLOAD PROCESS ERROR =====");
+      console.error("Full error object:", error);
+      console.error("Error message:", error?.message);
+      console.error("Error stack:", error?.stack);
+      console.error("================================");
+
       setLoadingStatus(null);
-      
+
       // Show more specific error message
       let errorMessage = "Conversion failed. ";
       if (error?.message) {
@@ -342,7 +356,7 @@ const App: React.FC = () => {
       } else {
         errorMessage += "Please ensure your files are valid PDFs and try again.";
       }
-      
+
       setConversionToast(errorMessage);
       setTimeout(() => setConversionToast(null), 8000);
     }
@@ -350,22 +364,22 @@ const App: React.FC = () => {
 
   const handleUploadCategoryConfirm = async (bookId: string, category?: BookCategory, isFavorite?: boolean) => {
     // Update the book with category in local state
-    setBooks(prev => prev.map(book => 
-      book.id === bookId 
+    setBooks(prev => prev.map(book =>
+      book.id === bookId
         ? { ...book, category, isFavorite: isFavorite || false }
         : book
     ));
-    
+
     // Save to Supabase
     try {
-      await updateBookInSupabase(bookId, { 
-        category: category || null, 
-        is_favorite: isFavorite || false 
+      await updateBookInSupabase(bookId, {
+        category: category || null,
+        is_favorite: isFavorite || false
       });
     } catch (e) {
       console.error('Failed to update book in Supabase:', e);
     }
-    
+
     // Remove this book from pending queue and show next
     setUploadedBooksPending(prev => {
       const remaining = prev.slice(1);
@@ -373,8 +387,8 @@ const App: React.FC = () => {
         // All books categorized, go to library
         navigate('/library');
         setConversionToast(
-          prev.length === 1 
-            ? "Your flipbook has been added to the library!" 
+          prev.length === 1
+            ? "Your flipbook has been added to the library!"
             : "All flipbooks have been added to the library!"
         );
         setTimeout(() => setConversionToast(null), 4000);
@@ -385,11 +399,11 @@ const App: React.FC = () => {
 
   const handleRemoveBook = async (bookId: string) => {
     const book = books.find(b => b.id === bookId);
-    
+
     // Remove from local state immediately
     setBooks(prev => prev.filter(b => b.id !== bookId));
     if (pendingBook?.id === bookId) setPendingBook(null);
-    
+
     // Delete from Supabase
     if (book) {
       try {
@@ -458,7 +472,7 @@ const App: React.FC = () => {
   const handleToggleFavorite = async (bookId: string) => {
     const book = books.find(b => b.id === bookId);
     const newFavoriteState = !book?.isFavorite;
-    
+
     setBooks(prev => prev.map(b => b.id === bookId ? { ...b, isFavorite: newFavoriteState } : b));
     if (pendingBook?.id === bookId) {
       setPendingBook(prev => prev ? { ...prev, isFavorite: newFavoriteState } : null);
@@ -473,41 +487,41 @@ const App: React.FC = () => {
 
   const handleSelectMode = async (mode: 'manual' | 'preview') => {
     if (!pendingBook) return;
-    
+
     // Show loading state
     setIsLoadingBook(true);
     setReaderMode(mode);
-    
+
     try {
       // Validate PDF document exists and is valid
       const doc = pendingBook.doc;
       if (!doc || typeof doc.getPage !== 'function') {
         throw new Error('Invalid PDF document');
       }
-      
+
       // Check total pages
       if (!doc.numPages || doc.numPages < 1) {
         throw new Error('PDF has no pages');
       }
-      
+
       // Pre-load first few pages to ensure they render
       console.log(`Loading book: ${pendingBook.name} (${doc.numPages} pages)`);
-      
+
       const pagesToPreload = Math.min(3, doc.numPages);
       for (let i = 1; i <= pagesToPreload; i++) {
         const page = await doc.getPage(i);
         if (!page) throw new Error(`Failed to load page ${i}`);
       }
-      
+
       console.log('Book pre-loaded successfully');
-      
+
       // All validation passed - open the reader
       setSelectedBook(pendingBook);
       setPendingBook(null);
       setCurrentPage(0);
       setZoomLevel(1);
       navigate(`/reader/${pendingBook.id}`);
-      
+
       // Small delay for transition
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
@@ -521,10 +535,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (view !== 'reader') return;
-        if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext();
-        if (e.key === 'ArrowLeft') bookRef.current?.pageFlip()?.flipPrev();
-        if (e.key === 'Escape') { navigate('/library'); setSelectedBook(null); }
+      if (view !== 'reader') return;
+      if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext();
+      if (e.key === 'ArrowLeft') bookRef.current?.pageFlip()?.flipPrev();
+      if (e.key === 'Escape') { navigate('/library'); setSelectedBook(null); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -533,11 +547,14 @@ const App: React.FC = () => {
   const isLandingPage = false; // Sidebar always visible
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 ${darkMode ? 'bg-[#0D0D0F] text-white' : 'bg-[#F5F5F7] text-gray-900'}`}>
+    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+      {/* Vanta.js Fog Background - covers entire viewport */}
+      <VantaFogBackground darkMode={darkMode} />
+
       {/* Sidebar - Shared across views except reader (optional) */}
       {view !== 'reader' && !isLandingPage && (
-        <Sidebar 
-          currentView={view} 
+        <Sidebar
+          currentView={view}
           currentFilter={libraryFilter}
           darkMode={darkMode}
           onToggleDarkMode={() => setDarkMode(prev => !prev)}
@@ -546,21 +563,21 @@ const App: React.FC = () => {
         />
       )}
 
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        {!isLandingPage && <Header 
+      <div className="flex-1 flex flex-col relative overflow-hidden z-10">
+        {!isLandingPage && <Header
           view={view}
           darkMode={darkMode}
           homeVariant={homeVariant}
           onToggleHomeVariant={() => setHomeVariant(prev => prev === 1 ? 2 : 1)}
           onToggleSidebar={() => setSidebarOpen(prev => !prev)}
-          fileName={selectedBook?.name} 
+          fileName={selectedBook?.name}
         />}
 
-        <main className={`flex-1 relative w-full h-full ${isLandingPage ? '' : 'pt-16'} overflow-y-auto no-scrollbar ${darkMode ? 'bg-[#0D0D0F]' : 'bg-[#F5F5F7]'}`}>
+        <main className={`flex-1 relative w-full h-full ${isLandingPage ? '' : 'pt-16'} overflow-y-auto no-scrollbar`}>
           <Routes>
             {/* Home Route - with 3D effects */}
             <Route path="/" element={
-              <Home 
+              <Home
                 books={books}
                 darkMode={darkMode}
                 variant={homeVariant}
@@ -570,7 +587,7 @@ const App: React.FC = () => {
               />
             } />
             <Route path="/home" element={
-              <Home 
+              <Home
                 books={books}
                 darkMode={darkMode}
                 variant={homeVariant}
@@ -582,11 +599,11 @@ const App: React.FC = () => {
 
             {/* Upload Route */}
             <Route path="/upload" element={
-              <Upload 
-                onFilesSelect={handleFilesSelect} 
+              <Upload
+                onFilesSelect={handleFilesSelect}
                 onBack={() => navigate('/library')}
-                isLoading={!!loadingStatus} 
-                statusMessage={loadingStatus || ""} 
+                isLoading={!!loadingStatus}
+                statusMessage={loadingStatus || ""}
                 darkMode={darkMode}
               />
             } />
@@ -597,11 +614,11 @@ const App: React.FC = () => {
                 {books.length > 0 && libraryFilter === 'all' && (
                   <FeaturedCarousel books={books.slice(0, 5)} darkMode={darkMode} />
                 )}
-                <Library 
-                  books={books} 
+                <Library
+                  books={books}
                   filter={libraryFilter}
                   darkMode={darkMode}
-                  onSelectBook={(b) => setPendingBook(b)} 
+                  onSelectBook={(b) => setPendingBook(b)}
                   onAddNew={() => navigate('/upload')}
                   onRemoveBook={handleRemoveBook}
                 />
@@ -609,55 +626,55 @@ const App: React.FC = () => {
             } />
 
             <Route path="/favorites" element={
-              <Library 
-                books={books} 
+              <Library
+                books={books}
                 filter="favorites"
                 darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)} 
+                onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}
               />
             } />
 
             <Route path="/philippines" element={
-              <Library 
-                books={books} 
+              <Library
+                books={books}
                 filter="philippines"
                 darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)} 
+                onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}
               />
             } />
 
             <Route path="/internal" element={
-              <Library 
-                books={books} 
+              <Library
+                books={books}
                 filter="internal"
                 darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)} 
+                onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}
               />
             } />
 
             <Route path="/international" element={
-              <Library 
-                books={books} 
+              <Library
+                books={books}
                 filter="international"
                 darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)} 
+                onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}
               />
             } />
 
             <Route path="/ph-interns" element={
-              <Library 
-                books={books} 
+              <Library
+                books={books}
                 filter="ph_interns"
                 darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)} 
+                onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}
               />
@@ -666,32 +683,32 @@ const App: React.FC = () => {
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
               selectedBook && (
-            <div className="w-full h-full min-h-0 flex flex-col overflow-hidden relative">
-              {/* Close button */}
-              <button 
-                onClick={() => { navigate('/library'); setSelectedBook(null); }}
-                className="absolute top-3 right-3 z-[9999] w-10 h-10 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/30 transition-all rounded-full"
-              >
-                <X size={24} />
-              </button>
-              
-              {/* BookViewer - uses pre-parsed PDF, works reliably */}
-              <div className="flex-1 w-full h-full">
-                <BookViewer
-                  pdfDocument={selectedBook.doc}
-                  onFlip={setCurrentPage}
-                  onBookInit={(book) => { bookRef.current = book; }}
-                  autoPlay={readerMode === 'preview'}
-                />
-              </div>
-            </div>
+                <div className="w-full h-full min-h-0 flex flex-col overflow-hidden relative">
+                  {/* Close button */}
+                  <button
+                    onClick={() => { navigate('/library'); setSelectedBook(null); }}
+                    className="absolute top-3 right-3 z-[9999] w-10 h-10 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/30 transition-all rounded-full"
+                  >
+                    <X size={24} />
+                  </button>
+
+                  {/* BookViewer - uses pre-parsed PDF, works reliably */}
+                  <div className="flex-1 w-full h-full">
+                    <BookViewer
+                      pdfDocument={selectedBook.doc}
+                      onFlip={setCurrentPage}
+                      onBookInit={(book) => { bookRef.current = book; }}
+                      autoPlay={readerMode === 'preview'}
+                    />
+                  </div>
+                </div>
               )
             } />
           </Routes>
         </main>
       </div>
 
-      <LibraryActionModal 
+      <LibraryActionModal
         book={pendingBook}
         onClose={() => setPendingBook(null)}
         onSelectMode={handleSelectMode}
@@ -729,12 +746,11 @@ const App: React.FC = () => {
 
       {/* Conversion success/error toast */}
       {conversionToast && (
-        <div 
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border animate-in fade-in slide-in-from-bottom-4 duration-300 ${
-            conversionToast.startsWith('Conversion failed') 
-              ? darkMode ? 'bg-red-900/80 border-red-700 text-red-200' : 'bg-red-50 border-red-200 text-red-800' 
-              : darkMode ? 'bg-gray-800/95 backdrop-blur-xl border-gray-700 text-white' : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
-          }`}
+        <div
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border animate-in fade-in slide-in-from-bottom-4 duration-300 ${conversionToast.startsWith('Conversion failed')
+            ? darkMode ? 'bg-red-900/80 border-red-700 text-red-200' : 'bg-red-50 border-red-200 text-red-800'
+            : darkMode ? 'bg-gray-800/95 backdrop-blur-xl border-gray-700 text-white' : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
+            }`}
         >
           {conversionToast.startsWith('Conversion failed') ? (
             <AlertCircle size={24} className="text-red-500 shrink-0" />
