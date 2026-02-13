@@ -141,6 +141,7 @@ const App: React.FC = () => {
     if (location.pathname === '/international') return 'international';
     if (location.pathname === '/ph-interns') return 'ph_interns';
     if (location.pathname === '/deseret') return 'deseret';
+    if (location.pathname === '/angelhost') return 'angelhost';
     return 'all';
   };
 
@@ -686,6 +687,19 @@ const App: React.FC = () => {
                 books={books}
                 filter="deseret"
                 darkMode={darkMode}
+                isLoading={!!loadingStatus}
+                onSelectBook={(b) => setPendingBook(b)}
+                onAddNew={() => navigate('/upload')}
+                onRemoveBook={handleRemoveBook}
+              />
+            } />
+
+            <Route path="/angelhost" element={
+              <Library
+                books={books}
+                filter="angelhost"
+                darkMode={darkMode}
+                isLoading={!!loadingStatus}
                 onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}

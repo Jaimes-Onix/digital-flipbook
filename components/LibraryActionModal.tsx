@@ -7,6 +7,8 @@ const CATEGORY_OPTIONS: { value: BookCategory; label: string }[] = [
   { value: 'internal', label: 'Internal' },
   { value: 'international', label: 'International' },
   { value: 'ph_interns', label: 'PH Interns' },
+  { value: 'deseret', label: 'Deseret' },
+  { value: 'angelhost', label: 'Angelhost' },
 ];
 
 interface LibraryActionModalProps {

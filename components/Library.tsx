@@ -11,6 +11,7 @@ const SECTION_TITLES: Record<LibraryFilter, string> = {
   international: 'International Flipbooks',
   ph_interns: 'PH Interns Flipbooks',
   deseret: 'Deseret Flipbooks',
+  angelhost: 'Angelhost Flipbooks',
 };
 
 interface LibraryProps {
@@ -33,10 +34,10 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, onSe
 
   const handleBookClick = (book: LibraryBook) => {
     if (openingBookId || confirmingDeleteId) return;
-    
+
     // Start animation
     setOpeningBookId(book.id);
-    
+
     // Delay the actual transition to allow the animation to play
     setTimeout(() => {
       onSelectBook(book);
@@ -65,13 +66,12 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, onSe
     <div className={`w-full max-w-7xl mx-auto px-6 py-12 transition-all duration-500 ${openingBookId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
       <div className="flex items-center justify-between mb-12">
         <h2 className={`text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>{SECTION_TITLES[filter]}</h2>
-        <button 
+        <button
           onClick={onAddNew}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-lg text-sm font-medium ${
-            darkMode 
-              ? 'bg-white text-black hover:bg-gray-200 shadow-white/10' 
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-lg text-sm font-medium ${darkMode
+              ? 'bg-white text-black hover:bg-gray-200 shadow-white/10'
               : 'bg-black text-white hover:bg-gray-800 shadow-black/10'
-          }`}
+            }`}
         >
           <Plus size={18} />
           Add PDF
@@ -82,15 +82,15 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, onSe
         {filteredBooks.map((book) => {
           const isOpening = openingBookId === book.id;
           const isConfirming = confirmingDeleteId === book.id;
-          
+
           return (
-            <div 
-              key={book.id} 
+            <div
+              key={book.id}
               className={`group cursor-pointer perspective-1000 ${isOpening ? 'z-50 pointer-events-none' : 'z-10'}`}
               onClick={() => handleBookClick(book)}
             >
               <div className={`relative aspect-[3/4] mb-4 transition-all duration-500 ${isOpening ? 'animate-zoom-forward' : ''}`}>
-                
+
                 {/* Book 3D Effect Container */}
                 <div className={`w-full h-full relative transition-transform duration-500 ease-out 
                   ${!isOpening && !isConfirming ? 'group-hover:-translate-y-2 group-hover:rotate-y-[-12deg]' : ''} 
@@ -98,15 +98,15 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, onSe
                 >
                   {/* Book Spine Shadow */}
                   <div className="absolute inset-y-0 left-0 w-2.5 bg-black/20 z-10" />
-                  
+
                   {/* Cover Image */}
-                  <img 
-                    src={book.coverUrl} 
-                    alt={book.name} 
+                  <img
+                    src={book.coverUrl}
+                    alt={book.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
-                  
+
                   {/* Edge Lighting */}
                   <div className="absolute inset-0 border-l border-white/30 z-20 pointer-events-none" />
 
@@ -152,7 +152,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, onSe
                   )}
                 </div>
               </div>
-              
+
               <div className={`space-y-1 transition-all duration-300 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
                 <h3 className={`text-sm font-semibold line-clamp-1 group-hover:text-blue-500 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {book.name.replace('.pdf', '')}
@@ -167,19 +167,17 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, onSe
 
         {/* Empty State / Add Card */}
         {filteredBooks.length === 0 && (
-          <button 
+          <button
             onClick={onAddNew}
-            className={`group aspect-[3/4] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 ${
-              darkMode 
-                ? 'border-gray-700 text-gray-500 hover:border-blue-500 hover:bg-blue-900/20 hover:text-blue-400' 
+            className={`group aspect-[3/4] border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 ${darkMode
+                ? 'border-gray-700 text-gray-500 hover:border-blue-500 hover:bg-blue-900/20 hover:text-blue-400'
                 : 'border-gray-200 text-gray-400 hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-600'
-            }`}
+              }`}
           >
-            <div className={`p-5 rounded-full group-hover:scale-110 transition-all ${
-              darkMode 
-                ? 'bg-gray-800 group-hover:bg-blue-900/30' 
+            <div className={`p-5 rounded-full group-hover:scale-110 transition-all ${darkMode
+                ? 'bg-gray-800 group-hover:bg-blue-900/30'
                 : 'bg-gray-50 group-hover:bg-blue-100'
-            }`}>
+              }`}>
               <Plus size={36} strokeWidth={1.5} />
             </div>
             <div className="text-center">

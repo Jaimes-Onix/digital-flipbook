@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.books (
   cover_url TEXT,
   total_pages INTEGER NOT NULL DEFAULT 0,
   file_size BIGINT,
-  category TEXT CHECK (category IN ('philippines', 'internal', 'international', 'ph_interns', 'deseret')),
+  category TEXT CHECK (category IN ('philippines', 'internal', 'international', 'ph_interns', 'deseret', 'angelhost')),
   is_favorite BOOLEAN DEFAULT FALSE,
   summary TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
