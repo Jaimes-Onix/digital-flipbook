@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
-import { CheckCircle2, AlertCircle, X, BookOpen } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, BookOpen, Search } from 'lucide-react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Home from './components/Home';
@@ -31,68 +31,53 @@ import {
 const ConversionSuccessModal: React.FC<{
   isOpen: boolean;
   bookCount: number;
+  darkMode?: boolean;
   onClose: () => void;
   onViewBooks: () => void;
-}> = ({ isOpen, bookCount, onClose, onViewBooks }) => {
+}> = ({ isOpen, bookCount, darkMode = true, onClose, onViewBooks }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center">
-      {/* Backdrop with blur */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-md"
-        onClick={onClose}
-      />
+      <div className={`absolute inset-0 backdrop-blur-md ${darkMode ? 'bg-black/40' : 'bg-black/20'}`} onClick={onClose} />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
-        >
+      <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300 border ${
+        darkMode ? 'bg-[#141418]/95 shadow-black/50 border-white/[0.06]' : 'bg-white/95 shadow-gray-300/40 border-gray-200'
+      }`}>
+        <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${darkMode ? 'text-zinc-600 hover:text-zinc-400' : 'text-gray-400 hover:text-gray-600'}`}>
           <X size={20} />
         </button>
 
-        {/* Success icon with glow */}
         <div className="flex justify-center mb-6">
           <div className="relative">
-            <div className="absolute inset-0 bg-green-400/30 rounded-full blur-xl animate-pulse" />
-            <div className="relative w-20 h-20 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
+            <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <CheckCircle2 size={40} className="text-white" />
             </div>
           </div>
         </div>
 
-        {/* Title */}
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
-          Conversion Successful
-        </h2>
-
-        {/* Subtitle */}
-        <p className="text-gray-500 text-center mb-8">
+        <h2 className={`text-2xl font-bold text-center mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Conversion Successful</h2>
+        <p className={`text-center mb-8 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
           {bookCount === 1
             ? "Your PDF has been converted to a digital flipbook!"
             : `${bookCount} PDFs have been converted to digital flipbooks!`
           }
         </p>
 
-        {/* Buttons */}
         <div className="flex flex-col gap-3">
-          <button
-            onClick={onViewBooks}
-            className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 transition-all active:scale-[0.98]"
-          >
+          <button onClick={onViewBooks}
+            className={`w-full py-3.5 font-semibold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${
+              darkMode ? 'bg-white text-zinc-900 shadow-white/5 hover:bg-zinc-100' : 'bg-gray-900 text-white shadow-gray-400/20 hover:bg-gray-800'
+            }`}>
             <span className="flex items-center justify-center gap-2">
-              <BookOpen size={18} />
-              View in Library
+              <BookOpen size={18} /> View in Library
             </span>
           </button>
-
-          <button
-            onClick={onClose}
-            className="w-full py-3.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all active:scale-[0.98]"
-          >
+          <button onClick={onClose}
+            className={`w-full py-3.5 font-medium rounded-2xl transition-all active:scale-[0.98] ${
+              darkMode ? 'bg-white/[0.05] text-zinc-400 hover:bg-white/[0.08]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}>
             Close
           </button>
         </div>
@@ -106,6 +91,12 @@ const App: React.FC = () => {
   const location = useLocation();
 
   const [darkMode, setDarkMode] = useState(true);
+
+  // Sync data-theme attribute on document for CSS variables
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
   const [homeVariant, setHomeVariant] = useState<1 | 2>(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [readerMode, setReaderMode] = useState<'manual' | 'preview'>('manual');
@@ -119,12 +110,15 @@ const App: React.FC = () => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isLoadingBook, setIsLoadingBook] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successBookCount, setSuccessBookCount] = useState(0);
 
   const bookRef = useRef<BookRef | null>(null);
+  const previousRouteRef = useRef<string>('/library');
+  const readerContainerRef = useRef<HTMLDivElement>(null);
 
   // Derive current view and filter from route
   const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' => {
@@ -148,7 +142,7 @@ const App: React.FC = () => {
   const view = getCurrentView();
   const libraryFilter = getCurrentFilter();
 
-  // Load books from Supabase on app start
+  // Load books from Supabase on app start — metadata only (instant, no PDF downloads)
   useEffect(() => {
     const loadSavedBooks = async () => {
       try {
@@ -160,43 +154,24 @@ const App: React.FC = () => {
           return;
         }
 
-        // Load books in parallel with individual error handling
-        const libraryBooks: LibraryBook[] = [];
-
-        await Promise.all(
-          storedBooks.map(async (stored, index) => {
-            try {
-              setLoadingStatus(`Loading book ${index + 1} of ${storedBooks.length}...`);
-
-              // Fetch PDF and create document
-              const response = await fetch(stored.pdf_url);
-              if (!response.ok) throw new Error('Failed to fetch PDF');
-
-              const blob = await response.blob();
-              const file = new File([blob], stored.original_filename, { type: 'application/pdf' });
-              const doc = await getDocument(file);
-
-              libraryBooks.push({
-                id: stored.id,
-                name: stored.title,
-                doc: doc,
-                pdfUrl: stored.pdf_url,
-                coverUrl: stored.cover_url || '',
-                totalPages: stored.total_pages,
-                summary: stored.summary || undefined,
-                category: stored.category || undefined,
-                isFavorite: stored.is_favorite
-              });
-            } catch (bookError) {
-              console.error(`Failed to load book "${stored.title}":`, bookError);
-              // Continue with other books even if one fails
-            }
-          })
-        );
+        // Only load metadata + cover URLs (no PDF downloading or parsing!)
+        // PDFs are lazy-loaded when the user actually opens a book
+        const libraryBooks: LibraryBook[] = storedBooks.map((stored) => ({
+          id: stored.id,
+          name: stored.title,
+          doc: null, // PDF loaded lazily when user opens the book
+          pdfUrl: stored.pdf_url,
+          coverUrl: stored.cover_url || '',
+          totalPages: stored.total_pages,
+          summary: stored.summary || undefined,
+          category: stored.category || undefined,
+          isFavorite: stored.is_favorite,
+          orientation: (stored.orientation as any) || 'portrait'
+        }));
 
         setBooks(libraryBooks);
         setLoadingStatus(null);
-        console.log(`Loaded ${libraryBooks.length} of ${storedBooks.length} books from Supabase`);
+        console.log(`Loaded ${libraryBooks.length} books from Supabase (metadata only — instant!)`);
       } catch (error) {
         console.error('Failed to load books from Supabase:', error);
         setLoadingStatus(null);
@@ -205,6 +180,68 @@ const App: React.FC = () => {
 
     loadSavedBooks();
   }, []);
+
+  // Auto-summarize books that don't have a summary yet
+  const autoSummarizedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (books.length === 0 || isSummarizing) return;
+
+    const booksWithoutSummary = books.filter(
+      b => !b.summary && !autoSummarizedRef.current.has(b.id)
+    );
+    if (booksWithoutSummary.length === 0) return;
+
+    const autoSummarize = async () => {
+      for (const book of booksWithoutSummary) {
+        if (autoSummarizedRef.current.has(book.id)) continue;
+        autoSummarizedRef.current.add(book.id);
+
+        try {
+          // Lazy-load PDF if needed
+          let doc = book.doc;
+          if (!doc || typeof doc.getPage !== 'function') {
+            const response = await fetch(book.pdfUrl);
+            if (!response.ok) continue;
+            const blob = await response.blob();
+            const file = new File([blob], book.name + '.pdf', { type: 'application/pdf' });
+            doc = await getDocument(file);
+            setBooks(prev => prev.map(b => b.id === book.id ? { ...b, doc } : b));
+          }
+
+          let sampleText = "";
+          for (let i = 1; i <= Math.min(3, book.totalPages); i++) {
+            const page = await doc.getPage(i);
+            const textContent = await page.getTextContent();
+            sampleText += textContent.items.map((item: any) => item.str).join(" ") + " ";
+          }
+
+          if (!sampleText.trim()) continue;
+
+          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+          const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `Provide a extremely concise one-sentence hook/summary (under 25 words) for a book based on this extracted text. Make it sound professional and intriguing: ${sampleText.substring(0, 2000)}`,
+          });
+
+          const summary = response.text?.trim();
+          if (summary) {
+            setBooks(prev => prev.map(b => b.id === book.id ? { ...b, summary } : b));
+            try {
+              await updateBookInSupabase(book.id, { summary });
+            } catch (e) {
+              console.error('Failed to save auto-summary:', e);
+            }
+          }
+        } catch (err) {
+          console.error(`Auto-summarize failed for ${book.name}:`, err);
+        }
+      }
+    };
+
+    // Small delay so the UI loads first before background summarization starts
+    const timer = setTimeout(autoSummarize, 2000);
+    return () => clearTimeout(timer);
+  }, [books.length, isSummarizing]);
 
   const extractCover = async (doc: any): Promise<string> => {
     const page = await doc.getPage(1);
@@ -419,13 +456,24 @@ const App: React.FC = () => {
 
   const handleSummarize = async (bookId: string): Promise<string | null> => {
     const book = books.find(b => b.id === bookId);
-    if (!book || !book.doc) return null;
+    if (!book) return null;
 
     setIsSummarizing(true);
     try {
+      // Lazy-load PDF if not yet loaded
+      let doc = book.doc;
+      if (!doc || typeof doc.getPage !== 'function') {
+        const response = await fetch(book.pdfUrl);
+        if (!response.ok) throw new Error('Failed to fetch PDF');
+        const blob = await response.blob();
+        const file = new File([blob], book.name + '.pdf', { type: 'application/pdf' });
+        doc = await getDocument(file);
+        setBooks(prev => prev.map(b => b.id === bookId ? { ...b, doc } : b));
+      }
+
       let sampleText = "";
       for (let i = 1; i <= Math.min(3, book.totalPages); i++) {
-        const page = await book.doc.getPage(i);
+        const page = await doc.getPage(i);
         const textContent = await page.getTextContent();
         sampleText += textContent.items.map((item: any) => item.str).join(" ") + " ";
       }
@@ -495,10 +543,23 @@ const App: React.FC = () => {
     setReaderMode(mode);
 
     try {
-      // Validate PDF document exists and is valid
-      const doc = pendingBook.doc;
+      let doc = pendingBook.doc;
+      let bookToOpen = pendingBook;
+
+      // Lazy-load: download and parse PDF only when user opens it
       if (!doc || typeof doc.getPage !== 'function') {
-        throw new Error('Invalid PDF document');
+        console.log(`Downloading PDF for: ${pendingBook.name}...`);
+
+        const response = await fetch(pendingBook.pdfUrl);
+        if (!response.ok) throw new Error('Failed to fetch PDF');
+
+        const blob = await response.blob();
+        const file = new File([blob], pendingBook.name + '.pdf', { type: 'application/pdf' });
+        doc = await getDocument(file);
+
+        // Cache the loaded doc in state so it doesn't re-download
+        bookToOpen = { ...pendingBook, doc };
+        setBooks(prev => prev.map(b => b.id === pendingBook.id ? bookToOpen : b));
       }
 
       // Check total pages
@@ -507,7 +568,7 @@ const App: React.FC = () => {
       }
 
       // Pre-load first few pages to ensure they render
-      console.log(`Loading book: ${pendingBook.name} (${doc.numPages} pages)`);
+      console.log(`Loading book: ${bookToOpen.name} (${doc.numPages} pages)`);
 
       const pagesToPreload = Math.min(3, doc.numPages);
       for (let i = 1; i <= pagesToPreload; i++) {
@@ -518,11 +579,12 @@ const App: React.FC = () => {
       console.log('Book pre-loaded successfully');
 
       // All validation passed - open the reader
-      setSelectedBook(pendingBook);
+      previousRouteRef.current = location.pathname; // remember where we came from
+      setSelectedBook(bookToOpen);
       setPendingBook(null);
       setCurrentPage(0);
       setZoomLevel(1);
-      navigate(`/reader/${pendingBook.id}`);
+      navigate(`/reader/${bookToOpen.id}`);
 
       // Small delay for transition
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -573,9 +635,18 @@ const App: React.FC = () => {
           onToggleHomeVariant={() => setHomeVariant(prev => prev === 1 ? 2 : 1)}
           onToggleSidebar={() => setSidebarOpen(prev => !prev)}
           fileName={selectedBook?.name}
+          onCloseReader={() => { navigate(previousRouteRef.current); setSelectedBook(null); setShowSearch(false); }}
+          readerBookName={selectedBook?.name.replace('.pdf', '')}
+          readerPageInfo={
+            selectedBook
+              ? (currentPage + 1 < selectedBook.totalPages
+                  ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
+                  : `page ${currentPage + 1} of ${selectedBook.totalPages}`)
+              : undefined
+          }
         />}
 
-        <main className={`flex-1 relative w-full h-full ${isLandingPage ? '' : 'pt-16'} overflow-y-auto no-scrollbar`}>
+        <main className={`flex-1 relative w-full h-full ${isLandingPage ? '' : 'pt-14'} overflow-y-auto no-scrollbar`}>
           <Routes>
             {/* Home Route - with 3D effects */}
             <Route path="/" element={
@@ -709,22 +780,20 @@ const App: React.FC = () => {
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
               selectedBook && (
-                <div className="w-full h-full min-h-0 flex flex-col overflow-hidden relative">
-                  {/* Close button */}
-                  <button
-                    onClick={() => { navigate('/library'); setSelectedBook(null); }}
-                    className="absolute top-3 right-3 z-[9999] w-10 h-10 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/30 transition-all rounded-full"
-                  >
-                    <X size={24} />
-                  </button>
+                <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative bg-black">
+                  {/* Vanta Fog Background for Reader */}
+                  <VantaFogBackground variant="reader" />
 
-                  {/* BookViewer - uses pre-parsed PDF, works reliably */}
-                  <div className="flex-1 w-full h-full">
+                  {/* BookViewer */}
+                  <div className="flex-1 w-full h-full min-h-0 relative z-10">
                     <BookViewer
                       pdfDocument={selectedBook.doc}
                       onFlip={setCurrentPage}
                       onBookInit={(book) => { bookRef.current = book; }}
                       autoPlay={readerMode === 'preview'}
+                      showSearch={showSearch}
+                      onToggleSearch={() => setShowSearch(!showSearch)}
+                      fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
                     />
                   </div>
                 </div>
@@ -736,6 +805,7 @@ const App: React.FC = () => {
 
       <LibraryActionModal
         book={pendingBook}
+        darkMode={darkMode}
         onClose={() => setPendingBook(null)}
         onSelectMode={handleSelectMode}
         onSummarize={handleSummarize}
@@ -751,6 +821,7 @@ const App: React.FC = () => {
       <ConversionSuccessModal
         isOpen={showSuccessModal}
         bookCount={successBookCount}
+        darkMode={darkMode}
         onClose={() => setShowSuccessModal(false)}
         onViewBooks={() => {
           setShowSuccessModal(false);
@@ -761,6 +832,7 @@ const App: React.FC = () => {
       {/* Upload Category Modal - shown after uploading a book */}
       <UploadCategoryModal
         book={!showSuccessModal ? uploadedBooksPending[0] : null}
+        darkMode={darkMode}
         currentIndex={uploadedBooksPending.length > 0 ? 1 : 0}
         totalBooks={uploadedBooksPending.length}
         onClose={() => {
@@ -770,18 +842,17 @@ const App: React.FC = () => {
         onConfirm={handleUploadCategoryConfirm}
       />
 
-      {/* Conversion success/error toast */}
+      {/* Toast */}
       {conversionToast && (
-        <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border animate-in fade-in slide-in-from-bottom-4 duration-300 ${conversionToast.startsWith('Conversion failed')
-            ? darkMode ? 'bg-red-900/80 border-red-700 text-red-200' : 'bg-red-50 border-red-200 text-red-800'
-            : darkMode ? 'bg-gray-800/95 backdrop-blur-xl border-gray-700 text-white' : 'bg-white/95 backdrop-blur-xl border-gray-200 text-gray-900'
-            }`}
-        >
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl shadow-black/40 border animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+          conversionToast.startsWith('Conversion failed')
+            ? 'bg-red-900/80 border-red-700/50 text-red-200'
+            : 'bg-[#141418]/95 backdrop-blur-xl border-white/[0.06] text-white'
+        }`}>
           {conversionToast.startsWith('Conversion failed') ? (
-            <AlertCircle size={24} className="text-red-500 shrink-0" />
+            <AlertCircle size={22} className="text-red-400 shrink-0" />
           ) : (
-            <CheckCircle2 size={24} className="text-green-500 shrink-0" />
+            <CheckCircle2 size={22} className="text-emerald-500 shrink-0" />
           )}
           <span className="font-medium text-sm max-w-md">{conversionToast}</span>
         </div>

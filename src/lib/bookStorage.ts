@@ -14,6 +14,7 @@ export interface StoredBook {
   is_favorite: boolean;
   summary: string | null;
   created_at: string;
+  orientation?: 'portrait' | 'landscape';
 }
 
 export async function uploadPDF(file: File): Promise<string> {

@@ -4,12 +4,53 @@ import * as THREE from 'three';
 // @ts-ignore - vanta source modules, no types
 import FOG from 'vanta/src/vanta.fog.js';
 
-export default function VantaFogBackground({ darkMode }: { darkMode?: boolean }) {
+interface VantaFogProps {
+  darkMode?: boolean;
+  variant?: 'default' | 'reader';
+}
+
+const CONFIGS = {
+  default: {
+    highlightColor: 0x0a0a0a,
+    midtoneColor: 0x0a0a0e,
+    lowlightColor: 0x111118,
+    baseColor: 0x09090b,
+    blurFactor: 0.7,
+    speed: 0.8,
+    zoom: 1.2,
+  },
+  light: {
+    highlightColor: 0xf8f9fa,
+    midtoneColor: 0xe5e7eb,
+    lowlightColor: 0xd1d5db,
+    baseColor: 0xf3f4f6,
+    blurFactor: 0.6,
+    speed: 0.6,
+    zoom: 1.0,
+  },
+  reader: {
+    highlightColor: 0x0,
+    midtoneColor: 0xffffff,
+    lowlightColor: 0xffffff,
+    baseColor: 0x0,
+    blurFactor: 0.6,
+    speed: 0.8,
+    zoom: 1.0,
+  },
+};
+
+export default function VantaFogBackground({ darkMode, variant = 'default' }: VantaFogProps) {
   const vantaRef = useRef<HTMLDivElement>(null);
   const effectRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!effectRef.current && vantaRef.current) {
+    if (effectRef.current) {
+      effectRef.current.destroy();
+      effectRef.current = null;
+    }
+    if (vantaRef.current) {
+      const configKey = variant === 'reader' ? 'reader' : (darkMode ? 'default' : 'light');
+      const config = CONFIGS[configKey];
       effectRef.current = FOG({
         el: vantaRef.current,
         THREE,
@@ -18,13 +59,7 @@ export default function VantaFogBackground({ darkMode }: { darkMode?: boolean })
         gyroControls: false,
         minHeight: 200.0,
         minWidth: 200.0,
-        highlightColor: 0x0,
-        midtoneColor: 0x0,
-        lowlightColor: 0xffffff,
-        baseColor: 0xffffff,
-        blurFactor: 0.6,
-        speed: 1.0,
-        zoom: 1.0,
+        ...config,
       });
     }
     return () => {
@@ -33,17 +68,19 @@ export default function VantaFogBackground({ darkMode }: { darkMode?: boolean })
         effectRef.current = null;
       }
     };
-  }, []);
+  }, [variant, darkMode]);
+
+  const isReader = variant === 'reader';
 
   return (
     <div
       ref={vantaRef}
       style={{
-        position: 'fixed',
+        position: isReader ? 'absolute' : 'fixed',
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
+        width: isReader ? '100%' : '100vw',
+        height: isReader ? '100%' : '100vh',
         zIndex: 0,
       }}
     />

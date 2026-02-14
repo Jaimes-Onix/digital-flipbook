@@ -108,8 +108,8 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
           </motion.div>
         </div>
 
-        {/* Featured Flipbooks - Variant 1: Card Style */}
-        {featuredBooks.length > 0 && variant === 1 && (
+        {/* Featured Flipbooks - Variant 2: Card Style */}
+        {featuredBooks.length > 0 && variant === 2 && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -184,8 +184,8 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
           </motion.div>
         )}
 
-        {/* Featured Flipbooks - Variant 2: Infinite Carousel Style */}
-        {featuredBooks.length > 0 && variant === 2 && (() => {
+        {/* Featured Flipbooks - Variant 1: Infinite Carousel Style */}
+        {featuredBooks.length > 0 && variant === 1 && (() => {
           const bookWidth = 224;
           const gap = 32;
           const totalWidth = featuredBooks.length * (bookWidth + gap);
@@ -245,7 +245,9 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                             }`}
                           />
                           <div className={`relative w-40 sm:w-48 md:w-56 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ${
-                            isHovered ? 'ring-4 ring-white/30' : 'ring-1 ring-white/10'
+                            isHovered
+                              ? (darkMode ? 'ring-4 ring-white/30' : 'ring-4 ring-black/20')
+                              : (darkMode ? 'ring-1 ring-white/10' : 'ring-1 ring-black/10')
                           }`}>
                             <img
                               src={book.coverUrl}
