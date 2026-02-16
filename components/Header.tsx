@@ -20,20 +20,28 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Reader mode: always dark since it has Vanta background
+  // Reader mode: adapts to dark/light theme
   if (view === 'reader') {
+    const readerHeaderBg = darkMode ? 'bg-black/30 border-white/[0.06]' : 'bg-white/80 border-gray-200';
+    const readerCloseBtn = darkMode ? 'text-white hover:bg-white/[0.12]' : 'text-gray-700 hover:bg-gray-200';
+    const readerTitle = darkMode ? 'text-white' : 'text-gray-900';
+    const readerPageInfoColor = darkMode ? 'text-white/40' : 'text-gray-400';
+    const readerNavBtn = darkMode
+      ? 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
+
     return (
-      <header className="fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-5 z-50 bg-black/30 backdrop-blur-xl border-b border-white/[0.06]">
+      <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-5 z-50 backdrop-blur-xl border-b transition-colors ${readerHeaderBg}`}>
         <div className="flex items-center gap-3 min-w-0">
-          <button onClick={onCloseReader} className="p-1.5 -ml-1 rounded-full hover:bg-white/[0.12] text-white transition-colors shrink-0" title="Close">
+          <button onClick={onCloseReader} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${readerCloseBtn}`} title="Close">
             <X size={18} />
           </button>
-          <span className="text-sm font-semibold text-white truncate">{readerBookName}</span>
-          {readerPageInfo && <span className="text-sm text-white/40 shrink-0">{readerPageInfo}</span>}
+          <span className={`text-sm font-semibold truncate ${readerTitle}`}>{readerBookName}</span>
+          {readerPageInfo && <span className={`text-sm shrink-0 ${readerPageInfoColor}`}>{readerPageInfo}</span>}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full text-zinc-400 hover:text-white hover:bg-white/[0.04] transition-all">Home</button>
-          <button onClick={() => navigate('/library')} className="flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full text-zinc-400 hover:text-white hover:bg-white/[0.04] transition-all">
+          <button onClick={() => navigate('/')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}>Home</button>
+          <button onClick={() => navigate('/library')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}>
             <LibraryIcon size={15} /><span>My Books</span>
           </button>
         </div>

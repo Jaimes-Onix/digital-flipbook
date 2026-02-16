@@ -930,7 +930,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
         <Dock
           items={[
             {
-              icon: <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff', lineHeight: 1 }}>{currentPage + 1}/{totalPages}</span>,
+              icon: <span style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>{currentPage + 1}/{totalPages}</span>,
               label: `Page ${currentPage + 1} of ${totalPages}`,
               onClick: () => {},
               className: 'pointer-events-none',
