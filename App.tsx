@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { GoogleGenAI } from "@google/genai";
 import { CheckCircle2, AlertCircle, X, BookOpen, Search } from 'lucide-react';
+import { supabase } from './src/lib/supabase';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Home from './components/Home';
@@ -14,6 +15,7 @@ import LibraryActionModal from './components/LibraryActionModal';
 import UploadCategoryModal from './components/UploadCategoryModal';
 import FeaturedCarousel from './components/FeaturedCarousel';
 import VantaFogBackground from './components/VantaFogBackground';
+import SignIn from './components/SignIn';
 import { getDocument } from './utils/pdfUtils';
 import { BookRef, LibraryBook, BookCategory } from './types';
 import type { LibraryFilter } from './components/Sidebar';
@@ -41,9 +43,8 @@ const ConversionSuccessModal: React.FC<{
     <div className="fixed inset-0 z-[300] flex items-center justify-center">
       <div className={`absolute inset-0 backdrop-blur-md ${darkMode ? 'bg-black/40' : 'bg-black/20'}`} onClick={onClose} />
 
-      <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300 border ${
-        darkMode ? 'bg-[#141418]/95 shadow-black/50 border-white/[0.06]' : 'bg-white/95 shadow-gray-300/40 border-gray-200'
-      }`}>
+      <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300 border ${darkMode ? 'bg-[#141418]/95 shadow-black/50 border-white/[0.06]' : 'bg-white/95 shadow-gray-300/40 border-gray-200'
+        }`}>
         <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${darkMode ? 'text-zinc-600 hover:text-zinc-400' : 'text-gray-400 hover:text-gray-600'}`}>
           <X size={20} />
         </button>
@@ -67,17 +68,15 @@ const ConversionSuccessModal: React.FC<{
 
         <div className="flex flex-col gap-3">
           <button onClick={onViewBooks}
-            className={`w-full py-3.5 font-semibold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${
-              darkMode ? 'bg-white text-zinc-900 shadow-white/5 hover:bg-zinc-100' : 'bg-gray-900 text-white shadow-gray-400/20 hover:bg-gray-800'
-            }`}>
+            className={`w-full py-3.5 font-semibold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${darkMode ? 'bg-white text-zinc-900 shadow-white/5 hover:bg-zinc-100' : 'bg-gray-900 text-white shadow-gray-400/20 hover:bg-gray-800'
+              }`}>
             <span className="flex items-center justify-center gap-2">
               <BookOpen size={18} /> View in Library
             </span>
           </button>
           <button onClick={onClose}
-            className={`w-full py-3.5 font-medium rounded-2xl transition-all active:scale-[0.98] ${
-              darkMode ? 'bg-white/[0.05] text-zinc-400 hover:bg-white/[0.08]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}>
+            className={`w-full py-3.5 font-medium rounded-2xl transition-all active:scale-[0.98] ${darkMode ? 'bg-white/[0.05] text-zinc-400 hover:bg-white/[0.08]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}>
             Close
           </button>
         </div>
@@ -121,9 +120,10 @@ const App: React.FC = () => {
   const readerContainerRef = useRef<HTMLDivElement>(null);
 
   // Derive current view and filter from route
-  const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' => {
+  const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' | 'signin' => {
     if (location.pathname === '/' || location.pathname === '/home') return 'home';
     if (location.pathname === '/upload') return 'upload';
+    if (location.pathname === '/signin') return 'signin';
     if (location.pathname.startsWith('/reader')) return 'reader';
     return 'library';
   };
@@ -142,8 +142,33 @@ const App: React.FC = () => {
   const view = getCurrentView();
   const libraryFilter = getCurrentFilter();
 
+
   // Load books from Supabase on app start — metadata only (instant, no PDF downloads)
   useEffect(() => {
+    // Auth Check
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session && location.pathname !== '/signin') {
+        // No session, and not on signin page -> Redirect to Sign In
+        navigate('/signin', { replace: true });
+      } else if (session && location.pathname === '/signin') {
+        // Session exists, but on signin page -> Redirect to Library
+        navigate('/library', { replace: true });
+      }
+    };
+
+    checkAuth();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session && location.pathname !== '/signin') {
+        navigate('/signin', { replace: true });
+      } else if (session && location.pathname === '/signin') {
+        navigate('/library', { replace: true });
+      }
+    });
+
     const loadSavedBooks = async () => {
       try {
         setLoadingStatus('Loading your library...');
@@ -616,7 +641,7 @@ const App: React.FC = () => {
       <VantaFogBackground darkMode={darkMode} />
 
       {/* Sidebar - Shared across views except reader (optional) */}
-      {view !== 'reader' && !isLandingPage && (
+      {view !== 'reader' && view !== 'signin' && !isLandingPage && (
         <Sidebar
           currentView={view}
           currentFilter={libraryFilter}
@@ -628,7 +653,7 @@ const App: React.FC = () => {
       )}
 
       <div className="flex-1 flex flex-col relative overflow-hidden z-10">
-        {!isLandingPage && <Header
+        {!isLandingPage && view !== 'signin' && <Header
           view={view}
           darkMode={darkMode}
           homeVariant={homeVariant}
@@ -641,8 +666,8 @@ const App: React.FC = () => {
           readerPageInfo={
             selectedBook
               ? (currentPage + 1 < selectedBook.totalPages
-                  ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
-                  : `page ${currentPage + 1} of ${selectedBook.totalPages}`)
+                ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
+                : `page ${currentPage + 1} of ${selectedBook.totalPages}`)
               : undefined
           }
         />}
@@ -660,6 +685,7 @@ const App: React.FC = () => {
                 onSelectBook={(b) => setPendingBook(b)}
               />
             } />
+
             <Route path="/home" element={
               <Home
                 books={books}
@@ -845,11 +871,10 @@ const App: React.FC = () => {
 
       {/* Toast */}
       {conversionToast && (
-        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl shadow-black/40 border animate-in fade-in slide-in-from-bottom-4 duration-300 ${
-          conversionToast.startsWith('Conversion failed')
-            ? 'bg-red-900/80 border-red-700/50 text-red-200'
-            : 'bg-[#141418]/95 backdrop-blur-xl border-white/[0.06] text-white'
-        }`}>
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl shadow-black/40 border animate-in fade-in slide-in-from-bottom-4 duration-300 ${conversionToast.startsWith('Conversion failed')
+          ? 'bg-red-900/80 border-red-700/50 text-red-200'
+          : 'bg-[#141418]/95 backdrop-blur-xl border-white/[0.06] text-white'
+          }`}>
           {conversionToast.startsWith('Conversion failed') ? (
             <AlertCircle size={22} className="text-red-400 shrink-0" />
           ) : (

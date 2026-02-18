@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { UploadCloud, ChevronRight, Heart } from 'lucide-react';
+import { UploadCloud, ChevronRight, Heart, BookOpen, Layers, Sparkles } from 'lucide-react';
 import { LibraryBook } from '../types';
 
 interface HomeProps {
@@ -44,51 +44,90 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className={`rounded-3xl px-10 py-10 mb-2 max-w-3xl ${
+            className={`rounded-3xl px-10 py-10 mb-2 max-w-3xl relative overflow-hidden ${
               darkMode
-                ? 'bg-black/40 backdrop-blur-2xl shadow-2xl shadow-black/20 border border-white/10'
+                ? 'bg-[#0c1a15]/80 backdrop-blur-2xl shadow-2xl shadow-black/30 border border-emerald-900/20'
                 : 'bg-white/50 backdrop-blur-2xl shadow-2xl shadow-black/5 border border-white/60'
             }`}
           >
+            {/* Emerald glow orbs — dark mode only */}
+            {darkMode && (
+              <>
+                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, rgba(6,95,70,0.35) 0%, transparent 65%)', filter: 'blur(40px)' }} />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] rounded-full pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, rgba(13,148,136,0.2) 0%, transparent 65%)', filter: 'blur(45px)' }} />
+              </>
+            )}
+
+            {/* Feature pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+              className="relative z-10 flex flex-wrap justify-center gap-2 mb-7"
+            >
+              {[
+                { icon: BookOpen, label: '3D Flipbook' },
+                { icon: Layers, label: '6 Categories' },
+                { icon: Sparkles, label: 'AI Summaries' },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border ${
+                  darkMode
+                    ? 'bg-emerald-500/[0.08] border-emerald-500/[0.15]'
+                    : 'bg-emerald-50 border-emerald-200/60'
+                }`}>
+                  <Icon size={13} className={darkMode ? 'text-emerald-400' : 'text-emerald-600'} />
+                  <span className={`text-[11px] font-medium tracking-wide ${darkMode ? 'text-emerald-300/80' : 'text-emerald-700'}`}>{label}</span>
+                </div>
+              ))}
+            </motion.div>
+
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-4xl sm:text-5xl md:text-6xl tracking-tight leading-tight mb-6"
+              className="relative z-10 text-4xl sm:text-5xl md:text-6xl tracking-tight leading-tight mb-6"
             >
-              <span className={`font-light italic ${darkMode ? 'text-white/80' : 'text-gray-600'}`}>Welcome to</span>{' '}
-              <span className={`font-bold not-italic ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Lifewood PH:
+              <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Lifewood
               </span>
               <br />
-              <span className={`font-light italic ${darkMode ? 'text-white/80' : 'text-gray-600'}`}>Your Digital Flipbook Gallery</span>
+              <span className={`font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${
+                darkMode
+                  ? 'from-emerald-300 via-emerald-400 to-teal-400'
+                  : 'from-emerald-600 via-emerald-500 to-teal-500'
+              }`}>
+                Digital Flipbook
+              </span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className={`text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
+              className={`relative z-10 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed ${darkMode ? 'text-white/50' : 'text-gray-600'}`}
             >
-              Transform your PDFs into premium digital flipbooks. Create, organize, and share your documents in a beautiful
-              flipbook experience where professional publishing meets modern design.
+              Your immersive library experience. Read, share, and explore beautifully crafted flipbooks.
             </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="flex flex-wrap items-center justify-center gap-4"
+            className="relative z-10 flex flex-wrap items-center justify-center gap-4"
           >
             <motion.button
-              whileHover={{ scale: 1.05, boxShadow: darkMode ? "0 20px 40px rgba(0,0,0,0.4)" : "0 20px 40px rgba(0,0,0,0.15)" }}
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(16,185,129,0.2)" }}
               whileTap={{ scale: 0.95 }}
               onClick={onUpload}
-              className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-medium transition-all shadow-xl border ${
+              className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold transition-all shadow-xl ${
                 darkMode
-                  ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-black/30 border-gray-200'
-                  : 'bg-black text-white hover:bg-gray-800 shadow-gray-300/50 border-black'
+                  ? 'text-white shadow-emerald-900/30'
+                  : 'text-white shadow-emerald-300/40'
               }`}
+              style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' }}
             >
+              <UploadCloud size={18} />
               Upload PDF
             </motion.button>
             <motion.button
@@ -97,8 +136,8 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
               onClick={onBrowseLibrary}
               className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-medium border transition-all ${
                 darkMode
-                  ? 'bg-[#2A2A2D] hover:bg-[#353538] text-white border-gray-600'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300'
+                  ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.12] text-emerald-300 border-emerald-500/20'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
               }`}
             >
               Discover Library
