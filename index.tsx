@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-ro
 import { supabase } from './src/lib/supabase';
 import App from './App';
 import SharedLinkResolver from './components/SharedLinkResolver';
+import SharedBookView from './components/SharedBookView';
+import SharedCategoryView from './components/SharedCategoryView';
 import SignIn from './components/SignIn';
 
 const Root: React.FC = () => {
@@ -30,11 +32,20 @@ const Root: React.FC = () => {
     };
   }, []);
 
-  // Shared links are always publicly accessible
+  // Shared links are always publicly accessible (no auth required)
   if (location.pathname.startsWith('/s/')) {
     return (
       <Routes>
         <Route path="/s/:token" element={<SharedLinkResolver />} />
+      </Routes>
+    );
+  }
+
+  if (location.pathname.startsWith('/share/')) {
+    return (
+      <Routes>
+        <Route path="/share/book/:bookId" element={<SharedBookView />} />
+        <Route path="/share/category/:category" element={<SharedCategoryView />} />
       </Routes>
     );
   }
