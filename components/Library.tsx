@@ -1,7 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2 } from 'lucide-react';
 import { LibraryBook } from '../types';
 import type { LibraryFilter } from './Sidebar';
+import ShareLinkModal from './ShareLinkModal';
+
+const FILTER_TO_SLUG: Partial<Record<LibraryFilter, string>> = {
+  philippines: 'philippines',
+  internal: 'internal',
+  international: 'international',
+  ph_interns: 'ph-interns',
+  deseret: 'deseret',
+  angelhost: 'angelhost',
+};
 
 const SECTION_TITLES: Record<LibraryFilter, string> = {
   all: 'Your Library',
@@ -32,6 +42,9 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   }, [books, filter]);
   const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const shareSlug = FILTER_TO_SLUG[filter];
 
   const handleBookClick = (book: LibraryBook) => {
     if (openingBookId || confirmingDeleteId) return;
@@ -50,17 +63,32 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           <h2 className={`text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>{SECTION_TITLES[filter]}</h2>
           <p className={`text-sm mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
-          onClick={onAddNew}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
-            darkMode 
-              ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20' 
-              : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
-          }`}
-        >
-          <Plus size={18} />
-          Add PDF
-        </button>
+        <div className="flex items-center gap-3">
+          {shareSlug && (
+            <button
+              onClick={() => setShowShareModal(true)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
+                darkMode
+                  ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+              }`}
+            >
+              <Link2 size={16} />
+              Generate Link
+            </button>
+          )}
+          <button
+            onClick={onAddNew}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
+              darkMode 
+                ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+            }`}
+          >
+            <Plus size={18} />
+            Add PDF
+          </button>
+        </div>
       </div>
 
       {/* Skeleton loading */}
@@ -170,6 +198,17 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           </button>
         )}
       </div>
+
+      {shareSlug && (
+        <ShareLinkModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          url={`${window.location.origin}/share/${shareSlug}`}
+          title={`Share ${SECTION_TITLES[filter]}`}
+          description="Anyone with this link can view and read these flipbooks."
+          darkMode={darkMode || false}
+        />
+      )}
     </div>
   );
 };

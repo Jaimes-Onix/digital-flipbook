@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Library as LibraryIcon, Menu, LayoutGrid, Layers, X } from 'lucide-react';
+import { Library as LibraryIcon, Menu, LayoutGrid, Layers, X, Share2 } from 'lucide-react';
+import ShareLinkModal from './ShareLinkModal';
 
 interface HeaderProps {
   view: 'home' | 'library' | 'reader' | 'upload';
@@ -11,14 +12,16 @@ interface HeaderProps {
   fileName?: string;
   onCloseReader?: () => void;
   readerBookName?: string;
+  readerBookId?: string;
   readerPageInfo?: string;
 }
 
 const Header: React.FC<HeaderProps> = ({
   view, darkMode, homeVariant = 1, onToggleHomeVariant, onToggleSidebar, fileName,
-  onCloseReader, readerBookName, readerPageInfo
+  onCloseReader, readerBookName, readerBookId, readerPageInfo
 }) => {
   const navigate = useNavigate();
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Reader mode: adapts to dark/light theme
   if (view === 'reader') {
@@ -31,21 +34,43 @@ const Header: React.FC<HeaderProps> = ({
       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
 
     return (
-      <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-5 z-50 backdrop-blur-xl border-b transition-colors ${readerHeaderBg}`}>
-        <div className="flex items-center gap-3 min-w-0">
-          <button onClick={onCloseReader} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${readerCloseBtn}`} title="Close">
-            <X size={18} />
-          </button>
-          <span className={`text-sm font-semibold truncate ${readerTitle}`}>{readerBookName}</span>
-          {readerPageInfo && <span className={`text-sm shrink-0 ${readerPageInfoColor}`}>{readerPageInfo}</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}>Home</button>
-          <button onClick={() => navigate('/library')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}>
-            <LibraryIcon size={15} /><span>My Books</span>
-          </button>
-        </div>
-      </header>
+      <>
+        <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-5 z-50 backdrop-blur-xl border-b transition-colors ${readerHeaderBg}`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={onCloseReader} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${readerCloseBtn}`} title="Close">
+              <X size={18} />
+            </button>
+            <span className={`text-sm font-semibold truncate ${readerTitle}`}>{readerBookName}</span>
+            {readerPageInfo && <span className={`text-sm shrink-0 ${readerPageInfoColor}`}>{readerPageInfo}</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            {readerBookId && (
+              <button
+                onClick={() => setShowShareModal(true)}
+                className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}
+                title="Share this book"
+              >
+                <Share2 size={15} /><span>Share</span>
+              </button>
+            )}
+            <button onClick={() => navigate('/')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}>Home</button>
+            <button onClick={() => navigate('/library')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${readerNavBtn}`}>
+              <LibraryIcon size={15} /><span>My Books</span>
+            </button>
+          </div>
+        </header>
+
+        {readerBookId && (
+          <ShareLinkModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            url={`${window.location.origin}/share/book/${readerBookId}`}
+            title="Share Book"
+            description={`Anyone with this link can view and read "${readerBookName || 'this book'}".`}
+            darkMode={darkMode}
+          />
+        )}
+      </>
     );
   }
 

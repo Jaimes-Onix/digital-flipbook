@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home as HomeIcon,
@@ -12,8 +12,10 @@ import {
   BookOpen,
   Hotel,
   Moon,
-  Sun
+  Sun,
+  Link2
 } from 'lucide-react';
+import ShareLinkModal from './ShareLinkModal';
 
 export type LibraryFilter = 'all' | 'favorites' | 'philippines' | 'internal' | 'international' | 'ph_interns' | 'deseret' | 'angelhost';
 
@@ -29,7 +31,17 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode, onToggleDarkMode, isMobileOpen, onMobileClose }) => {
   const location = useLocation();
 
-  const NavItem = ({ icon: Icon, label, active, to, onClick, color }: any) => {
+  const [shareModalUrl, setShareModalUrl] = useState<string | null>(null);
+  const [shareModalTitle, setShareModalTitle] = useState('');
+
+  const handleShareClick = (e: React.MouseEvent, shareUrl: string, label: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShareModalUrl(shareUrl);
+    setShareModalTitle(`Share ${label} Flipbooks`);
+  };
+
+  const NavItem = ({ icon: Icon, label, active, to, onClick, color, shareUrl }: any) => {
     const content = (
       <>
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
@@ -48,13 +60,24 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
             <Icon size={20} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-white' : 'text-gray-900') : (darkMode ? 'text-zinc-500' : 'text-gray-500')} />
           )}
         </div>
-        <span className={`text-sm font-medium tracking-tight transition-colors ${
+        <span className={`text-sm font-medium tracking-tight transition-colors flex-1 ${
           active 
             ? darkMode ? 'text-white' : 'text-gray-900'
             : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-500 group-hover:text-gray-900'
         }`}>
           {label}
         </span>
+        {shareUrl && (
+          <button
+            onClick={(e) => handleShareClick(e, shareUrl, label)}
+            className={`p-1.5 rounded-lg transition-all shrink-0 opacity-0 group-hover:opacity-100 ${
+              darkMode ? 'text-zinc-600 hover:text-zinc-300 hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            }`}
+            title="Share category"
+          >
+            <Link2 size={14} />
+          </button>
+        )}
       </>
     );
 
@@ -124,12 +147,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
         {/* Categories */}
         <div className="px-5 space-y-1 mb-7">
           <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-3 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Categories</p>
-          <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/philippines'} to="/philippines" />
-          <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/internal'} to="/internal" />
-          <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/international'} to="/international" />
-          <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/ph-interns'} to="/ph-interns" />
-          <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/deseret'} to="/deseret" />
-          <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/angelhost'} to="/angelhost" />
+          <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/philippines'} to="/philippines" shareUrl={`${window.location.origin}/share/philippines`} />
+          <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/internal'} to="/internal" shareUrl={`${window.location.origin}/share/internal`} />
+          <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/international'} to="/international" shareUrl={`${window.location.origin}/share/international`} />
+          <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/ph-interns'} to="/ph-interns" shareUrl={`${window.location.origin}/share/ph-interns`} />
+          <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/deseret'} to="/deseret" shareUrl={`${window.location.origin}/share/deseret`} />
+          <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/angelhost'} to="/angelhost" shareUrl={`${window.location.origin}/share/angelhost`} />
         </div>
 
         {/* Footer */}
@@ -137,6 +160,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
           <NavItem icon={darkMode ? Sun : Moon} label={darkMode ? "Light Mode" : "Dark Mode"} onClick={onToggleDarkMode} />
         </div>
       </aside>
+
+      <ShareLinkModal
+        isOpen={!!shareModalUrl}
+        onClose={() => setShareModalUrl(null)}
+        url={shareModalUrl || ''}
+        title={shareModalTitle}
+        description="Anyone with this link can view and read these flipbooks."
+        darkMode={darkMode}
+      />
     </>
   );
 };

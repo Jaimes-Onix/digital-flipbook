@@ -637,6 +637,7 @@ const App: React.FC = () => {
           fileName={selectedBook?.name}
           onCloseReader={() => { navigate(previousRouteRef.current); setSelectedBook(null); setShowSearch(false); }}
           readerBookName={selectedBook?.name.replace('.pdf', '')}
+          readerBookId={selectedBook?.id}
           readerPageInfo={
             selectedBook
               ? (currentPage + 1 < selectedBook.totalPages

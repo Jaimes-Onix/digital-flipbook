@@ -154,6 +154,42 @@ export async function loadBooks(): Promise<StoredBook[]> {
 }
 
 /**
+ * Load a single book by ID (used for shared book links)
+ */
+export async function loadBookById(bookId: string): Promise<StoredBook | null> {
+  const { data, error } = await supabase
+    .from('books')
+    .select('*')
+    .eq('id', bookId)
+    .single();
+
+  if (error) {
+    console.error('Load book by ID error:', error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Load books filtered by category (used for shared category links)
+ */
+export async function loadBooksByCategory(category: string): Promise<StoredBook[]> {
+  const { data, error } = await supabase
+    .from('books')
+    .select('*')
+    .eq('category', category)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Load books by category error:', error);
+    throw new Error(`Failed to load books: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+/**
  * Update book metadata (category, favorite, summary)
  */
 export async function updateBook(

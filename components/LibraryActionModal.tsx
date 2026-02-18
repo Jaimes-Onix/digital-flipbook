@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Sparkles, Loader2, Check, Heart } from 'lucide-react';
+import { BookOpen, X, Trash2, AlertCircle, Sparkles, Loader2, Check, Heart, Share2 } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
+import ShareLinkModal from './ShareLinkModal';
 
 const CATEGORY_OPTIONS: { value: BookCategory; label: string }[] = [
   { value: 'philippines', label: 'Philippines' },
@@ -30,8 +31,9 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [tempSummary, setTempSummary] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  useEffect(() => { setTempSummary(null); setShowConfirmDelete(false); }, [book?.id]);
+  useEffect(() => { setTempSummary(null); setShowConfirmDelete(false); setShowShareModal(false); }, [book?.id]);
 
   if (!book) return null;
 
@@ -48,16 +50,24 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
   const currentSummary = tempSummary || book.summary;
 
   return (
+    <>
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in duration-300">
       <div className={`backdrop-blur-3xl w-full max-w-sm rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in slide-in-from-bottom-8 duration-500 ${darkMode ? 'bg-[#141418]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}`}>
         {!showConfirmDelete ? (
           <div className="p-8 flex flex-col items-center text-center relative">
             {/* Top action buttons */}
             <div className="absolute top-6 right-6 flex gap-2">
+              <button
+                onClick={() => setShowShareModal(true)}
+                className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10' : 'bg-gray-100 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'}`}
+                title="Share Book"
+              >
+                <Share2 size={16} />
+              </button>
               {onToggleFavorite && (
                 <button
                   onClick={() => onToggleFavorite(book.id)}
-                  className={`p-2 rounded-full transition-colors ${book.isFavorite ? 'bg-red-500/15 text-red-400' : 'bg-white/[0.05] text-zinc-600 hover:text-red-400 hover:bg-red-500/10'}`}
+                  className={`p-2 rounded-full transition-colors ${book.isFavorite ? 'bg-red-500/15 text-red-400' : darkMode ? 'bg-white/[0.05] text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'bg-gray-100 text-gray-500 hover:text-red-400 hover:bg-red-50'}`}
                   title={book.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
                 >
                   <Heart size={16} fill={book.isFavorite ? 'currentColor' : 'none'} />
@@ -151,7 +161,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
             )}
 
             {/* Read Button */}
-            <div className="w-full">
+            <div className="w-full space-y-3">
               <button
                 onClick={() => onSelectMode('manual')}
                 disabled={isLoadingBook}
@@ -164,6 +174,15 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                 ) : (
                   <><BookOpen size={18} className="group-hover:scale-110 transition-transform" /> Read Now</>
                 )}
+              </button>
+
+              <button
+                onClick={() => setShowShareModal(true)}
+                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-medium transition-all active:scale-[0.98] ${
+                  darkMode ? 'bg-white/[0.05] hover:bg-white/[0.08] text-zinc-400' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                }`}
+              >
+                <Share2 size={16} /> Share Book
               </button>
             </div>
 
@@ -195,6 +214,16 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
         )}
       </div>
     </div>
+
+    <ShareLinkModal
+      isOpen={showShareModal}
+      onClose={() => setShowShareModal(false)}
+      url={`${window.location.origin}/share/book/${book.id}`}
+      title="Share Book"
+      description={`Anyone with this link can view and read "${book.name.replace('.pdf', '')}".`}
+      darkMode={darkMode || true}
+    />
+    </>
   );
 };
 
