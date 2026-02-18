@@ -152,6 +152,9 @@ const App: React.FC = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
+      // Allow public access to shared routes
+      if (location.pathname.startsWith('/share')) return;
+
       if (!session && location.pathname !== '/signin') {
         // No session, and not on signin page -> Redirect to Sign In
         navigate('/signin', { replace: true });
@@ -165,6 +168,9 @@ const App: React.FC = () => {
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Allow public access to shared routes
+      if (location.pathname.startsWith('/share')) return;
+
       if (!session && location.pathname !== '/signin') {
         navigate('/signin', { replace: true });
       } else if (session && location.pathname === '/signin') {
