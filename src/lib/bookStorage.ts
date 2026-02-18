@@ -10,6 +10,9 @@ function generateToken(length = 12): string {
   return Array.from(array, byte => chars[byte % chars.length]).join('');
 }
 
+/**
+ * @deprecated Token-based sharing is replaced by direct ID/slug links.
+ */
 export async function createShareLink(linkType: 'category' | 'book', target: string): Promise<string> {
   const token = generateToken();
   const { error } = await supabase
@@ -24,6 +27,9 @@ export async function createShareLink(linkType: 'category' | 'book', target: str
   return token;
 }
 
+/**
+ * @deprecated Token-based sharing is replaced by direct ID/slug links.
+ */
 export async function resolveShareLink(token: string): Promise<{ linkType: string; target: string } | null> {
   const { data, error } = await supabase
     .from('shared_links')

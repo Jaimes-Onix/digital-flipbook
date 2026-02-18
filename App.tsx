@@ -13,6 +13,8 @@ import Controls from './components/Controls';
 import Library from './components/Library';
 import LibraryActionModal from './components/LibraryActionModal';
 import UploadCategoryModal from './components/UploadCategoryModal';
+import SharedBookView from './components/SharedBookView';
+import SharedCategoryView from './components/SharedCategoryView';
 import FeaturedCarousel from './components/FeaturedCarousel';
 import VantaFogBackground from './components/VantaFogBackground';
 import SignIn from './components/SignIn';
@@ -120,11 +122,12 @@ const App: React.FC = () => {
   const readerContainerRef = useRef<HTMLDivElement>(null);
 
   // Derive current view and filter from route
-  const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' | 'signin' => {
+  const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' | 'signin' | 'shared' => {
     if (location.pathname === '/' || location.pathname === '/home') return 'home';
     if (location.pathname === '/upload') return 'upload';
     if (location.pathname === '/signin') return 'signin';
     if (location.pathname.startsWith('/reader')) return 'reader';
+    if (location.pathname.startsWith('/share')) return 'shared';
     return 'library';
   };
 
@@ -641,7 +644,7 @@ const App: React.FC = () => {
       <VantaFogBackground darkMode={darkMode} />
 
       {/* Sidebar - Shared across views except reader (optional) */}
-      {view !== 'reader' && view !== 'signin' && !isLandingPage && (
+      {view !== 'reader' && view !== 'signin' && view !== 'shared' && !isLandingPage && (
         <Sidebar
           currentView={view}
           currentFilter={libraryFilter}
@@ -653,7 +656,7 @@ const App: React.FC = () => {
       )}
 
       <div className="flex-1 flex flex-col relative overflow-hidden z-10">
-        {!isLandingPage && view !== 'signin' && <Header
+        {!isLandingPage && view !== 'signin' && view !== 'shared' && <Header
           view={view}
           darkMode={darkMode}
           homeVariant={homeVariant}
@@ -803,6 +806,10 @@ const App: React.FC = () => {
                 onRemoveBook={handleRemoveBook}
               />
             } />
+
+            {/* Sharing Routes */}
+            <Route path="/share/book/:bookId" element={<SharedBookView />} />
+            <Route path="/share/category/:category" element={<SharedCategoryView />} />
 
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={

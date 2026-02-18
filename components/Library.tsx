@@ -3,7 +3,6 @@ import { Plus, Trash2, X, Check, Heart, Link2 } from 'lucide-react';
 import { LibraryBook } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
-import { createShareLink } from '../src/lib/bookStorage';
 
 const FILTER_TO_SLUG: Partial<Record<LibraryFilter, string>> = {
   philippines: 'philippines',
@@ -68,23 +67,21 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           {shareSlug && (
             <button
               onClick={() => setShowShareModal(true)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
-                darkMode
-                  ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+                ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+                }`}
             >
               <Link2 size={16} />
-              Generate Link
+              Share Category
             </button>
           )}
           <button
             onClick={onAddNew}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
-              darkMode 
-                ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20' 
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
-            }`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+              ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+              }`}
           >
             <Plus size={18} />
             Add PDF
@@ -164,9 +161,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               </div>
 
               <div className={`space-y-1 transition-all duration-300 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
-                <h3 className={`text-sm font-medium line-clamp-1 transition-colors ${
-                  darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-gray-800 group-hover:text-gray-900'
-                }`}>
+                <h3 className={`text-sm font-medium line-clamp-1 transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-gray-800 group-hover:text-gray-900'
+                  }`}>
                   {book.name.replace('.pdf', '')}
                 </h3>
                 <p className={`text-[10px] font-medium uppercase tracking-[0.12em] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
@@ -181,17 +177,15 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         {filteredBooks.length === 0 && !isLoading && (
           <button
             onClick={onAddNew}
-            className={`group aspect-[3/4] border border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-emerald-500/[0.03] ${
-              darkMode ? 'border-white/[0.08] hover:border-emerald-500/30' : 'border-gray-200 hover:border-emerald-400'
-            }`}
+            className={`group aspect-[3/4] border border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-emerald-500/[0.03] ${darkMode ? 'border-white/[0.08] hover:border-emerald-500/30' : 'border-gray-200 hover:border-emerald-400'
+              }`}
           >
             <div className="p-5 rounded-full bg-white/[0.03] group-hover:bg-emerald-500/10 group-hover:scale-110 transition-all">
               <Plus size={32} strokeWidth={1.5} className={`group-hover:text-emerald-500 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`} />
             </div>
             <div className="text-center">
-              <span className={`block text-sm font-medium ${
-                darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-500 group-hover:text-gray-300'
-              }`}>
+              <span className={`block text-sm font-medium ${darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-500 group-hover:text-gray-300'
+                }`}>
                 {filter === 'all' && books.length === 0 ? 'Add first book' : `No books yet`}
               </span>
               <span className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-zinc-700' : 'text-gray-300'}`}>Upload PDF</span>
@@ -204,10 +198,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         <ShareLinkModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
-          onGenerate={async () => {
-            const token = await createShareLink('category', shareSlug);
-            return `${window.location.origin}/s/${token}`;
-          }}
+          url={`${window.location.origin}/share/category/${shareSlug}`}
           title={`Share ${SECTION_TITLES[filter]}`}
           description="Anyone with this link can view and read these flipbooks."
           darkMode={darkMode || false}

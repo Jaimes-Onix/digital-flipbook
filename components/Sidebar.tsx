@@ -17,7 +17,6 @@ import {
   LogOut
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
-import { createShareLink } from '../src/lib/bookStorage';
 import { supabase } from '../src/lib/supabase';
 
 export type LibraryFilter = 'all' | 'favorites' | 'philippines' | 'internal' | 'international' | 'ph_interns' | 'deseret' | 'angelhost';
@@ -51,19 +50,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
     setShareModalTitle(`Share ${label} Flipbooks`);
   };
 
-  const handleGenerate = useCallback(async () => {
-    const token = await createShareLink('category', shareSlug!);
-    return `${window.location.origin}/s/${token}`;
-  }, [shareSlug]);
+
 
   const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug }: any) => {
     const content = (
       <>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-          active
-            ? darkMode ? 'bg-emerald-500/15 shadow-lg shadow-emerald-800/20' : 'bg-emerald-50 shadow-lg'
-            : darkMode ? 'bg-transparent group-hover:bg-emerald-500/[0.06]' : 'bg-transparent group-hover:bg-gray-100'
-        }`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${active
+          ? darkMode ? 'bg-emerald-500/15 shadow-lg shadow-emerald-800/20' : 'bg-emerald-50 shadow-lg'
+          : darkMode ? 'bg-transparent group-hover:bg-emerald-500/[0.06]' : 'bg-transparent group-hover:bg-gray-100'
+          }`}>
           {color ? (
             <Icon
               size={20}
@@ -75,19 +70,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
             <Icon size={20} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-emerald-300' : 'text-gray-900') : (darkMode ? 'text-emerald-400/50 group-hover:text-emerald-300' : 'text-gray-500')} />
           )}
         </div>
-        <span className={`text-sm font-medium tracking-tight transition-colors flex-1 ${
-          active 
-            ? darkMode ? 'text-white' : 'text-gray-900'
-            : darkMode ? 'text-emerald-300/50 group-hover:text-emerald-200' : 'text-gray-500 group-hover:text-gray-900'
-        }`}>
+        <span className={`text-sm font-medium tracking-tight transition-colors flex-1 ${active
+          ? darkMode ? 'text-white' : 'text-gray-900'
+          : darkMode ? 'text-emerald-300/50 group-hover:text-emerald-200' : 'text-gray-500 group-hover:text-gray-900'
+          }`}>
           {label}
         </span>
         {categorySlug && (
           <button
             onClick={(e) => handleShareClick(e, categorySlug, label)}
-            className={`p-1.5 rounded-lg transition-all shrink-0 opacity-0 group-hover:opacity-100 ${
-              darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`p-1.5 rounded-lg transition-all shrink-0 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
             title="Generate share link"
           >
             <Link2 size={14} />
@@ -96,11 +89,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
       </>
     );
 
-    const className = `w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group relative ${
-      active
-        ? darkMode ? 'bg-emerald-500/[0.1]' : 'bg-gray-100'
-        : darkMode ? 'hover:bg-emerald-500/[0.06]' : 'hover:bg-gray-50'
-    }`;
+    const className = `w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group relative ${active
+      ? darkMode ? 'bg-emerald-500/[0.1]' : 'bg-gray-100'
+      : darkMode ? 'hover:bg-emerald-500/[0.06]' : 'hover:bg-gray-50'
+      }`;
 
     if (to) {
       return (
@@ -174,18 +166,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
         <div className={`mt-auto px-5 pb-7 pt-5 border-t space-y-1 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
           <button
             onClick={() => setShowSignOutModal(true)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group ${
-              darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
+              }`}
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
-            }`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
+              }`}>
               <LogOut size={20} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'}`} />
             </div>
-            <span className={`text-sm font-medium tracking-tight transition-colors ${
-              darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
-            }`}>
+            <span className={`text-sm font-medium tracking-tight transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
+              }`}>
               Sign Out
             </span>
           </button>
@@ -196,7 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
       <ShareLinkModal
         isOpen={!!shareSlug}
         onClose={() => setShareSlug(null)}
-        onGenerate={handleGenerate}
+        url={shareSlug ? `${window.location.origin}/share/category/${shareSlug}` : ''}
         title={shareModalTitle}
         description="Anyone with this link can view and read these flipbooks."
         darkMode={darkMode}
@@ -210,16 +199,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
             onClick={() => setShowSignOutModal(false)}
           />
 
-          <div className={`relative w-full max-w-sm rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 ${
-            darkMode
-              ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
-              : 'bg-white border-gray-200 shadow-gray-300/50'
-          }`}>
+          <div className={`relative w-full max-w-sm rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 ${darkMode
+            ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
+            : 'bg-white border-gray-200 shadow-gray-300/50'
+            }`}>
             <div className="flex flex-col items-center text-center p-8 pt-10">
               {/* Icon */}
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 ${
-                darkMode ? 'bg-red-500/10' : 'bg-red-50'
-              }`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 ${darkMode ? 'bg-red-500/10' : 'bg-red-50'
+                }`}>
                 <LogOut size={28} className="text-red-400" />
               </div>
 
@@ -239,11 +226,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
                 </button>
                 <button
                   onClick={() => setShowSignOutModal(false)}
-                  className={`w-full py-3.5 rounded-2xl font-bold transition-all active:scale-[0.98] ${
-                    darkMode
-                      ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.1] text-emerald-300/70'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
+                  className={`w-full py-3.5 rounded-2xl font-bold transition-all active:scale-[0.98] ${darkMode
+                    ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.1] text-emerald-300/70'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    }`}
                 >
                   Cancel
                 </button>
