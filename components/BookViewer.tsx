@@ -11,10 +11,15 @@ interface BookViewerProps {
   showSearch?: boolean;
   onToggleSearch?: () => void;
   fullscreenContainerRef?: React.RefObject<HTMLDivElement>;
+  orientation?: 'portrait' | 'landscape';
 }
 
-const PAGE_WIDTH = 550;
-const PAGE_HEIGHT = 733;
+// Fixed page dimensions per orientation — these control the SHAPE of each flipbook page.
+// PDF content is fitted inside using contain-scale so it's never distorted.
+const PORTRAIT_W = 500;
+const PORTRAIT_H = 707;
+const LANDSCAPE_W = 707;
+const LANDSCAPE_H = 500;
 
 // Realistic page flip sound — multi-layered: swoosh + crinkle + snap
 let audioContext: AudioContext | null = null;
@@ -132,12 +137,15 @@ const playFlipSound = () => {
   }
 };
 
-// Page Component with text layer for selection/copy
-const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any }>(
-  ({ number, pdfDocument }, ref) => {
+// Page Component
+// The container (pageW × pageH) is fixed to the chosen orientation.
+// PDF content is scaled with contain-fit and centered — no stretching, no clipping.
+const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number }>(
+  ({ number, pdfDocument, pageW, pageH }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const textLayerRef = useRef<HTMLDivElement>(null);
     const [rendered, setRendered] = useState(false);
+    const [fit, setFit] = useState<{ displayW: number; displayH: number; offsetX: number; offsetY: number } | null>(null);
 
     useEffect(() => {
       if (!pdfDocument || !canvasRef.current || rendered) return;
@@ -145,66 +153,61 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any }>(
       const render = async () => {
         try {
           const page = await pdfDocument.getPage(number);
-          const viewport = page.getViewport({ scale: 2.5 });
+          const natural = page.getViewport({ scale: 1 });
+
+          // Contain-fit: scale so PDF fills as much of the container as possible
+          // without exceeding either dimension
+          const fitScale = Math.min(pageW / natural.width, pageH / natural.height);
+          const displayW = Math.round(natural.width * fitScale);
+          const displayH = Math.round(natural.height * fitScale);
+          const offsetX = Math.round((pageW - displayW) / 2);
+          const offsetY = Math.round((pageH - displayH) / 2);
+
+          // Render at 2× for crispness
+          const renderScale = fitScale * 2;
+          const viewport = page.getViewport({ scale: renderScale });
+
           const canvas = canvasRef.current!;
           const ctx = canvas.getContext('2d')!;
-
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-          // Render text layer for selection/copy
+          // Text layer: built at renderScale coords, CSS-scaled down to display size
           if (textLayerRef.current) {
             const textContent = await page.getTextContent();
-            const textLayerDiv = textLayerRef.current;
-            textLayerDiv.innerHTML = '';
-
-            // The text layer is built at viewport coordinates (scale 2.5)
-            // then CSS-scaled down to match the displayed page size
-            const scaleDownX = PAGE_WIDTH / viewport.width;
-            const scaleDownY = PAGE_HEIGHT / viewport.height;
-            textLayerDiv.style.width = `${viewport.width}px`;
-            textLayerDiv.style.height = `${viewport.height}px`;
-            textLayerDiv.style.transform = `scale(${scaleDownX}, ${scaleDownY})`;
+            const div = textLayerRef.current;
+            div.innerHTML = '';
+            const sd = displayW / viewport.width; // scale-down factor (0.5)
+            div.style.width = `${viewport.width}px`;
+            div.style.height = `${viewport.height}px`;
+            div.style.transform = `scale(${sd})`;
 
             textContent.items.forEach((item: any) => {
               if (!item.str) return;
-
               const [a, b, , d, tx, ty] = item.transform;
-              const fontSize = Math.sqrt(d * d + item.transform[2] * item.transform[2]);
-              const scaledFontSize = fontSize * 2.5;
-
-              const screenX = tx * 2.5;
-              const screenY = viewport.height - ty * 2.5;
-
+              const fontSize = Math.sqrt(d * d + item.transform[2] * item.transform[2]) * renderScale;
               const span = document.createElement('span');
               span.textContent = item.str;
               span.style.cssText = `
                 position: absolute;
-                left: ${screenX}px;
-                top: ${screenY - scaledFontSize}px;
-                font-size: ${scaledFontSize}px;
+                left: ${tx * renderScale}px;
+                top: ${viewport.height - ty * renderScale - fontSize}px;
+                font-size: ${fontSize}px;
                 font-family: sans-serif;
                 white-space: pre;
                 color: transparent;
                 transform-origin: 0% 0%;
                 line-height: 1;
               `;
-
               const angle = Math.atan2(b, a);
-              if (Math.abs(angle) > 0.001) {
-                span.style.transform = `rotate(${angle}rad)`;
-              }
-
-              if (item.width) {
-                span.style.width = `${item.width * 2.5}px`;
-              }
-
-              textLayerDiv.appendChild(span);
+              if (Math.abs(angle) > 0.001) span.style.transform = `rotate(${angle}rad)`;
+              if (item.width) span.style.width = `${item.width * renderScale}px`;
+              div.appendChild(span);
             });
           }
 
+          setFit({ displayW, displayH, offsetX, offsetY });
           setRendered(true);
         } catch (e) {
           console.error('Page render error:', e);
@@ -212,19 +215,18 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any }>(
       };
 
       render();
-    }, [pdfDocument, number, rendered]);
+    }, [pdfDocument, number, rendered, pageW, pageH]);
 
     return (
       <div
         ref={ref}
         className="page-realistic"
         style={{
-          width: PAGE_WIDTH,
-          height: PAGE_HEIGHT,
+          width: pageW,
+          height: pageH,
           background: '#fff',
           boxShadow: 'inset -2px 0 5px rgba(0,0,0,0.05)',
           position: 'relative',
-          overflow: 'hidden'
         }}
       >
         {!rendered && (
@@ -234,18 +236,22 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any }>(
         )}
         <canvas
           ref={canvasRef}
-          style={{ width: '100%', height: '100%', display: rendered ? 'block' : 'none' }}
+          style={{
+            position: 'absolute',
+            left: fit?.offsetX ?? 0,
+            top: fit?.offsetY ?? 0,
+            width: fit?.displayW ?? '100%',
+            height: fit?.displayH ?? '100%',
+            display: rendered ? 'block' : 'none',
+          }}
         />
-        {/* Text layer for selection/copy — transparent text positioned over canvas */}
         <div
           ref={textLayerRef}
           className="pdf-text-layer"
           style={{
             position: 'absolute',
-            left: 0,
-            top: 0,
-            width: '100%',
-            height: '100%',
+            left: fit?.offsetX ?? 0,
+            top: fit?.offsetY ?? 0,
             transformOrigin: '0 0',
             overflow: 'hidden',
           }}
@@ -254,6 +260,7 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any }>(
     );
   }
 );
+
 
 Page.displayName = 'Page';
 
@@ -309,11 +316,10 @@ const Thumbnail: React.FC<{
     <div
       ref={containerRef}
       onClick={onClick}
-      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-        isActive
-          ? 'border-emerald-500 shadow-md shadow-emerald-500/20 scale-[1.02]'
-          : 'border-transparent hover:border-white/10'
-      }`}
+      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${isActive
+        ? 'border-emerald-500 shadow-md shadow-emerald-500/20 scale-[1.02]'
+        : 'border-transparent hover:border-white/10'
+        }`}
     >
       <div className="bg-white aspect-[3/4] flex items-center justify-center">
         {!rendered && (
@@ -338,8 +344,13 @@ interface SearchResult {
 // Main BookViewer
 const BookViewer: React.FC<BookViewerProps> = ({
   pdfDocument, onFlip, onBookInit, autoPlay = false,
-  showSearch = false, onToggleSearch, fullscreenContainerRef
+  showSearch = false, onToggleSearch, fullscreenContainerRef,
+  orientation = 'portrait'
 }) => {
+  const pageW = orientation === 'landscape' ? LANDSCAPE_W : PORTRAIT_W;
+  const pageH = orientation === 'landscape' ? LANDSCAPE_H : PORTRAIT_H;
+
+
   const [pages, setPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [baseScale, setBaseScale] = useState(1);
@@ -505,8 +516,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
     const updateScale = () => {
       const w = window.innerWidth - 120;
       const h = window.innerHeight - 180;
-      const scaleX = w / (PAGE_WIDTH * 2);
-      const scaleY = h / PAGE_HEIGHT;
+      const scaleX = w / (pageW * 2);
+      const scaleY = h / pageH;
       const newScale = Math.min(scaleX, scaleY, 1.3);
       setBaseScale(newScale);
     };
@@ -523,7 +534,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
       window.removeEventListener('resize', handleResize);
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
-  }, []);
+  }, [pageW, pageH]);
 
   // Initialize pages
   useEffect(() => {
@@ -677,13 +688,14 @@ const BookViewer: React.FC<BookViewerProps> = ({
           }}
         >
           <HTMLFlipBook
-            width={PAGE_WIDTH}
-            height={PAGE_HEIGHT}
+            key={`${pageW}-${pageH}`}
+            width={pageW}
+            height={pageH}
             size="fixed"
-            minWidth={PAGE_WIDTH}
-            maxWidth={PAGE_WIDTH}
-            minHeight={PAGE_HEIGHT}
-            maxHeight={PAGE_HEIGHT}
+            minWidth={pageW}
+            maxWidth={pageW}
+            minHeight={pageH}
+            maxHeight={pageH}
             showCover={true}
             maxShadowOpacity={0.5}
             mobileScrollSupport={true}
@@ -708,7 +720,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
             disableFlipByClick={true}
           >
             {pages.map((num) => (
-              <Page key={num} number={num} pdfDocument={pdfDocument} />
+              <Page key={num} number={num} pdfDocument={pdfDocument} pageW={pageW} pageH={pageH} />
             ))}
           </HTMLFlipBook>
         </div>
@@ -932,7 +944,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
             {
               icon: <span style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>{currentPage + 1}/{totalPages}</span>,
               label: `Page ${currentPage + 1} of ${totalPages}`,
-              onClick: () => {},
+              onClick: () => { },
               className: 'pointer-events-none',
             },
             {

@@ -302,7 +302,7 @@ const App: React.FC = () => {
     return canvas.toDataURL('image/jpeg', 0.8);
   };
 
-  const handleFilesSelect = async (selectedFiles: File[]) => {
+  const handleFilesSelect = async (selectedFiles: File[], orientation: 'landscape' | 'portrait' = 'portrait') => {
     const total = selectedFiles.length;
     if (total === 0) return;
 
@@ -379,7 +379,8 @@ const App: React.FC = () => {
             pdf_url: pdfUrl,
             cover_url: coverUrl,
             total_pages: doc.numPages,
-            file_size: file.size
+            file_size: file.size,
+            orientation
           });
           console.log('✓ Metadata saved:', savedBook.id);
         } catch (dbError: any) {
@@ -395,7 +396,8 @@ const App: React.FC = () => {
           coverUrl: savedBook.cover_url || coverBase64,
           totalPages: savedBook.total_pages,
           category: savedBook.category || undefined,
-          isFavorite: savedBook.is_favorite
+          isFavorite: savedBook.is_favorite,
+          orientation: savedBook.orientation || orientation
         });
       }
 
@@ -492,7 +494,7 @@ const App: React.FC = () => {
     // Delete from Supabase
     if (book) {
       try {
-        await deleteBookFromSupabase(bookId, book.pdfUrl, book.coverUrl);
+        await deleteBookFromSupabase(bookId);
         console.log('Book deleted from Supabase');
       } catch (e) {
         console.error('Failed to delete book from Supabase:', e);
@@ -846,6 +848,7 @@ const App: React.FC = () => {
                       showSearch={showSearch}
                       onToggleSearch={() => setShowSearch(!showSearch)}
                       fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
+                      orientation={selectedBook.orientation || 'portrait'}
                     />
                   </div>
                 </div>

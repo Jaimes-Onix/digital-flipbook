@@ -31,6 +31,7 @@ export interface LibraryBook {
   summary?: string;
   category?: BookCategory;
   isFavorite?: boolean;
+  orientation?: 'portrait' | 'landscape';
 }
 
 export interface BookRef {

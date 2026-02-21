@@ -133,6 +133,7 @@ export async function saveBookMetadata(book: {
   category?: BookCategory;
   is_favorite?: boolean;
   summary?: string;
+  orientation?: 'portrait' | 'landscape';
 }): Promise<StoredBook> {
   // Get current user (try getUser first, then fall back to getSession)
   let userId = (await supabase.auth.getUser()).data.user?.id;
@@ -157,7 +158,8 @@ export async function saveBookMetadata(book: {
     file_size: book.file_size,
     category: book.category || null,
     is_favorite: book.is_favorite || false,
-    summary: book.summary || null
+    summary: book.summary || null,
+    orientation: book.orientation || 'portrait'
   };
 
   const { data, error } = await supabase
@@ -282,31 +284,57 @@ export async function updateBook(
 }
 
 /**
- * Delete a book and its files
+ * Delete a book and all its associated storage files.
+ * Fetches real Supabase storage URLs from the DB before deleting the row,
+ * since the pdfUrl in LibraryBook may be a blob:// URL used by the viewer.
  */
-export async function deleteBook(bookId: string, pdfUrl: string, coverUrl?: string): Promise<void> {
-  // Delete from database first
+export async function deleteBook(bookId: string): Promise<void> {
+  // Step 1: fetch the real storage URLs from the database
+  const { data: bookRow, error: fetchError } = await supabase
+    .from('books')
+    .select('pdf_url, cover_url')
+    .eq('id', bookId)
+    .single();
+
+  if (fetchError) {
+    console.error('Delete book fetch error:', fetchError);
+    throw new Error(`Failed to fetch book for deletion: ${fetchError.message}`);
+  }
+
+  // Step 2: delete the database row
   const { error: dbError } = await supabase
     .from('books')
     .delete()
     .eq('id', bookId);
 
   if (dbError) {
-    console.error('Delete book error:', dbError);
+    console.error('Delete book DB error:', dbError);
     throw new Error(`Failed to delete book: ${dbError.message}`);
   }
 
-  // Try to delete files from storage (extract path from URL)
+  // Step 3: delete storage files using the real Supabase URLs
   try {
-    const pdfPath = pdfUrl.split('/pdfs/')[1];
-    if (pdfPath) {
-      await supabase.storage.from('pdfs').remove([`books/${pdfPath}`]);
+    if (bookRow?.pdf_url) {
+      // PDF path inside bucket: everything after '/pdfs/'
+      // e.g. https://xxx.supabase.co/storage/v1/object/public/pdfs/books/file.pdf
+      //       → path = 'books/file.pdf'
+      const pdfMatch = bookRow.pdf_url.match(/\/pdfs\/(.+)$/);
+      if (pdfMatch?.[1]) {
+        const { error } = await supabase.storage.from('pdfs').remove([pdfMatch[1]]);
+        if (error) console.warn('PDF storage delete error:', error.message);
+        else console.log('PDF deleted from storage:', pdfMatch[1]);
+      }
     }
 
-    if (coverUrl) {
-      const coverPath = coverUrl.split('/covers/')[1];
-      if (coverPath) {
-        await supabase.storage.from('covers').remove([`covers/${coverPath}`]);
+    if (bookRow?.cover_url) {
+      // Cover path inside bucket: everything after '/covers/'
+      // e.g. https://xxx.supabase.co/storage/v1/object/public/covers/covers/id-cover.jpg
+      //       → path = 'covers/id-cover.jpg'
+      const coverMatch = bookRow.cover_url.match(/\/covers\/(.+)$/);
+      if (coverMatch?.[1]) {
+        const { error } = await supabase.storage.from('covers').remove([coverMatch[1]]);
+        if (error) console.warn('Cover storage delete error:', error.message);
+        else console.log('Cover deleted from storage:', coverMatch[1]);
       }
     }
   } catch (e) {
