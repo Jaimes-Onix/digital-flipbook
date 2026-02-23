@@ -374,7 +374,7 @@ export async function saveCategory(name: string, slug: string, color: string): P
 
   const { data, error } = await supabase
     .from('book_categories')
-    .insert({ user_id: userId, name, slug, color })
+    .insert({ created_by: userId, name, slug, color })
     .select()
     .single();
 
