@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Building, Globe, Users, Heart, Check, ChevronRight, Cloud, Folder } from 'lucide-react';
+import {
+  X,
+  MapPin,
+  Building,
+  Globe,
+  Users,
+  Heart,
+  Check,
+  ChevronRight,
+  Cloud,
+  Folder,
+  GraduationCap,
+  BookOpen,
+  Hotel,
+  LucideIcon
+} from 'lucide-react';
 import { LibraryBook, BookCategory, CustomCategory } from '../types';
 
 interface UploadCategoryModalProps {
@@ -11,15 +26,6 @@ interface UploadCategoryModalProps {
   darkMode?: boolean;
   customCategories?: CustomCategory[];
 }
-
-const CATEGORIES: { id: BookCategory; label: string; icon: any; color: string; glow: string }[] = [
-  { id: 'philippines', label: 'Philippines', icon: MapPin, color: 'bg-blue-500', glow: 'shadow-blue-500/20' },
-  { id: 'internal', label: 'Internal', icon: Building, color: 'bg-purple-500', glow: 'shadow-purple-500/20' },
-  { id: 'international', label: 'International', icon: Globe, color: 'bg-emerald-500', glow: 'shadow-emerald-500/20' },
-  { id: 'ph_interns', label: 'PH Interns', icon: Users, color: 'bg-orange-500', glow: 'shadow-orange-500/20' },
-  { id: 'deseret', label: 'Deseret', icon: MapPin, color: 'bg-yellow-500', glow: 'shadow-yellow-500/20' },
-  { id: 'angelhost', label: 'Angelhost', icon: Cloud, color: 'bg-pink-500', glow: 'shadow-pink-500/20' },
-];
 
 const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, currentIndex = 1, totalBooks = 1, onClose, onConfirm, darkMode = true, customCategories = [] }) => {
   const [selectedCategory, setSelectedCategory] = useState<BookCategory | undefined>(undefined);
@@ -40,6 +46,18 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
 
   const handleConfirm = () => { onConfirm(book.id, selectedCategory, isFavorite); };
   const isLastBook = currentIndex >= totalBooks;
+
+  const getCategoryIcon = (iconName?: string): LucideIcon => {
+    switch (iconName) {
+      case 'map-pin': return MapPin;
+      case 'building': return Building;
+      case 'globe': return Globe;
+      case 'graduation-cap': return GraduationCap;
+      case 'book-open': return BookOpen;
+      case 'hotel': return Hotel;
+      default: return Folder;
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -91,47 +109,25 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
             </div>
 
             <div className="flex-1 space-y-2.5">
-              {CATEGORIES.map(({ id, label, icon: Icon, color, glow }) => {
-                const isSelected = selectedCategory === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setSelectedCategory(isSelected ? undefined : id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isSelected
-                        ? darkMode
-                          ? `bg-white/[0.08] border-white/[0.15] shadow-lg ${glow}`
-                          : 'bg-emerald-50 border-emerald-200 shadow-lg'
-                        : darkMode
-                          ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-400'
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                      }`}
-                  >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? darkMode ? 'bg-white/15' : 'bg-emerald-100' : color + ' text-white'}`}>
-                      <Icon size={20} className={isSelected ? darkMode ? 'text-white' : 'text-emerald-800' : ''} />
-                    </div>
-                    <span className={`font-medium flex-1 text-left ${isSelected ? darkMode ? 'text-white' : 'text-emerald-800' : ''}`}>{label}</span>
-                    {isSelected && <Check size={20} className="text-emerald-500" />}
-                  </button>
-                );
-              })}
-
-              {/* User-created categories */}
+              {/* All categories are dynamic now */}
               {customCategories.map(cat => {
                 const isSelected = selectedCategory === cat.slug;
+                const Icon = getCategoryIcon(cat.icon);
+
                 return (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(isSelected ? undefined : cat.slug)}
                     className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isSelected
-                        ? darkMode ? 'bg-white/[0.08] border-white/[0.15] shadow-lg' : 'bg-emerald-50 border-emerald-200 shadow-lg'
-                        : darkMode ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-400' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      ? darkMode ? 'bg-white/[0.08] border-white/[0.15] shadow-lg' : 'bg-emerald-50 border-emerald-200 shadow-lg'
+                      : darkMode ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-400' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                       }`}
                   >
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center p-2"
                       style={{ backgroundColor: `${cat.color}25` }}
                     >
-                      <Folder size={20} style={{ color: cat.color }} />
+                      <Icon size={20} style={{ color: cat.color }} />
                     </div>
                     <span className={`font-medium flex-1 text-left ${isSelected ? darkMode ? 'text-white' : 'text-emerald-800' : ''}`}>{cat.name}</span>
                     {isSelected && <Check size={20} className="text-emerald-500" />}
@@ -144,10 +140,10 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
             <button
               onClick={() => setIsFavorite(!isFavorite)}
               className={`mt-4 w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isFavorite
-                  ? 'border-red-500/20 bg-red-500/[0.06] text-red-400'
-                  : darkMode
-                    ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-500'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-500'
+                ? 'border-red-500/20 bg-red-500/[0.06] text-red-400'
+                : darkMode
+                  ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-500'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-500'
                 }`}
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isFavorite ? 'bg-red-500/15' : darkMode ? 'bg-white/[0.04]' : 'bg-gray-100'}`}>

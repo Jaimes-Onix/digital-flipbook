@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
-import { X, FolderPlus, Check } from 'lucide-react';
+import {
+    X,
+    FolderPlus,
+    Check,
+    MapPin,
+    Building,
+    Globe,
+    GraduationCap,
+    BookOpen,
+    Hotel,
+    Folder,
+    Briefcase,
+    Users,
+    Heart,
+    Star,
+    Zap
+} from 'lucide-react';
 import { saveCategory } from '../src/lib/bookStorage';
 import type { CustomCategory } from '../types';
 
@@ -21,6 +37,21 @@ const PRESET_COLORS = [
     '#EF4444', // red
 ];
 
+const PRESET_ICONS = [
+    { id: 'folder', icon: Folder },
+    { id: 'map-pin', icon: MapPin },
+    { id: 'building', icon: Building },
+    { id: 'globe', icon: Globe },
+    { id: 'graduation-cap', icon: GraduationCap },
+    { id: 'book-open', icon: BookOpen },
+    { id: 'hotel', icon: Hotel },
+    { id: 'briefcase', icon: Briefcase },
+    { id: 'users', icon: Users },
+    { id: 'heart', icon: Heart },
+    { id: 'star', icon: Star },
+    { id: 'zap', icon: Zap },
+];
+
 function toSlug(name: string): string {
     return name
         .toLowerCase()
@@ -32,6 +63,7 @@ function toSlug(name: string): string {
 const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, onClose, onCategoryAdded }) => {
     const [name, setName] = useState('');
     const [color, setColor] = useState(PRESET_COLORS[0]);
+    const [icon, setIcon] = useState(PRESET_ICONS[0].id);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -52,10 +84,11 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
         setIsSaving(true);
         setError(null);
         try {
-            const newCategory = await saveCategory(name.trim(), slug, color);
+            const newCategory = await saveCategory(name.trim(), slug, color, icon);
             onCategoryAdded(newCategory);
             setName('');
             setColor(PRESET_COLORS[0]);
+            setIcon(PRESET_ICONS[0].id);
             onClose();
         } catch (e: any) {
             setError(e.message.includes('unique') ? 'A category with this name already exists.' : e.message);
@@ -79,8 +112,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
 
             {/* Modal */}
             <div className={`relative w-full max-w-sm rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 ${darkMode
-                    ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
-                    : 'bg-white border-gray-200 shadow-gray-300/50'
+                ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
+                : 'bg-white border-gray-200 shadow-gray-300/50'
                 }`}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-7 pt-7 pb-5">
@@ -115,8 +148,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                             placeholder="e.g. Marketing, HR, Finance..."
                             maxLength={40}
                             className={`w-full px-4 py-3 rounded-2xl text-sm font-medium outline-none transition-all border ${darkMode
-                                    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-zinc-600 focus:border-emerald-500/40 focus:bg-white/[0.07]'
-                                    : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400 focus:bg-white'
+                                ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-zinc-600 focus:border-emerald-500/40 focus:bg-white/[0.07]'
+                                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400 focus:bg-white'
                                 }`}
                         />
                         {slug && name && (
@@ -145,6 +178,31 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                         </div>
                     </div>
 
+                    {/* Icon Picker */}
+                    <div className="space-y-2">
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                            Icon
+                        </label>
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                            {PRESET_ICONS.map(i => {
+                                const IconComp = i.icon;
+                                const isSelected = icon === i.id;
+                                return (
+                                    <button
+                                        key={i.id}
+                                        onClick={() => setIcon(i.id)}
+                                        className={`w-10 h-10 rounded-xl transition-all duration-150 flex items-center justify-center hover:scale-105 active:scale-95 ${isSelected
+                                                ? darkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                                : darkMode ? 'bg-white/[0.04] text-zinc-400 border border-transparent hover:bg-white/[0.08]' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        <IconComp size={18} strokeWidth={isSelected ? 2.5 : 2} />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Error */}
                     {error && (
                         <p className="text-red-400 text-sm font-medium">{error}</p>
@@ -155,8 +213,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                         <button
                             onClick={onClose}
                             className={`flex-1 py-3 rounded-2xl font-semibold text-sm transition-all active:scale-[0.98] ${darkMode
-                                    ? 'bg-white/[0.05] hover:bg-white/[0.09] text-zinc-400'
-                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                                ? 'bg-white/[0.05] hover:bg-white/[0.09] text-zinc-400'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                                 }`}
                         >
                             Cancel

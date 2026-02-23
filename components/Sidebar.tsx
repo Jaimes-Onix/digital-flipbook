@@ -15,7 +15,8 @@ import {
   Link2,
   LogOut,
   FolderPlus,
-  Folder
+  Folder,
+  LucideIcon
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -63,6 +64,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     e.stopPropagation();
     setShareSlug(slug);
     setShareModalTitle(`Share ${label} Flipbooks`);
+  };
+
+  // Helper function to map string icon names to Lucide components
+  const getCategoryIcon = (iconName?: string): LucideIcon => {
+    switch (iconName) {
+      case 'map-pin': return MapPin;
+      case 'building': return Building;
+      case 'globe': return Globe;
+      case 'graduation-cap': return GraduationCap;
+      case 'book-open': return BookOpen;
+      case 'hotel': return Hotel;
+      default: return Folder;
+    }
   };
 
   const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug }: any) => {
@@ -187,19 +201,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             <p className={`text-[11px] font-semibold uppercase tracking-[0.15em] ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
           </div>
           <div className="px-5 space-y-0.5 pb-4">
-            {/* Built-in categories */}
-            <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/category/philippines'} to="/category/philippines" categorySlug="philippines" />
-            <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/category/internal'} to="/category/internal" categorySlug="internal" />
-            <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/category/international'} to="/category/international" categorySlug="international" />
-            <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/category/ph_interns'} to="/category/ph_interns" categorySlug="ph_interns" />
-            <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/category/deseret'} to="/category/deseret" categorySlug="deseret" />
-            <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/category/angelhost'} to="/category/angelhost" categorySlug="angelhost" />
-
-            {/* User-created categories */}
+            {/* All categories are now dynamic and come from the database */}
             {customCategories.map(cat => (
               <NavItem
                 key={cat.id}
-                icon={Folder}
+                icon={getCategoryIcon(cat.icon)}
                 label={cat.name}
                 color={cat.color}
                 active={location.pathname === `/category/${cat.slug}`}

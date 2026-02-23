@@ -364,7 +364,7 @@ export async function loadCategories(): Promise<CustomCategory[]> {
 /**
  * Save a new user-created category
  */
-export async function saveCategory(name: string, slug: string, color: string): Promise<CustomCategory> {
+export async function saveCategory(name: string, slug: string, color: string, icon: string = 'folder'): Promise<CustomCategory> {
   let userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) {
     const { data: { session } } = await supabase.auth.getSession();
@@ -374,7 +374,7 @@ export async function saveCategory(name: string, slug: string, color: string): P
 
   const { data, error } = await supabase
     .from('book_categories')
-    .insert({ created_by: userId, name, slug, color })
+    .insert({ user_id: userId, name, slug, color, icon })
     .select()
     .single();
 

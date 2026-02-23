@@ -28,6 +28,7 @@ export interface CustomCategory {
   name: string;
   slug: string;
   color: string;
+  icon?: string;
   created_at: string;
 }
 
