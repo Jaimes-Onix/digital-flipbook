@@ -5,25 +5,36 @@ import BookViewer from './BookViewer';
 import VantaFogBackground from './VantaFogBackground';
 import { getDocument } from '../utils/pdfUtils';
 import { loadBooksByCategory } from '../src/lib/bookStorage';
-import type { LibraryBook, BookCategory, BookRef } from '../types';
+import type { LibraryBook, BookRef } from '../types';
 
 interface SharedCategoryViewProps {
   categorySlug?: string;
 }
 
-const CATEGORY_MAP: Record<string, { dbValue: BookCategory; displayName: string; color: string }> = {
-  'philippines': { dbValue: 'philippines', displayName: 'Philippines', color: '#3B82F6' },
-  'internal': { dbValue: 'internal', displayName: 'Internal', color: '#A855F7' },
-  'international': { dbValue: 'international', displayName: 'International', color: '#22C55E' },
-  'ph-interns': { dbValue: 'ph_interns', displayName: 'PH Interns', color: '#F97316' },
-  'deseret': { dbValue: 'deseret', displayName: 'Deseret', color: '#EAB308' },
-  'angelhost': { dbValue: 'angelhost', displayName: 'Angelhost', color: '#EC4899' },
+// Built-in readable names — custom categories fall back to slug-derived name
+const BUILTIN_DISPLAY: Record<string, { displayName: string; color: string }> = {
+  'philippines': { displayName: 'Philippines', color: '#3B82F6' },
+  'internal': { displayName: 'Internal', color: '#A855F7' },
+  'international': { displayName: 'International', color: '#22C55E' },
+  'ph_interns': { displayName: 'PH Interns', color: '#F97316' },
+  'ph-interns': { displayName: 'PH Interns', color: '#F97316' },
+  'deseret': { displayName: 'Deseret', color: '#EAB308' },
+  'angelhost': { displayName: 'Angelhost', color: '#EC4899' },
 };
+
+// Convert a slug like "hr_department" or "pearl27-aeo" to "Hr Department" / "Pearl27 Aeo"
+function slugToName(slug: string): string {
+  return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export default function SharedCategoryView({ categorySlug }: SharedCategoryViewProps) {
   const { category: categoryParam } = useParams<{ category: string }>();
-  const category = categorySlug || categoryParam;
-  const categoryInfo = category ? CATEGORY_MAP[category] : null;
+  const category = categorySlug || categoryParam || '';
+
+  // Resolve display info — works for built-in and any custom category
+  const builtIn = category ? BUILTIN_DISPLAY[category] : null;
+  const displayName = builtIn?.displayName ?? slugToName(category);
+  const displayColor = builtIn?.color ?? '#22C55E';
 
   const [books, setBooks] = useState<LibraryBook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,15 +56,15 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
 
   // Update page title
   useEffect(() => {
-    if (categoryInfo) {
-      document.title = `${categoryInfo.displayName} Flipbooks - Lifewood Philippines`;
+    if (category) {
+      document.title = `${displayName} Flipbooks - Lifewood Philippines`;
     }
     return () => { document.title = 'Lifewood Digital Flipbook'; };
-  }, [categoryInfo]);
+  }, [displayName, category]);
 
-  // Fetch books for this category
+  // Fetch books — query by the category slug directly (works for any category)
   useEffect(() => {
-    if (!categoryInfo) {
+    if (!category) {
       setError('Invalid category');
       setLoading(false);
       return;
@@ -61,7 +72,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
 
     const fetchBooks = async () => {
       try {
-        const storedBooks = await loadBooksByCategory(categoryInfo.dbValue);
+        const storedBooks = await loadBooksByCategory(category);
         setBooks(storedBooks.map(s => ({
           id: s.id,
           name: s.title,
@@ -81,7 +92,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
     };
 
     fetchBooks();
-  }, [categoryInfo?.dbValue]);
+  }, [category]);
 
   // Open a book in the reader
   const handleOpenBook = useCallback(async (book: LibraryBook) => {
@@ -124,8 +135,8 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
     return () => window.removeEventListener('keydown', onKey);
   }, [selectedBook]);
 
-  // --- Invalid category ---
-  if (!categoryInfo) {
+  // --- Missing/invalid category slug ---
+  if (!category) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
         <VantaFogBackground darkMode={true} />
@@ -213,7 +224,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
           </div>
           <div>
             <h1 className={`text-lg font-bold tracking-tight ${titleColor}`}>
-              <span style={{ color: categoryInfo.color }}>{categoryInfo.displayName}</span>
+              <span style={{ color: displayColor }}>{displayName}</span>
               {' '}Flipbooks
             </h1>
             <p className={`text-xs ${subtitleColor}`}>Lifewood Philippines Digital Library</p>

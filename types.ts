@@ -19,7 +19,17 @@ export interface PDFPageViewport {
   scale: number;
 }
 
-export type BookCategory = 'philippines' | 'internal' | 'international' | 'ph_interns' | 'deseret' | 'angelhost';
+// Any string slug is valid — both built-in and user-created categories
+export type BookCategory = string;
+
+export interface CustomCategory {
+  id: string;
+  user_id: string;
+  name: string;
+  slug: string;
+  color: string;
+  created_at: string;
+}
 
 export interface LibraryBook {
   id: string;

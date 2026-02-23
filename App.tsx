@@ -19,7 +19,7 @@ import FeaturedCarousel from './components/FeaturedCarousel';
 import VantaFogBackground from './components/VantaFogBackground';
 import SignIn from './components/SignIn';
 import { getDocument } from './utils/pdfUtils';
-import { BookRef, LibraryBook, BookCategory } from './types';
+import { BookRef, LibraryBook, BookCategory, CustomCategory } from './types';
 import type { LibraryFilter } from './components/Sidebar';
 import {
   uploadPDF,
@@ -28,6 +28,7 @@ import {
   loadBooks as loadBooksFromSupabase,
   updateBook as updateBookInSupabase,
   deleteBook as deleteBookFromSupabase,
+  loadCategories as loadCategoriesFromSupabase,
   type StoredBook
 } from './src/lib/bookStorage';
 
@@ -113,6 +114,9 @@ const App: React.FC = () => {
   const [isLoadingBook, setIsLoadingBook] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
+  // Custom categories state
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successBookCount, setSuccessBookCount] = useState(0);
@@ -132,13 +136,7 @@ const App: React.FC = () => {
   };
 
   const getCurrentFilter = (): LibraryFilter => {
-    if (location.pathname === '/favorites') return 'favorites';
-    if (location.pathname === '/philippines') return 'philippines';
-    if (location.pathname === '/internal') return 'internal';
-    if (location.pathname === '/international') return 'international';
-    if (location.pathname === '/ph-interns') return 'ph_interns';
-    if (location.pathname === '/deseret') return 'deseret';
-    if (location.pathname === '/angelhost') return 'angelhost';
+    if (location.pathname.startsWith('/category/')) return location.pathname.replace('/category/', '');
     return 'all';
   };
 
@@ -181,7 +179,11 @@ const App: React.FC = () => {
     const loadSavedBooks = async () => {
       try {
         setLoadingStatus('Loading your library...');
-        const storedBooks = await loadBooksFromSupabase();
+        const [storedBooks, storedCategories] = await Promise.all([
+          loadBooksFromSupabase(),
+          loadCategoriesFromSupabase(),
+        ]);
+        setCustomCategories(storedCategories);
 
         if (storedBooks.length === 0) {
           setLoadingStatus(null);
@@ -672,6 +674,8 @@ const App: React.FC = () => {
           onToggleDarkMode={() => setDarkMode(prev => !prev)}
           isMobileOpen={sidebarOpen}
           onMobileClose={() => setSidebarOpen(false)}
+          customCategories={customCategories}
+          onCategoryAdded={(cat) => setCustomCategories(prev => [...prev, cat])}
         />
       )}
 
@@ -741,6 +745,7 @@ const App: React.FC = () => {
                   books={books}
                   filter={libraryFilter}
                   darkMode={darkMode}
+                  customCategories={customCategories}
                   onSelectBook={(b) => setPendingBook(b)}
                   onAddNew={() => navigate('/upload')}
                   onRemoveBook={handleRemoveBook}
@@ -748,79 +753,14 @@ const App: React.FC = () => {
               </div>
             } />
 
-            <Route path="/favorites" element={
+            {/* Dynamic category route — handles both built-in and user-created categories */}
+            <Route path="/category/:slug" element={
               <Library
                 books={books}
-                filter="favorites"
-                darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
-                onRemoveBook={handleRemoveBook}
-              />
-            } />
-
-            <Route path="/philippines" element={
-              <Library
-                books={books}
-                filter="philippines"
-                darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
-                onRemoveBook={handleRemoveBook}
-              />
-            } />
-
-            <Route path="/internal" element={
-              <Library
-                books={books}
-                filter="internal"
-                darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
-                onRemoveBook={handleRemoveBook}
-              />
-            } />
-
-            <Route path="/international" element={
-              <Library
-                books={books}
-                filter="international"
-                darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
-                onRemoveBook={handleRemoveBook}
-              />
-            } />
-
-            <Route path="/ph-interns" element={
-              <Library
-                books={books}
-                filter="ph_interns"
-                darkMode={darkMode}
-                onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
-                onRemoveBook={handleRemoveBook}
-              />
-            } />
-
-            <Route path="/deseret" element={
-              <Library
-                books={books}
-                filter="deseret"
+                filter={libraryFilter}
                 darkMode={darkMode}
                 isLoading={!!loadingStatus}
-                onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
-                onRemoveBook={handleRemoveBook}
-              />
-            } />
-
-            <Route path="/angelhost" element={
-              <Library
-                books={books}
-                filter="angelhost"
-                darkMode={darkMode}
-                isLoading={!!loadingStatus}
+                customCategories={customCategories}
                 onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload')}
                 onRemoveBook={handleRemoveBook}
@@ -890,6 +830,7 @@ const App: React.FC = () => {
         darkMode={darkMode}
         currentIndex={uploadedBooksPending.length > 0 ? 1 : 0}
         totalBooks={uploadedBooksPending.length}
+        customCategories={customCategories}
         onClose={() => {
           setUploadedBooksPending([]);
           navigate('/library');

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Building, Globe, Users, Heart, Check, ChevronRight, Cloud } from 'lucide-react';
-import { LibraryBook, BookCategory } from '../types';
+import { X, MapPin, Building, Globe, Users, Heart, Check, ChevronRight, Cloud, Folder } from 'lucide-react';
+import { LibraryBook, BookCategory, CustomCategory } from '../types';
 
 interface UploadCategoryModalProps {
   book: LibraryBook | null;
@@ -9,6 +9,7 @@ interface UploadCategoryModalProps {
   onClose: () => void;
   onConfirm: (bookId: string, category?: BookCategory, isFavorite?: boolean) => void;
   darkMode?: boolean;
+  customCategories?: CustomCategory[];
 }
 
 const CATEGORIES: { id: BookCategory; label: string; icon: any; color: string; glow: string }[] = [
@@ -20,7 +21,7 @@ const CATEGORIES: { id: BookCategory; label: string; icon: any; color: string; g
   { id: 'angelhost', label: 'Angelhost', icon: Cloud, color: 'bg-pink-500', glow: 'shadow-pink-500/20' },
 ];
 
-const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, currentIndex = 1, totalBooks = 1, onClose, onConfirm, darkMode = true }) => {
+const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, currentIndex = 1, totalBooks = 1, onClose, onConfirm, darkMode = true, customCategories = [] }) => {
   const [selectedCategory, setSelectedCategory] = useState<BookCategory | undefined>(undefined);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -96,15 +97,14 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
                   <button
                     key={id}
                     onClick={() => setSelectedCategory(isSelected ? undefined : id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${
-                      isSelected
+                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isSelected
                         ? darkMode
                           ? `bg-white/[0.08] border-white/[0.15] shadow-lg ${glow}`
                           : 'bg-emerald-50 border-emerald-200 shadow-lg'
                         : darkMode
                           ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-400'
                           : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? darkMode ? 'bg-white/15' : 'bg-emerald-100' : color + ' text-white'}`}>
                       <Icon size={20} className={isSelected ? darkMode ? 'text-white' : 'text-emerald-800' : ''} />
@@ -114,18 +114,41 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
                   </button>
                 );
               })}
+
+              {/* User-created categories */}
+              {customCategories.map(cat => {
+                const isSelected = selectedCategory === cat.slug;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(isSelected ? undefined : cat.slug)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isSelected
+                        ? darkMode ? 'bg-white/[0.08] border-white/[0.15] shadow-lg' : 'bg-emerald-50 border-emerald-200 shadow-lg'
+                        : darkMode ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-400' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${cat.color}25` }}
+                    >
+                      <Folder size={20} style={{ color: cat.color }} />
+                    </div>
+                    <span className={`font-medium flex-1 text-left ${isSelected ? darkMode ? 'text-white' : 'text-emerald-800' : ''}`}>{cat.name}</span>
+                    {isSelected && <Check size={20} className="text-emerald-500" />}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Favorite */}
             <button
               onClick={() => setIsFavorite(!isFavorite)}
-              className={`mt-4 w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${
-                isFavorite
+              className={`mt-4 w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isFavorite
                   ? 'border-red-500/20 bg-red-500/[0.06] text-red-400'
                   : darkMode
                     ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-500'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-500'
-              }`}
+                }`}
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isFavorite ? 'bg-red-500/15' : darkMode ? 'bg-white/[0.04]' : 'bg-gray-100'}`}>
                 <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
@@ -136,9 +159,8 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
 
             {/* Confirm */}
             <button onClick={handleConfirm}
-              className={`mt-6 w-full py-4 font-semibold rounded-2xl transition-colors active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 ${
-                darkMode ? 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-white/5' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-300/30'
-              }`}>
+              className={`mt-6 w-full py-4 font-semibold rounded-2xl transition-colors active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 ${darkMode ? 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-white/5' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-300/30'
+                }`}>
               {isLastBook ? 'Add to Library' : 'Next Book'}
               {!isLastBook && <ChevronRight size={20} />}
             </button>

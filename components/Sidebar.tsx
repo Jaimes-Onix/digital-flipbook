@@ -4,7 +4,6 @@ import {
   Home as HomeIcon,
   Library as AllBooksIcon,
   UploadCloud,
-  Heart,
   MapPin,
   Building,
   Globe,
@@ -14,12 +13,16 @@ import {
   Moon,
   Sun,
   Link2,
-  LogOut
+  LogOut,
+  FolderPlus,
+  Folder
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
+import AddCategoryModal from './AddCategoryModal';
 import { supabase } from '../src/lib/supabase';
+import type { CustomCategory } from '../types';
 
-export type LibraryFilter = 'all' | 'favorites' | 'philippines' | 'internal' | 'international' | 'ph_interns' | 'deseret' | 'angelhost';
+export type LibraryFilter = string;
 
 interface SidebarProps {
   currentView: 'home' | 'library' | 'upload' | 'reader';
@@ -28,15 +31,27 @@ interface SidebarProps {
   onToggleDarkMode: () => void;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
+  customCategories: CustomCategory[];
+  onCategoryAdded: (cat: CustomCategory) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode, onToggleDarkMode, isMobileOpen, onMobileClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  currentView,
+  currentFilter,
+  darkMode,
+  onToggleDarkMode,
+  isMobileOpen,
+  onMobileClose,
+  customCategories,
+  onCategoryAdded,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const [shareSlug, setShareSlug] = useState<string | null>(null);
   const [shareModalTitle, setShareModalTitle] = useState('');
   const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [showAddCategory, setShowAddCategory] = useState(false);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -49,8 +64,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
     setShareSlug(slug);
     setShareModalTitle(`Share ${label} Flipbooks`);
   };
-
-
 
   const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug }: any) => {
     const content = (
@@ -148,22 +161,54 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
           <NavItem icon={AllBooksIcon} label="All Books" active={location.pathname === '/library'} to="/library" />
           <NavItem icon={UploadCloud} label="Import PDF" active={location.pathname === '/upload'} to="/upload" />
-          <NavItem icon={Heart} label="Favorites" active={location.pathname === '/favorites'} to="/favorites" />
         </div>
 
         {/* Categories */}
-        <div className="px-5 space-y-1 mb-7">
+        <div className="px-5 space-y-1 mb-2 flex-1 overflow-y-auto no-scrollbar">
           <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-3 ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
-          <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/philippines'} to="/philippines" categorySlug="philippines" />
-          <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/internal'} to="/internal" categorySlug="internal" />
-          <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/international'} to="/international" categorySlug="international" />
-          <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/ph-interns'} to="/ph-interns" categorySlug="ph-interns" />
-          <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/deseret'} to="/deseret" categorySlug="deseret" />
-          <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/angelhost'} to="/angelhost" categorySlug="angelhost" />
+
+          {/* Built-in categories */}
+          <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/category/philippines'} to="/category/philippines" categorySlug="philippines" />
+          <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/category/internal'} to="/category/internal" categorySlug="internal" />
+          <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/category/international'} to="/category/international" categorySlug="international" />
+          <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/category/ph_interns'} to="/category/ph_interns" categorySlug="ph_interns" />
+          <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/category/deseret'} to="/category/deseret" categorySlug="deseret" />
+          <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/category/angelhost'} to="/category/angelhost" categorySlug="angelhost" />
+
+          {/* User-created categories */}
+          {customCategories.map(cat => (
+            <NavItem
+              key={cat.id}
+              icon={Folder}
+              label={cat.name}
+              color={cat.color}
+              active={location.pathname === `/category/${cat.slug}`}
+              to={`/category/${cat.slug}`}
+              categorySlug={cat.slug}
+            />
+          ))}
+
+          {/* + Add Category button */}
+          <button
+            onClick={() => setShowAddCategory(true)}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group mt-1 ${darkMode
+                ? 'hover:bg-emerald-500/[0.06] border border-dashed border-emerald-700/20 hover:border-emerald-500/30'
+                : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
+              }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-emerald-500/[0.06]' : 'group-hover:bg-gray-100'
+              }`}>
+              <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-emerald-400/40 group-hover:text-emerald-400' : 'text-gray-400 group-hover:text-emerald-500'}`} />
+            </div>
+            <span className={`text-sm font-medium tracking-tight transition-colors ${darkMode ? 'text-emerald-300/30 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-500'
+              }`}>
+              Add Category
+            </span>
+          </button>
         </div>
 
         {/* Footer */}
-        <div className={`mt-auto px-5 pb-7 pt-5 border-t space-y-1 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
+        <div className={`px-5 pb-7 pt-5 border-t space-y-1 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
           <button
             onClick={() => setShowSignOutModal(true)}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
@@ -191,6 +236,16 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
         darkMode={darkMode}
       />
 
+      <AddCategoryModal
+        isOpen={showAddCategory}
+        darkMode={darkMode}
+        onClose={() => setShowAddCategory(false)}
+        onCategoryAdded={(cat) => {
+          onCategoryAdded(cat);
+          setShowAddCategory(false);
+        }}
+      />
+
       {/* Sign Out Confirmation Modal */}
       {showSignOutModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -204,7 +259,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, currentFilter, darkMode,
             : 'bg-white border-gray-200 shadow-gray-300/50'
             }`}>
             <div className="flex flex-col items-center text-center p-8 pt-10">
-              {/* Icon */}
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 ${darkMode ? 'bg-red-500/10' : 'bg-red-50'
                 }`}>
                 <LogOut size={28} className="text-red-400" />

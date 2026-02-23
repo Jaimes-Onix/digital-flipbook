@@ -1,19 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Trash2, X, Check, Heart, Link2 } from 'lucide-react';
-import { LibraryBook } from '../types';
+import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
 
-const FILTER_TO_SLUG: Partial<Record<LibraryFilter, string>> = {
-  philippines: 'philippines',
-  internal: 'internal',
-  international: 'international',
-  ph_interns: 'ph-interns',
-  deseret: 'deseret',
-  angelhost: 'angelhost',
-};
 
-const SECTION_TITLES: Record<LibraryFilter, string> = {
+
+const BUILTIN_TITLES: Record<string, string> = {
   all: 'Your Library',
   favorites: 'Favorite Flipbooks',
   philippines: 'Philippines Flipbooks',
@@ -29,22 +22,28 @@ interface LibraryProps {
   filter: LibraryFilter;
   darkMode?: boolean;
   isLoading?: boolean;
+  customCategories?: CustomCategory[];
   onSelectBook: (book: LibraryBook) => void;
   onAddNew: () => void;
   onRemoveBook: (id: string) => void;
 }
 
-const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, onSelectBook, onAddNew, onRemoveBook }) => {
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook }) => {
   const filteredBooks = useMemo(() => {
     if (filter === 'all') return books;
     if (filter === 'favorites') return books.filter(b => b.isFavorite);
     return books.filter(b => b.category === filter);
   }, [books, filter]);
+
+  // Resolve title: built-in, or from custom categories list, or fallback
+  const customTitle = customCategories.find(c => c.slug === filter)?.name;
+  const sectionTitle = BUILTIN_TITLES[filter] || (customTitle ? `${customTitle} Flipbooks` : `${filter} Flipbooks`);
   const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const shareSlug = FILTER_TO_SLUG[filter];
+  // Share slug: any non-special filter is a shareable category (built-in or user-created)
+  const shareSlug = (filter !== 'all' && filter !== 'favorites') ? filter : undefined;
 
   const handleBookClick = (book: LibraryBook) => {
     if (openingBookId || confirmingDeleteId) return;
@@ -60,7 +59,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
     <div className={`w-full max-w-7xl mx-auto px-6 py-12 transition-all duration-500 ${openingBookId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
       <div className="flex items-center justify-between mb-12">
         <div>
-          <h2 className={`text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>{SECTION_TITLES[filter]}</h2>
+          <h2 className={`text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>{sectionTitle}</h2>
           <p className={`text-sm mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -199,7 +198,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
           url={`${window.location.origin}/share/category/${shareSlug}`}
-          title={`Share ${SECTION_TITLES[filter]}`}
+          title={`Share ${sectionTitle}`}
           description="Anyone with this link can view and read these flipbooks."
           darkMode={darkMode || false}
         />

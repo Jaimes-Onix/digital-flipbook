@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { BookCategory } from '../../types';
+import type { BookCategory, CustomCategory } from '../../types';
 
 // --- Shared Links ---
 
@@ -50,7 +50,7 @@ export interface StoredBook {
   cover_url: string | null;
   total_pages: number;
   file_size: number | null;
-  category: BookCategory | null;
+  category: string | null;
   is_favorite: boolean;
   summary: string | null;
   created_at: string;
@@ -339,5 +339,64 @@ export async function deleteBook(bookId: string): Promise<void> {
     }
   } catch (e) {
     console.warn('Could not delete storage files:', e);
+  }
+}
+
+// --- Custom Categories ---
+
+/**
+ * Load all user-created categories from Supabase
+ */
+export async function loadCategories(): Promise<CustomCategory[]> {
+  const { data, error } = await supabase
+    .from('book_categories')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Load categories error:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Save a new user-created category
+ */
+export async function saveCategory(name: string, slug: string, color: string): Promise<CustomCategory> {
+  let userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) {
+    const { data: { session } } = await supabase.auth.getSession();
+    userId = session?.user?.id;
+  }
+  if (!userId) throw new Error('User authentication required.');
+
+  const { data, error } = await supabase
+    .from('book_categories')
+    .insert({ user_id: userId, name, slug, color })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Save category error:', error);
+    throw new Error(`Failed to save category: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
+ * Delete a user-created category
+ */
+export async function deleteCategory(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('book_categories')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Delete category error:', error);
+    throw new Error(`Failed to delete category: ${error.message}`);
   }
 }
