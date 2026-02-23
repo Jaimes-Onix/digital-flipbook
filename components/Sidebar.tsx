@@ -16,10 +16,14 @@ import {
   LogOut,
   FolderPlus,
   Folder,
-  LucideIcon
+  LucideIcon,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 import AddCategoryModal from './AddCategoryModal';
+import EditCategoryModal from './EditCategoryModal';
+import DeleteCategoryModal from './DeleteCategoryModal';
 import { supabase } from '../src/lib/supabase';
 import type { CustomCategory } from '../types';
 
@@ -34,6 +38,8 @@ interface SidebarProps {
   onMobileClose?: () => void;
   customCategories: CustomCategory[];
   onCategoryAdded: (cat: CustomCategory) => void;
+  onCategoryEdited: (updatedCat: CustomCategory, oldSlug: string) => void;
+  onCategoryDeleted: (categoryId: string, oldSlug: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -45,6 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onMobileClose,
   customCategories,
   onCategoryAdded,
+  onCategoryEdited,
+  onCategoryDeleted,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -53,6 +61,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [shareModalTitle, setShareModalTitle] = useState('');
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -79,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug }: any) => {
+  const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug, cat }: any) => {
     const content = (
       <>
         <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${active
@@ -103,15 +113,45 @@ const Sidebar: React.FC<SidebarProps> = ({
           }`}>
           {label}
         </span>
+
+        {/* Actions for valid categories (Sharing and Modifying) */}
         {categorySlug && (
-          <button
-            onClick={(e) => handleShareClick(e, categorySlug, label)}
-            className={`p-1.5 rounded-lg transition-all shrink-0 opacity-0 group-hover:opacity-100 ${darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-              }`}
-            title="Generate share link"
-          >
-            <Link2 size={14} />
-          </button>
+          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {cat?.user_id && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCategoryToEdit(cat);
+                  }}
+                  className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                  title="Edit Category"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCategoryToDelete(cat);
+                  }}
+                  className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-red-400/60 hover:text-red-400 hover:bg-red-500/[0.08]' : 'text-red-400/60 hover:text-red-500 hover:bg-red-50'}`}
+                  title="Delete Category"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={(e) => handleShareClick(e, categorySlug, label)}
+              className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+              title="Generate share link"
+            >
+              <Link2 size={14} />
+            </button>
+          </div>
         )}
       </>
     );
@@ -211,6 +251,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 active={location.pathname === `/category/${cat.slug}`}
                 to={`/category/${cat.slug}`}
                 categorySlug={cat.slug}
+                cat={cat}
               />
             ))}
           </div>
@@ -252,6 +293,26 @@ const Sidebar: React.FC<SidebarProps> = ({
         onCategoryAdded={(cat) => {
           onCategoryAdded(cat);
           setShowAddCategory(false);
+        }}
+      />
+
+      <EditCategoryModal
+        isOpen={!!categoryToEdit}
+        darkMode={darkMode}
+        category={categoryToEdit}
+        onClose={() => setCategoryToEdit(null)}
+        onCategoryEdited={(updatedCat, oldSlug) => {
+          onCategoryEdited(updatedCat, oldSlug);
+        }}
+      />
+
+      <DeleteCategoryModal
+        isOpen={!!categoryToDelete}
+        darkMode={darkMode}
+        category={categoryToDelete}
+        onClose={() => setCategoryToDelete(null)}
+        onCategoryDeleted={(id, oldSlug) => {
+          onCategoryDeleted(id, oldSlug);
         }}
       />
 

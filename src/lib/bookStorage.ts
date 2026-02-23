@@ -387,13 +387,85 @@ export async function saveCategory(name: string, slug: string, color: string, ic
 }
 
 /**
- * Delete a user-created category
+ * Edit an existing user-created category.
+ * Also updates all books currently associated with the old slug.
  */
-export async function deleteCategory(id: string): Promise<void> {
+export async function editCategory(
+  id: string,
+  oldSlug: string,
+  newName: string,
+  newSlug: string,
+  newColor: string,
+  newIcon: string
+): Promise<CustomCategory> {
+  let userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) {
+    const { data: { session } } = await supabase.auth.getSession();
+    userId = session?.user?.id;
+  }
+  if (!userId) throw new Error('User authentication required.');
+
+  // 1. Update the category itself
+  const { data, error } = await supabase
+    .from('book_categories')
+    .update({ name: newName, slug: newSlug, color: newColor, icon: newIcon })
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Edit category error:', error);
+    throw new Error(`Failed to edit category: ${error.message}`);
+  }
+
+  // 2. Cascade: update all books that had the old slug to use the new slug
+  if (oldSlug !== newSlug) {
+    const { error: cascadeError } = await supabase
+      .from('books')
+      .update({ category: newSlug })
+      .eq('user_id', userId)
+      .eq('category', oldSlug);
+
+    if (cascadeError) {
+      console.error('Cascade edit category error on books:', cascadeError);
+      // We don't necessarily throw here if the category update succeeded, 
+      // but it's good to log it.
+    }
+  }
+
+  return data;
+}
+
+/**
+ * Delete a user-created category
+ * Also removes the category assignment from any associated books.
+ */
+export async function deleteCategory(id: string, slug: string): Promise<void> {
+  let userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) {
+    const { data: { session } } = await supabase.auth.getSession();
+    userId = session?.user?.id;
+  }
+  if (!userId) throw new Error('User authentication required.');
+
+  // 1. Un-assign books from this category
+  const { error: cascadeError } = await supabase
+    .from('books')
+    .update({ category: null })
+    .eq('user_id', userId)
+    .eq('category', slug);
+
+  if (cascadeError) {
+    console.error('Cascade delete category error on books:', cascadeError);
+  }
+
+  // 2. Delete the category itself
   const { error } = await supabase
     .from('book_categories')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', userId);
 
   if (error) {
     console.error('Delete category error:', error);
