@@ -25,23 +25,23 @@ const Header: React.FC<HeaderProps> = ({
 
   // Reader mode: adapts to dark/light theme
   if (view === 'reader') {
-    const readerHeaderBg = darkMode ? 'bg-black/30 border-white/[0.06]' : 'bg-white/80 border-gray-200';
-    const readerCloseBtn = darkMode ? 'text-white hover:bg-white/[0.12]' : 'text-gray-700 hover:bg-gray-200';
+    const readerHeaderBg = darkMode ? 'bg-[#0a0a0a]/50 backdrop-blur-2xl border-white/[0.08]' : 'bg-white/60 backdrop-blur-2xl border-black/[0.05]';
+    const readerCloseBtn = darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.12]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50';
     const readerTitle = darkMode ? 'text-white' : 'text-gray-900';
-    const readerPageInfoColor = darkMode ? 'text-white/40' : 'text-gray-400';
+    const readerPageInfoColor = darkMode ? 'text-zinc-500' : 'text-gray-400';
     const readerNavBtn = darkMode
       ? 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100';
 
     return (
       <>
-        <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-5 z-50 backdrop-blur-xl border-b transition-colors ${readerHeaderBg}`}>
+        <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-5 z-50 border-b transition-colors shadow-sm ${readerHeaderBg}`}>
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={onCloseReader} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${readerCloseBtn}`} title="Close">
               <X size={18} />
             </button>
             <span className={`text-sm font-semibold truncate ${readerTitle}`}>{readerBookName}</span>
-            {readerPageInfo && <span className={`text-sm shrink-0 ${readerPageInfoColor}`}>{readerPageInfo}</span>}
+            {readerPageInfo && <span className={`text-xs tracking-wide shrink-0 font-medium ${readerPageInfoColor}`}>{readerPageInfo}</span>}
           </div>
           <div className="flex items-center gap-2">
             {readerBookId && (
@@ -75,17 +75,17 @@ const Header: React.FC<HeaderProps> = ({
   }
 
   // Normal header with dark/light mode support
-  const headerBg = darkMode ? 'bg-[#09090b]/70' : 'bg-white/80';
-  const headerBorder = darkMode ? 'border-white/[0.04]' : 'border-gray-200';
-  const menuBtnColor = darkMode ? 'text-zinc-400 hover:bg-white/[0.05]' : 'text-gray-500 hover:bg-gray-100';
-  const navInactive = darkMode ? 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100';
-  const navActive = darkMode ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900';
-  const toggleBg = darkMode ? 'bg-white/[0.04] border-white/[0.06]' : 'bg-gray-100 border-gray-200';
-  const toggleActive = darkMode ? 'bg-white/10 text-white' : 'bg-white text-gray-900 shadow-sm';
-  const toggleInactive = darkMode ? 'text-zinc-600 hover:text-zinc-400' : 'text-gray-400 hover:text-gray-600';
+  const headerBg = darkMode ? 'bg-[#0a0a0a]/50 backdrop-blur-2xl' : 'bg-white/60 backdrop-blur-2xl';
+  const headerBorder = darkMode ? 'border-white/[0.08] shadow-black/20' : 'border-black/[0.05] shadow-gray-200/50';
+  const menuBtnColor = darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50';
+  const navInactive = darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.06]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50';
+  const navActive = darkMode ? 'bg-white/10 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm border border-black/[0.04]';
+  const toggleBg = darkMode ? 'bg-black/40 border-white/[0.08]' : 'bg-gray-100/50 border-black/[0.04] p-0.5';
+  const toggleActive = darkMode ? 'bg-white/15 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm border border-black/[0.04]';
+  const toggleInactive = darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600';
 
   return (
-    <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-6 z-50 backdrop-blur-xl border-b transition-colors ${headerBg} ${headerBorder}`}>
+    <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-6 z-50 border-b transition-colors shadow-sm ${headerBg} ${headerBorder}`}>
       <div className="flex items-center gap-3">
         {onToggleSidebar && (
           <button onClick={onToggleSidebar} className={`lg:hidden p-2 -ml-2 rounded-xl transition-colors ${menuBtnColor}`} aria-label="Toggle menu">

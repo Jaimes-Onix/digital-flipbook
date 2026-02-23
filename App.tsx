@@ -16,7 +16,6 @@ import UploadCategoryModal from './components/UploadCategoryModal';
 import SharedBookView from './components/SharedBookView';
 import SharedCategoryView from './components/SharedCategoryView';
 import FeaturedCarousel from './components/FeaturedCarousel';
-import VantaFogBackground from './components/VantaFogBackground';
 import SignIn from './components/SignIn';
 import { getDocument } from './utils/pdfUtils';
 import { BookRef, LibraryBook, BookCategory, CustomCategory } from './types';
@@ -661,9 +660,21 @@ const App: React.FC = () => {
   const isLandingPage = false; // Sidebar always visible
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-      {/* Vanta.js Fog Background - covers entire viewport */}
-      <VantaFogBackground darkMode={darkMode} />
+    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 relative ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+      {/* ── Universal Background Video ── */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute min-w-full min-h-full object-cover opacity-30 mix-blend-screen"
+        >
+          <source src={`https://www.pexels.com/download/video/10922866/`} type="video/mp4" />
+        </video>
+        {/* Semi-transparent overlay to ensure text readability */}
+        <div className={`absolute inset-0 ${darkMode ? 'bg-[#0a0a0a]/70' : 'bg-white/80'} backdrop-blur-[2px]`} />
+      </div>
 
       {/* Sidebar - Shared across views except reader (optional) */}
       {view !== 'reader' && view !== 'signin' && view !== 'shared' && !isLandingPage && (
@@ -774,9 +785,7 @@ const App: React.FC = () => {
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
               selectedBook && (
-                <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative bg-black">
-                  {/* Vanta Fog Background for Reader */}
-                  <VantaFogBackground variant="reader" />
+                <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative">
 
                   {/* BookViewer */}
                   <div className="flex-1 w-full h-full min-h-0 relative z-10">

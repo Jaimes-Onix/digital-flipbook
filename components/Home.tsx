@@ -44,11 +44,10 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className={`rounded-3xl px-10 py-10 mb-2 max-w-3xl relative overflow-hidden ${
-              darkMode
-                ? 'bg-[#0c1a15]/80 backdrop-blur-2xl shadow-2xl shadow-black/30 border border-emerald-900/20'
-                : 'bg-white/50 backdrop-blur-2xl shadow-2xl shadow-black/5 border border-white/60'
-            }`}
+            className={`rounded-3xl px-10 py-10 mb-2 max-w-3xl relative overflow-hidden ${darkMode
+              ? 'bg-[#0c1a15]/80 backdrop-blur-2xl shadow-2xl shadow-black/30 border border-emerald-900/20'
+              : 'bg-white/50 backdrop-blur-2xl shadow-2xl shadow-black/5 border border-white/60'
+              }`}
           >
             {/* Emerald glow orbs — dark mode only */}
             {darkMode && (
@@ -72,11 +71,10 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                 { icon: Layers, label: '6 Categories' },
                 { icon: Sparkles, label: 'AI Summaries' },
               ].map(({ icon: Icon, label }) => (
-                <div key={label} className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border ${
-                  darkMode
-                    ? 'bg-emerald-500/[0.08] border-emerald-500/[0.15]'
-                    : 'bg-emerald-50 border-emerald-200/60'
-                }`}>
+                <div key={label} className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border ${darkMode
+                  ? 'bg-emerald-500/[0.08] border-emerald-500/[0.15]'
+                  : 'bg-emerald-50 border-emerald-200/60'
+                  }`}>
                   <Icon size={13} className={darkMode ? 'text-emerald-400' : 'text-emerald-600'} />
                   <span className={`text-[11px] font-medium tracking-wide ${darkMode ? 'text-emerald-300/80' : 'text-emerald-700'}`}>{label}</span>
                 </div>
@@ -93,11 +91,10 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                 Lifewood
               </span>
               <br />
-              <span className={`font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${
-                darkMode
-                  ? 'from-emerald-300 via-emerald-400 to-teal-400'
-                  : 'from-emerald-600 via-emerald-500 to-teal-500'
-              }`}>
+              <span className={`font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${darkMode
+                ? 'from-emerald-300 via-emerald-400 to-teal-400'
+                : 'from-emerald-600 via-emerald-500 to-teal-500'
+                }`}>
                 Digital Flipbook
               </span>
             </motion.h1>
@@ -110,40 +107,38 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
               Your immersive library experience. Read, share, and explore beautifully crafted flipbooks.
             </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="relative z-10 flex flex-wrap items-center justify-center gap-4"
-          >
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(16,185,129,0.2)" }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onUpload}
-              className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold transition-all shadow-xl ${
-                darkMode
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+              className="relative z-10 flex flex-wrap items-center justify-center gap-4"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(16,185,129,0.2)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onUpload}
+                className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold transition-all shadow-xl ${darkMode
                   ? 'text-white shadow-emerald-900/30'
                   : 'text-white shadow-emerald-300/40'
-              }`}
-              style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' }}
-            >
-              <UploadCloud size={18} />
-              Upload PDF
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onBrowseLibrary}
-              className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-medium border transition-all ${
-                darkMode
+                  }`}
+                style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' }}
+              >
+                <UploadCloud size={18} />
+                Upload PDF
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onBrowseLibrary}
+                className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-medium border transition-all ${darkMode
                   ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.12] text-emerald-300 border-emerald-500/20'
                   : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
-              }`}
-            >
-              Discover Library
-              <ChevronRight size={18} />
-            </motion.button>
-          </motion.div>
+                  }`}
+              >
+                Discover Library
+                <ChevronRight size={18} />
+              </motion.button>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -279,25 +274,21 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                       >
                         <div className="relative">
                           <div
-                            className={`absolute inset-2 bg-black/30 rounded-xl blur-xl transition-all duration-300 ${
-                              isHovered ? 'translate-y-6 scale-105 opacity-60' : 'translate-y-4 opacity-40'
-                            }`}
+                            className={`absolute inset-2 bg-black/30 rounded-xl blur-xl transition-all duration-300 ${isHovered ? 'translate-y-6 scale-105 opacity-60' : 'translate-y-4 opacity-40'
+                              }`}
                           />
-                          <div className={`relative w-40 sm:w-48 md:w-56 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ${
-                            isHovered
-                              ? (darkMode ? 'ring-4 ring-white/30' : 'ring-4 ring-black/20')
-                              : (darkMode ? 'ring-1 ring-white/10' : 'ring-1 ring-black/10')
-                          }`}>
+                          <div className={`relative w-40 sm:w-48 md:w-56 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ${isHovered
+                            ? (darkMode ? 'ring-4 ring-white/30' : 'ring-4 ring-black/20')
+                            : (darkMode ? 'ring-1 ring-white/10' : 'ring-1 ring-black/10')
+                            }`}>
                             <img
                               src={book.coverUrl}
                               alt={book.name}
-                              className={`w-full h-full object-cover transition-transform duration-500 ${
-                                isHovered ? 'scale-110' : 'scale-100'
-                              }`}
+                              className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'
+                                }`}
                             />
-                            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 flex flex-col justify-end p-4 ${
-                              isHovered ? 'opacity-100' : 'opacity-0'
-                            }`}>
+                            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 flex flex-col justify-end p-4 ${isHovered ? 'opacity-100' : 'opacity-0'
+                              }`}>
                               <p className="text-white text-sm font-semibold truncate">
                                 {book.name.replace('.pdf', '')}
                               </p>
@@ -343,11 +334,10 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onUpload}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium border transition-all mx-auto ${
-                    darkMode
-                      ? 'bg-[#2A2A2D] hover:bg-[#353538] text-white border-gray-600'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300'
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium border transition-all mx-auto ${darkMode
+                    ? 'bg-[#2A2A2D] hover:bg-[#353538] text-white border-gray-600'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300'
+                    }`}
                 >
                   <UploadCloud size={18} />
                   Upload your first PDF

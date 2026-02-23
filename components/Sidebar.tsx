@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug }: any) => {
     const content = (
       <>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${active
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${active
           ? darkMode ? 'bg-emerald-500/15 shadow-lg shadow-emerald-800/20' : 'bg-emerald-50 shadow-lg'
           : darkMode ? 'bg-transparent group-hover:bg-emerald-500/[0.06]' : 'bg-transparent group-hover:bg-gray-100'
           }`}>
@@ -80,10 +80,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               className="transition-all duration-200"
             />
           ) : (
-            <Icon size={20} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-emerald-300' : 'text-gray-900') : (darkMode ? 'text-emerald-400/50 group-hover:text-emerald-300' : 'text-gray-500')} />
+            <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-emerald-300' : 'text-gray-900') : (darkMode ? 'text-emerald-400/50 group-hover:text-emerald-300' : 'text-gray-500')} />
           )}
         </div>
-        <span className={`text-sm font-medium tracking-tight transition-colors flex-1 ${active
+        <span className={`text-sm font-medium tracking-tight transition-colors text-left flex-1 ${active
           ? darkMode ? 'text-white' : 'text-gray-900'
           : darkMode ? 'text-emerald-300/50 group-hover:text-emerald-200' : 'text-gray-500 group-hover:text-gray-900'
           }`}>
@@ -102,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </>
     );
 
-    const className = `w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group relative ${active
+    const className = `w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-200 group relative ${active
       ? darkMode ? 'bg-emerald-500/[0.1]' : 'bg-gray-100'
       : darkMode ? 'hover:bg-emerald-500/[0.06]' : 'hover:bg-gray-50'
       }`;
@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         lg:flex
       `}>
         {/* Brand */}
-        <div className="flex items-center gap-3.5 px-7 pt-8 pb-9">
+        <div className="flex items-center gap-3.5 px-7 pt-6 pb-6">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-600/10 border border-emerald-500/25 flex items-center justify-center">
             <svg viewBox="0 0 512 512" fill="currentColor" className="w-6 h-6 text-emerald-400" xmlns="http://www.w3.org/2000/svg">
               <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
@@ -156,69 +156,72 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigate */}
-        <div className="px-5 space-y-1 mb-7">
-          <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-3 ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Navigate</p>
+        <div className="px-5 space-y-0.5 mb-5">
+          <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Navigate</p>
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
           <NavItem icon={AllBooksIcon} label="All Books" active={location.pathname === '/library'} to="/library" />
           <NavItem icon={UploadCloud} label="Import PDF" active={location.pathname === '/upload'} to="/upload" />
-        </div>
-
-        {/* Categories */}
-        <div className="px-5 space-y-1 mb-2 flex-1 overflow-y-auto no-scrollbar">
-          <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-3 ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
-
-          {/* Built-in categories */}
-          <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/category/philippines'} to="/category/philippines" categorySlug="philippines" />
-          <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/category/internal'} to="/category/internal" categorySlug="internal" />
-          <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/category/international'} to="/category/international" categorySlug="international" />
-          <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/category/ph_interns'} to="/category/ph_interns" categorySlug="ph_interns" />
-          <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/category/deseret'} to="/category/deseret" categorySlug="deseret" />
-          <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/category/angelhost'} to="/category/angelhost" categorySlug="angelhost" />
-
-          {/* User-created categories */}
-          {customCategories.map(cat => (
-            <NavItem
-              key={cat.id}
-              icon={Folder}
-              label={cat.name}
-              color={cat.color}
-              active={location.pathname === `/category/${cat.slug}`}
-              to={`/category/${cat.slug}`}
-              categorySlug={cat.slug}
-            />
-          ))}
 
           {/* + Add Category button */}
           <button
             onClick={() => setShowAddCategory(true)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group mt-1 ${darkMode
-                ? 'hover:bg-emerald-500/[0.06] border border-dashed border-emerald-700/20 hover:border-emerald-500/30'
-                : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-200 group mt-1 ${darkMode
+              ? 'hover:bg-emerald-500/[0.06] border border-dashed border-emerald-700/20 hover:border-emerald-500/30'
+              : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
               }`}
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-emerald-500/[0.06]' : 'group-hover:bg-gray-100'
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-emerald-500/[0.06]' : 'group-hover:bg-gray-100'
               }`}>
               <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-emerald-400/40 group-hover:text-emerald-400' : 'text-gray-400 group-hover:text-emerald-500'}`} />
             </div>
-            <span className={`text-sm font-medium tracking-tight transition-colors ${darkMode ? 'text-emerald-300/30 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-500'
+            <span className={`text-sm font-medium tracking-tight text-left flex-1 transition-colors ${darkMode ? 'text-emerald-300/30 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-500'
               }`}>
               Add Category
             </span>
           </button>
         </div>
 
+        {/* Categories */}
+        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+          <div className={`sticky top-0 z-10 pt-1 pb-1.5 px-9 mb-1 ${darkMode ? 'bg-[#10241e]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'}`}>
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.15em] ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
+          </div>
+          <div className="px-5 space-y-0.5 pb-4">
+            {/* Built-in categories */}
+            <NavItem icon={MapPin} label="Philippines" color="#3B82F6" active={location.pathname === '/category/philippines'} to="/category/philippines" categorySlug="philippines" />
+            <NavItem icon={Building} label="Internal" color="#A855F7" active={location.pathname === '/category/internal'} to="/category/internal" categorySlug="internal" />
+            <NavItem icon={Globe} label="International" color="#22C55E" active={location.pathname === '/category/international'} to="/category/international" categorySlug="international" />
+            <NavItem icon={GraduationCap} label="PH Interns" color="#F97316" active={location.pathname === '/category/ph_interns'} to="/category/ph_interns" categorySlug="ph_interns" />
+            <NavItem icon={BookOpen} label="Deseret" color="#EAB308" active={location.pathname === '/category/deseret'} to="/category/deseret" categorySlug="deseret" />
+            <NavItem icon={Hotel} label="Angelhost" color="#EC4899" active={location.pathname === '/category/angelhost'} to="/category/angelhost" categorySlug="angelhost" />
+
+            {/* User-created categories */}
+            {customCategories.map(cat => (
+              <NavItem
+                key={cat.id}
+                icon={Folder}
+                label={cat.name}
+                color={cat.color}
+                active={location.pathname === `/category/${cat.slug}`}
+                to={`/category/${cat.slug}`}
+                categorySlug={cat.slug}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Footer */}
-        <div className={`px-5 pb-7 pt-5 border-t space-y-1 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
+        <div className={`px-5 pb-5 pt-4 border-t space-y-0.5 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
           <button
             onClick={() => setShowSignOutModal(true)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-200 group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
               }`}
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
               }`}>
-              <LogOut size={20} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'}`} />
+              <LogOut size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'}`} />
             </div>
-            <span className={`text-sm font-medium tracking-tight transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
+            <span className={`text-sm font-medium tracking-tight transition-colors flex-1 text-left ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
               }`}>
               Sign Out
             </span>
