@@ -90,9 +90,9 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
                 className="relative transition-all duration-600"
                 style={{ transformStyle: 'preserve-3d', animation: isFlipping ? 'bookFlip 0.6s ease-out' : 'none' }}
               >
-                <div className="relative rounded-2xl shadow-2xl shadow-black/60 overflow-hidden border border-white/[0.06]">
-                  <img src={book.coverUrl} alt={book.name} className="w-64 h-80 sm:w-72 sm:h-96 object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent" />
+                <div className={`relative rounded-2xl shadow-2xl shadow-black/60 overflow-hidden border border-white/[0.06] ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}>
+                  <img src={book.coverUrl} alt={book.name} className={`object-cover ${book.orientation === 'landscape' ? 'w-[20rem] h-[15rem] sm:w-[24rem] sm:h-[18rem]' : 'w-64 h-80 sm:w-72 sm:h-96'}`} />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
                 </div>
               </div>
             </div>

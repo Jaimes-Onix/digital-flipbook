@@ -13,6 +13,44 @@ const Root: React.FC = () => {
   const navigate = useNavigate();
   const [authState, setAuthState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
+  // Global Security Measures
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent F12
+      if (e.key === 'F12') {
+        e.preventDefault();
+      }
+      // Prevent Ctrl+Shift+I / Cmd+Option+I (Inspect)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'i') {
+        e.preventDefault();
+      }
+      // Prevent Ctrl+Shift+J / Cmd+Option+J (Console)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+      }
+      // Prevent Ctrl+Shift+C / Cmd+Option+C (Elements)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+      }
+      // Prevent Ctrl+U / Cmd+U (View Source)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
