@@ -68,7 +68,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
               </div>
 
               {/* Book Cover */}
-              <div className="relative w-28 aspect-[3/4] mb-6 rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/[0.06]">
+              <div className={`relative mb-6 rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/[0.06] ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'} ${book.orientation === 'landscape' ? 'w-40 aspect-[4/3]' : 'w-28 aspect-[3/4]'}`}>
                 <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" />
               </div>
 

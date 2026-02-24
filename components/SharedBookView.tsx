@@ -214,14 +214,11 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
 
       {/* Centered book card */}
       <main className="relative z-10 pt-16 min-h-screen flex items-center justify-center px-6">
-        <div className={`w-full max-w-sm rounded-[32px] shadow-2xl border overflow-hidden ${
-          darkMode ? 'bg-[#141418]/90 backdrop-blur-3xl border-white/[0.06] shadow-black/50' : 'bg-white/95 backdrop-blur-3xl border-gray-200 shadow-gray-300/40'
-        }`}>
+        <div className={`w-full max-w-sm rounded-[32px] shadow-2xl border overflow-hidden ${darkMode ? 'bg-[#141418]/90 backdrop-blur-3xl border-white/[0.06] shadow-black/50' : 'bg-white/95 backdrop-blur-3xl border-gray-200 shadow-gray-300/40'
+          }`}>
           <div className="p-8 flex flex-col items-center text-center">
-            {/* Book Cover */}
-            <div className={`relative w-40 aspect-[3/4] mb-7 rounded-2xl overflow-hidden shadow-2xl border ${
-              darkMode ? 'shadow-black/50 border-white/[0.06]' : 'shadow-gray-300/50 border-gray-200'
-            }`}>
+            <div className={`relative mb-7 rounded-2xl overflow-hidden shadow-2xl border ${darkMode ? 'shadow-black/50 border-white/[0.06] bg-zinc-900/50' : 'shadow-gray-300/50 border-gray-200 bg-gray-100'
+              } ${book.orientation === 'landscape' ? 'w-56 aspect-[4/3]' : 'w-40 aspect-[3/4]'}`}>
               <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" />
             </div>
 
@@ -242,9 +239,8 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
             <button
               onClick={handleReadNow}
               disabled={isLoadingPdf}
-              className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${
-                darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
-              }`}
+              className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
+                }`}
             >
               {isLoadingPdf ? (
                 <><Loader2 size={18} className="animate-spin" /> Loading Book...</>

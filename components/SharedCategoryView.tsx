@@ -283,13 +283,13 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
                     return (
                       <div
                         key={book.id}
-                        className={`group cursor-pointer ${isBookLoading ? 'pointer-events-none' : ''}`}
+                        className={`group cursor-pointer ${isBookLoading ? 'pointer-events-none' : ''} ${book.orientation === 'landscape' ? 'col-span-1 md:col-span-2' : 'col-span-1'}`}
                         onClick={() => handleOpenBook(book)}
                       >
-                        <div className="relative aspect-[3/4] mb-3">
+                        <div className={`relative mb-3 ${book.orientation === 'landscape' ? 'aspect-[4/3]' : 'aspect-[3/4]'}`}>
                           <div className={`w-full h-full rounded-2xl overflow-hidden border transition-all duration-500 ease-out
                             ${!isBookLoading ? 'group-hover:-translate-y-2 group-hover:scale-[1.02]' : ''}
-                            ${cardBorder} shadow-lg ${cardShadow}
+                            ${cardBorder} shadow-lg ${cardShadow} ${darkMode ? 'bg-zinc-900/50' : 'bg-gray-100'}
                           `}>
                             <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" loading="lazy" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
