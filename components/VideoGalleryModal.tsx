@@ -107,7 +107,7 @@ const VideoGalleryModal: React.FC<Props> = ({
     /* ── theme tokens ── */
     const bg = dm ? 'bg-[#18181c] border-white/[0.08]' : 'bg-white border-gray-200';
     const divider = dm ? 'border-white/[0.07]' : 'border-gray-100';
-    const footer = dm ? 'bg-[#1e1e22]/80 border-white/[0.07]' : 'bg-gray-50/60 border-gray-100';
+    const footer = dm ? 'bg-[#1e1e22] border-white/[0.07]' : 'bg-gray-50 border-gray-100';
     const title1 = dm ? 'text-white' : 'text-gray-900';
     const sub = dm ? 'text-zinc-500' : 'text-gray-400';
     const rowHov = dm ? 'hover:bg-white/[0.04]' : 'hover:bg-gray-50';
