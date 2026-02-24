@@ -766,6 +766,10 @@ const App: React.FC = () => {
               <PptxConverter
                 onBack={() => navigate('/library')}
                 darkMode={darkMode}
+                onConvertSuccess={(pdfFile) => {
+                  // Pass the PDF directly to the existing upload handler process
+                  handleFilesSelect([pdfFile], 'landscape'); // PPTs are usually landscape
+                }}
               />
             } />
 

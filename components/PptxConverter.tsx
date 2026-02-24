@@ -4,9 +4,10 @@ import { UploadCloud, FileText, Loader2, ChevronLeft, Presentation, AlertCircle 
 interface PptxConverterProps {
   onBack?: () => void;
   darkMode?: boolean;
+  onConvertSuccess?: (pdfFile: File) => void;
 }
 
-const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false }) => {
+const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false, onConvertSuccess }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -22,24 +23,62 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false 
     setIsDragging(false);
   }, []);
 
-  const simulateConversion = (file: File) => {
+  const convertFile = async (file: File) => {
     setIsLoading(true);
     setErrorDetails(null);
     setStatusMessage('Uploading presentation...');
 
-    // Simulate upload delay
-    setTimeout(() => {
-      setStatusMessage('Converting slides to PDF format...');
-      
-      // Simulate conversion delay
-      setTimeout(() => {
-        setIsLoading(false);
-        setErrorDetails(
-          "This is a UI mockup. To actually convert PowerPoint files to PDF, " +
-          "a backend conversion service or third-party API (like CloudConvert or Zamzar) must be integrated."
-        );
-      }, 2500);
-    }, 1500);
+    try {
+      // 1. ConvertAPI requires the file to be base64 encoded for direct upload, or sent via multipart/form-data
+      // We will use standard multipart/form-data which works well with their REST API
+
+      const formData = new FormData();
+      formData.append('File', file);
+      formData.append('StoreFile', 'true'); // Required to get a download URL back
+
+      setStatusMessage('Converting slides to PDF format... (this may take a minute)');
+
+      // Using the user-provided Production API Secret
+      const API_SECRET = 'QSvGEVb5pXsZ3RKgCFi1tIpzNl2TMBBT';
+
+      const response = await fetch(`https://v2.convertapi.com/convert/pptx/to/pdf?Secret=${API_SECRET}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.Message || 'Conversion failed. Please try again.');
+      }
+
+      const data = await response.json();
+
+      if (data.Files && data.Files.length > 0) {
+        setStatusMessage('Downloading converted PDF...');
+
+        // Let's fetch the actual file from the URL provided by ConvertAPI
+        const fileUrl = data.Files[0].Url;
+        const pdfResponse = await fetch(fileUrl);
+        const pdfBlob = await pdfResponse.blob();
+
+        // Create a new File object from the Blob
+        const newFileName = file.name.replace(/\.(pptx|ppt)$/i, '.pdf');
+        const pdfFile = new File([pdfBlob], newFileName, { type: 'application/pdf' });
+
+        // Pass it back up to be handled by the main App
+        if (onConvertSuccess) {
+          onConvertSuccess(pdfFile);
+        }
+      } else {
+        throw new Error('No PDF file was returned from the conversion service.');
+      }
+
+    } catch (err: any) {
+      console.error("Conversion Error:", err);
+      setErrorDetails(err.message || 'An unexpected error occurred during conversion.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -47,28 +86,28 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false 
     setIsDragging(false);
     if (isLoading || errorDetails) return;
 
-    const files = Array.from(e.dataTransfer.files).filter(f => 
-      f.name.endsWith('.pptx') || f.name.endsWith('.ppt') || 
+    const files = Array.from(e.dataTransfer.files).filter(f =>
+      f.name.endsWith('.pptx') || f.name.endsWith('.ppt') ||
       f.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
       f.type === 'application/vnd.ms-powerpoint'
     );
 
     if (files.length > 0) {
-      simulateConversion(files[0]);
+      convertFile(files[0]);
     } else {
       alert('Please upload a valid PowerPoint (.pptx or .ppt) file.');
     }
   }, [isLoading, errorDetails]);
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files).filter(f => 
-      f.name.endsWith('.pptx') || f.name.endsWith('.ppt') || 
+    const files = e.target.files ? Array.from(e.target.files).filter(f =>
+      f.name.endsWith('.pptx') || f.name.endsWith('.ppt') ||
       f.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
       f.type === 'application/vnd.ms-powerpoint'
     ) : [];
 
     if (files.length > 0) {
-      simulateConversion(files[0]);
+      convertFile(files[0]);
     } else if (e.target.files && e.target.files.length > 0) {
       alert('Please select a valid PowerPoint (.pptx or .ppt) file.');
     }
@@ -80,20 +119,18 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false 
       {onBack && !isLoading && (
         <button
           onClick={onBack}
-          className={`absolute top-8 left-8 flex items-center gap-1 transition-colors font-medium text-sm group ${
-            darkMode ? 'text-zinc-600 hover:text-white' : 'text-gray-400 hover:text-gray-900'
-          }`}
+          className={`absolute top-8 left-8 flex items-center gap-1 transition-colors font-medium text-sm group ${darkMode ? 'text-zinc-600 hover:text-white' : 'text-gray-400 hover:text-gray-900'
+            }`}
         >
           <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
           Back to Library
         </button>
       )}
 
-      <div className={`max-w-md w-full text-center px-8 py-10 shadow-2xl ${
-        darkMode
+      <div className={`max-w-md w-full text-center px-8 py-10 shadow-2xl ${darkMode
           ? 'glass-card shadow-black/30'
           : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
-      }`}>
+        }`}>
         <h1 className={`text-3xl font-bold mb-2 tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           PPTX to PDF
         </h1>
@@ -102,27 +139,25 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false 
         </p>
 
         {errorDetails ? (
-           <div className={`p-6 rounded-2xl border text-left flex flex-col items-center justify-center gap-4 ${
-             darkMode ? 'border-amber-500/30 bg-amber-500/10' : 'border-amber-200 bg-amber-50'
-           }`}>
-             <AlertCircle size={40} className={`mb-2 ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
-             <h3 className={`font-semibold text-lg ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
-               API Integration Required
-             </h3>
-             <p className={`text-sm text-center leading-relaxed ${darkMode ? 'text-amber-200/70' : 'text-amber-700/80'}`}>
-               {errorDetails}
-             </p>
-             <button
-               onClick={() => setErrorDetails(null)}
-               className={`mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                 darkMode 
-                   ? 'bg-amber-500 text-amber-950 hover:bg-amber-400' 
-                   : 'bg-amber-500 text-white hover:bg-amber-600'
-               }`}
-             >
-               Try Another File
-             </button>
-           </div>
+          <div className={`p-6 rounded-2xl border text-left flex flex-col items-center justify-center gap-4 ${darkMode ? 'border-amber-500/30 bg-amber-500/10' : 'border-amber-200 bg-amber-50'
+            }`}>
+            <AlertCircle size={40} className={`mb-2 ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+            <h3 className={`font-semibold text-lg ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+              API Integration Required
+            </h3>
+            <p className={`text-sm text-center leading-relaxed ${darkMode ? 'text-amber-200/70' : 'text-amber-700/80'}`}>
+              {errorDetails}
+            </p>
+            <button
+              onClick={() => setErrorDetails(null)}
+              className={`mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors ${darkMode
+                  ? 'bg-amber-500 text-amber-950 hover:bg-amber-400'
+                  : 'bg-amber-500 text-white hover:bg-amber-600'
+                }`}
+            >
+              Try Another File
+            </button>
+          </div>
         ) : (
           <div
             onDragOver={handleDragOver}
@@ -157,10 +192,10 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false 
             ) : (
               <>
                 <div className={`p-5 rounded-2xl transition-colors duration-300 ${isDragging
-                    ? 'bg-orange-500/10 text-orange-500'
-                    : darkMode
-                      ? 'bg-white/[0.04] text-zinc-600 group-hover:bg-white/[0.06] group-hover:text-amber-500'
-                      : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-orange-500'
+                  ? 'bg-orange-500/10 text-orange-500'
+                  : darkMode
+                    ? 'bg-white/[0.04] text-zinc-600 group-hover:bg-white/[0.06] group-hover:text-amber-500'
+                    : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-orange-500'
                   }`}>
                   <Presentation size={48} strokeWidth={1.5} />
                 </div>

@@ -4,7 +4,7 @@ import { Library as LibraryIcon, Menu, LayoutGrid, Layers, X, Share2 } from 'luc
 import ShareLinkModal from './ShareLinkModal';
 
 interface HeaderProps {
-  view: 'home' | 'library' | 'reader' | 'upload';
+  view: 'home' | 'library' | 'reader' | 'upload' | 'convert-pptx' | 'shared';
   darkMode: boolean;
   homeVariant?: 1 | 2;
   onToggleHomeVariant?: () => void;
