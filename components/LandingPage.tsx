@@ -9,13 +9,13 @@ import { Sparkles, Zap, Globe, BookOpen } from 'lucide-react';
 export default function LandingPage() {
   const navigate = useNavigate();
   const { scrollYProgress } = useScroll();
-  
+
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
-  
+
   const featuresOpacity = useTransform(scrollYProgress, [0.15, 0.3, 0.5], [0, 1, 0]);
   const featuresY = useTransform(scrollYProgress, [0.15, 0.3], [100, 0]);
-  
+
   const aboutOpacity = useTransform(scrollYProgress, [0.45, 0.6, 0.95], [0, 1, 1]);
   const aboutY = useTransform(scrollYProgress, [0.45, 0.6], [100, 0]);
 
@@ -39,7 +39,7 @@ export default function LandingPage() {
 
       {/* Animated Background Gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 animate-gradient-shift pointer-events-none" />
-      
+
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center">
         <motion.div
@@ -190,7 +190,7 @@ export default function LandingPage() {
       {/* Footer Spacer */}
       <div className="h-screen" />
 
-      <style jsx>{`
+      <style>{`
         @keyframes gradient-shift {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.8; }

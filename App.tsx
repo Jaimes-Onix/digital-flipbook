@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { GoogleGenAI } from "@google/genai";
 import { CheckCircle2, AlertCircle, X, BookOpen, Search } from 'lucide-react';
 import { supabase } from './src/lib/supabase';
 import Header from './components/Header';
@@ -109,7 +108,6 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
   const [conversionToast, setConversionToast] = useState<string | null>(null);
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isLoadingBook, setIsLoadingBook] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -217,77 +215,6 @@ const App: React.FC = () => {
 
     loadSavedBooks();
   }, []);
-
-  // Auto-summarize books that don't have a summary yet
-  const autoSummarizedRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (books.length === 0 || isSummarizing) return;
-
-    const booksWithoutSummary = books.filter(
-      b => !b.summary && !autoSummarizedRef.current.has(b.id)
-    );
-    if (booksWithoutSummary.length === 0) return;
-
-    const autoSummarize = async () => {
-      for (const book of booksWithoutSummary) {
-        if (autoSummarizedRef.current.has(book.id)) continue;
-        autoSummarizedRef.current.add(book.id);
-
-        try {
-          // Lazy-load PDF if needed
-          let doc = book.doc;
-          if (!doc || typeof doc.getPage !== 'function') {
-            const response = await fetch(book.pdfUrl);
-            if (!response.ok) continue;
-            const blob = await response.blob();
-            const file = new File([blob], book.name + '.pdf', { type: 'application/pdf' });
-            doc = await getDocument(file);
-            setBooks(prev => prev.map(b => b.id === book.id ? { ...b, doc } : b));
-          }
-
-          let sampleText = "";
-          for (let i = 1; i <= Math.min(3, book.totalPages); i++) {
-            const page = await doc.getPage(i);
-            const textContent = await page.getTextContent();
-            sampleText += textContent.items.map((item: any) => item.str).join(" ") + " ";
-          }
-
-          if (!sampleText.trim()) continue;
-
-          // Check if API key is valid before attempting summarization
-          const apiKey = process.env.API_KEY;
-          if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY' || apiKey.includes('PLACEHOLDER')) {
-            console.warn(`[Auto-Summarize] Skipping ${book.name}: API key not configured.`);
-            // Mark as "processed" so we don't retry immediately
-            setBooks(prev => prev.map(b => b.id === book.id ? { ...b, summary: "Summary unavailable (API Key missing)" } : b));
-            continue;
-          }
-
-          const ai = new GoogleGenAI({ apiKey });
-          const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: `Provide a extremely concise one-sentence hook/summary (under 25 words) for a book based on this extracted text. Make it sound professional and intriguing: ${sampleText.substring(0, 2000)}`,
-          });
-
-          const summary = response.text?.trim();
-          if (summary) {
-            setBooks(prev => prev.map(b => b.id === book.id ? { ...b, summary } : b));
-            try {
-              await updateBookInSupabase(book.id, { summary });
-            } catch (e) {
-              console.error('Failed to save auto-summary:', e);
-            }
-          }
-        } catch (err) {
-          console.error(`Auto-summarize failed for ${book.name}:`, err);
-        }
-      }
-    };
-
-    // Small delay so the UI loads first before background summarization starts
-    const timer = setTimeout(autoSummarize, 2000);
-    return () => clearTimeout(timer);
-  }, [books.length, isSummarizing]);
 
   const extractCover = async (doc: any): Promise<string> => {
     const page = await doc.getPage(1);
@@ -502,45 +429,6 @@ const App: React.FC = () => {
       } catch (e) {
         console.error('Failed to delete book from Supabase:', e);
       }
-    }
-  };
-
-  const handleSummarize = async (bookId: string): Promise<string | null> => {
-    const book = books.find(b => b.id === bookId);
-    if (!book) return null;
-
-    setIsSummarizing(true);
-    try {
-      // Lazy-load PDF if not yet loaded
-      let doc = book.doc;
-      if (!doc || typeof doc.getPage !== 'function') {
-        const response = await fetch(book.pdfUrl);
-        if (!response.ok) throw new Error('Failed to fetch PDF');
-        const blob = await response.blob();
-        const file = new File([blob], book.name + '.pdf', { type: 'application/pdf' });
-        doc = await getDocument(file);
-        setBooks(prev => prev.map(b => b.id === bookId ? { ...b, doc } : b));
-      }
-
-      let sampleText = "";
-      for (let i = 1; i <= Math.min(3, book.totalPages); i++) {
-        const page = await doc.getPage(i);
-        const textContent = await page.getTextContent();
-        sampleText += textContent.items.map((item: any) => item.str).join(" ") + " ";
-      }
-
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Provide a extremely concise one-sentence hook/summary (under 25 words) for a book based on this extracted text. Make it sound professional and intriguing: ${sampleText.substring(0, 2000)}`,
-      });
-
-      return response.text?.trim() || "No summary available.";
-    } catch (err) {
-      console.error("AI Summarization failed", err);
-      return null;
-    } finally {
-      setIsSummarizing(false);
     }
   };
 
@@ -839,11 +727,8 @@ const App: React.FC = () => {
         darkMode={darkMode}
         onClose={() => setPendingBook(null)}
         onSelectMode={handleSelectMode}
-        onSummarize={handleSummarize}
-        onApplySummary={handleUpdateSummary}
         onUpdateCategory={handleUpdateBookCategory}
         onToggleFavorite={handleToggleFavorite}
-        isSummarizing={isSummarizing}
         isLoadingBook={isLoadingBook}
         onRemove={handleRemoveBook}
       />

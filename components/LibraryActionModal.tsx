@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Sparkles, Loader2, Check, Heart, Share2 } from 'lucide-react';
+import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2 } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -17,38 +17,22 @@ interface LibraryActionModalProps {
   book: LibraryBook | null;
   onClose: () => void;
   onSelectMode: (mode: 'manual' | 'preview') => void;
-  onSummarize?: (id: string) => Promise<string | null>;
-  onApplySummary?: (id: string, summary: string) => void;
   onUpdateCategory?: (id: string, category?: BookCategory) => void;
   onToggleFavorite?: (id: string) => void;
-  isSummarizing?: boolean;
   isLoadingBook?: boolean;
   onRemove?: (id: string) => void;
   darkMode?: boolean;
 }
 
 const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
-  book, onClose, onSelectMode, onSummarize, onApplySummary, onUpdateCategory, onToggleFavorite, isSummarizing, isLoadingBook, onRemove, darkMode = true
+  book, onClose, onSelectMode, onUpdateCategory, onToggleFavorite, isLoadingBook, onRemove, darkMode = true
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const [tempSummary, setTempSummary] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  useEffect(() => { setTempSummary(null); setShowConfirmDelete(false); setShowShareModal(false); }, [book?.id]);
+  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); }, [book?.id]);
 
   if (!book) return null;
-
-  const handleSummarizeClick = async () => {
-    if (!onSummarize) return;
-    const result = await onSummarize(book.id);
-    if (result) setTempSummary(result);
-  };
-
-  const handleApplySummary = () => {
-    if (onApplySummary && tempSummary) { onApplySummary(book.id, tempSummary); setTempSummary(null); }
-  };
-
-  const currentSummary = tempSummary || book.summary;
 
   return (
     <>
@@ -72,16 +56,6 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                     title={book.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
                   >
                     <Heart size={16} fill={book.isFavorite ? 'currentColor' : 'none'} />
-                  </button>
-                )}
-                {onSummarize && !tempSummary && (
-                  <button
-                    onClick={handleSummarizeClick}
-                    disabled={isSummarizing}
-                    className="p-2 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
-                    title="AI Summary"
-                  >
-                    {isSummarizing ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                   </button>
                 )}
                 <button
@@ -135,27 +109,6 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                       </button>
                     )}
                   </div>
-                </div>
-              )}
-
-              {/* Summary */}
-              {currentSummary && (
-                <div className={`mb-6 p-4 rounded-2xl border transition-all duration-500 w-full ${tempSummary
-                  ? 'bg-emerald-500/[0.05] border-emerald-500/20'
-                  : darkMode
-                    ? 'bg-white/[0.02] border-white/[0.06]'
-                    : 'bg-gray-50 border-gray-200'
-                  }`}>
-                  {tempSummary && (
-                    <span className="block text-[9px] font-bold uppercase text-emerald-500 tracking-[0.2em] mb-2">AI Suggestion</span>
-                  )}
-                  <p className={`text-xs italic leading-relaxed ${darkMode ? 'text-zinc-400' : 'text-gray-600'}`}>"{currentSummary}"</p>
-                  {tempSummary && (
-                    <button onClick={handleApplySummary}
-                      className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-500 transition-all active:scale-95 shadow-md shadow-emerald-500/20">
-                      <Check size={14} strokeWidth={3} /> Apply Summary
-                    </button>
-                  )}
                 </div>
               )}
 
