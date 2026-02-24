@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart, Link2 } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video } from 'lucide-react';
 import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
+import VideoLinksModal from './VideoLinksModal';
+import VideoGalleryModal from './VideoGalleryModal';
 
 
 
@@ -41,6 +43,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showVideoLinksModal, setShowVideoLinksModal] = useState(false);
+  const [showVideoGallery, setShowVideoGallery] = useState(false);
 
   // Share slug: any non-special filter is a shareable category (built-in or user-created)
   const shareSlug = (filter !== 'all' && filter !== 'favorites') ? filter : undefined;
@@ -73,6 +77,18 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
             >
               <Link2 size={16} />
               Share Category
+            </button>
+          )}
+          {shareSlug && (
+            <button
+              onClick={() => setShowVideoGallery(true)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+                ? 'bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/30 shadow-black/20'
+                : 'bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200'
+                }`}
+            >
+              <Video size={16} />
+              Video Links
             </button>
           )}
           <button
@@ -201,6 +217,28 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           title={`Share ${sectionTitle}`}
           description="Anyone with this link can view and read these flipbooks."
           darkMode={darkMode || false}
+        />
+      )}
+
+      {shareSlug && (
+        <VideoLinksModal
+          isOpen={showVideoLinksModal}
+          onClose={() => setShowVideoLinksModal(false)}
+          onBack={() => { setShowVideoLinksModal(false); setShowVideoGallery(true); }}
+          categorySlug={shareSlug}
+          categoryName={sectionTitle}
+          darkMode={darkMode || false}
+        />
+      )}
+
+      {shareSlug && (
+        <VideoGalleryModal
+          isOpen={showVideoGallery}
+          onClose={() => setShowVideoGallery(false)}
+          categorySlug={shareSlug}
+          categoryName={sectionTitle}
+          darkMode={darkMode || false}
+          onAddVideo={() => { setShowVideoGallery(false); setShowVideoLinksModal(true); }}
         />
       )}
     </div>

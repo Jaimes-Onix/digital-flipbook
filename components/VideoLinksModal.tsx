@@ -1,0 +1,486 @@
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import {
+    X, Video, Upload, Link2, Play, Trash2, Image, Check,
+    ArrowLeft, Film, Clock, Pencil
+} from 'lucide-react';
+
+/* ─────────────────── types ─────────────────── */
+type Step = 'upload' | 'meta';
+
+export interface VideoEntry {
+    id: string;
+    name: string;
+    thumbnailUrl: string;
+    sourceUrl: string;
+    isFile: boolean;
+    addedAt: number;
+}
+
+interface Props {
+    isOpen: boolean;
+    onClose: () => void;
+    onBack?: () => void;
+    categorySlug: string;
+    categoryName: string;
+    darkMode: boolean;
+}
+
+/* ─────────────────── helpers ─────────────────── */
+export const SK = (slug: string) => `video_entries_${slug}`;
+
+export function loadEntries(slug: string): VideoEntry[] {
+    try { return JSON.parse(localStorage.getItem(SK(slug)) || '[]'); } catch { return []; }
+}
+export function saveEntries(slug: string, entries: VideoEntry[]) {
+    localStorage.setItem(SK(slug), JSON.stringify(entries));
+}
+
+function ytId(url: string): string | null {
+    try {
+        const u = new URL(url);
+        if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('?')[0];
+        if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+    } catch { /* */ }
+    return null;
+}
+function ytThumb(url: string) {
+    const id = ytId(url);
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+function fmtDate(ts: number): string {
+    return new Date(ts).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+    });
+}
+function fmtSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/* ─────────────────── component ─────────────────── */
+const VideoLinksModal: React.FC<Props> = ({
+    isOpen, onClose, onBack, categorySlug, categoryName, darkMode
+}) => {
+    const dm = darkMode;
+
+    const [entries, setEntries] = useState<VideoEntry[]>([]);
+    const [step, setStep] = useState<Step>('upload');
+    const [linkInput, setLinkInput] = useState('');
+    const [linkError, setLinkError] = useState('');
+    const [dragging, setDragging] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    const [fileInfo, setFileInfo] = useState<{ name: string; size: number } | null>(null);
+    const [pendingName, setPendingName] = useState('');
+    const [pendingUrl, setPendingUrl] = useState('');
+    const [pendingThumb, setPendingThumb] = useState('');
+    const [pendingIsFile, setPendingIsFile] = useState(false);
+    const [customThumb, setCustomThumb] = useState<string | null>(null);
+    const [thumbSuggestions, setThumbSuggestions] = useState<string[]>([]);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [deletingItem, setDeletingItem] = useState<VideoEntry | null>(null);
+    const [editName, setEditName] = useState('');
+    const [editUrl, setEditUrl] = useState('');
+    const [editThumb, setEditThumb] = useState('');
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const thumbInputRef = useRef<HTMLInputElement>(null);
+    const editThumbRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isOpen) { setEntries(loadEntries(categorySlug)); resetToUpload(); setDeletingItem(null); }
+    }, [isOpen, categorySlug]);
+
+    function resetToUpload() {
+        setStep('upload'); setLinkInput(''); setLinkError('');
+        setUploadProgress(null); setFileInfo(null);
+        setPendingName(''); setPendingUrl(''); setPendingThumb('');
+        setPendingIsFile(false); setCustomThumb(null); setThumbSuggestions([]);
+        setEditingId(null);
+    }
+
+    function commitEntry() {
+        if (!pendingName.trim()) return;
+        const entry: VideoEntry = {
+            id: Date.now().toString(), name: pendingName.trim(),
+            thumbnailUrl: customThumb || pendingThumb,
+            sourceUrl: pendingUrl, isFile: pendingIsFile, addedAt: Date.now(),
+        };
+        const updated = [entry, ...entries];
+        setEntries(updated); saveEntries(categorySlug, updated); resetToUpload();
+    }
+
+    function handleLinkSubmit() {
+        if (!linkInput.trim()) { setLinkError('Please enter a URL.'); return; }
+        try { new URL(linkInput.trim()); } catch { setLinkError('Please enter a valid URL.'); return; }
+        const url = linkInput.trim();
+        const thumb = ytThumb(url) || '';
+        setPendingUrl(url); setPendingIsFile(false);
+        setPendingThumb(thumb); setThumbSuggestions(thumb ? [thumb] : []);
+        setPendingName(''); setStep('meta');
+    }
+
+    function handleFiles(files: FileList | null) {
+        if (!files || !files[0]) return;
+        const file = files[0];
+        if (!file.type.startsWith('video/')) { alert('Please select a video file.'); return; }
+        setFileInfo({ name: file.name, size: file.size });
+        setUploadProgress(0);
+        let p = 0;
+        const iv = setInterval(() => {
+            p += Math.random() * 18 + 5;
+            if (p >= 100) { p = 100; clearInterval(iv); }
+            setUploadProgress(Math.min(p, 100));
+        }, 120);
+        const src = URL.createObjectURL(file);
+        const vid = document.createElement('video');
+        vid.preload = 'metadata'; vid.src = src; vid.currentTime = 2;
+        vid.onloadeddata = () => {
+            const c = document.createElement('canvas');
+            c.width = vid.videoWidth || 320; c.height = vid.videoHeight || 180;
+            c.getContext('2d')?.drawImage(vid, 0, 0);
+            const auto = c.toDataURL('image/jpeg', 0.8);
+            setThumbSuggestions([auto]); setPendingThumb(auto);
+        };
+        setPendingUrl(src); setPendingIsFile(true);
+        setPendingName(file.name.replace(/\.[^.]+$/, ''));
+        setTimeout(() => { setUploadProgress(null); setStep('meta'); }, 2400);
+    }
+
+    const onDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(true); }, []);
+    const onDragLeave = useCallback(() => setDragging(false), []);
+    const onDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); }, []);
+
+    function handleThumbFile(e: React.ChangeEvent<HTMLInputElement>, setter: (v: string) => void) {
+        const f = e.target.files?.[0]; if (!f) return;
+        const r = new FileReader(); r.onload = () => setter(r.result as string); r.readAsDataURL(f);
+    }
+
+    function confirmDelete(id: string) {
+        const updated = entries.filter(e => e.id !== id);
+        setEntries(updated); saveEntries(categorySlug, updated); setDeletingItem(null);
+    }
+    function startEdit(e: VideoEntry) { setEditingId(e.id); setEditName(e.name); setEditUrl(e.sourceUrl); setEditThumb(e.thumbnailUrl); }
+    function saveEdit(id: string) {
+        const updated = entries.map(e =>
+            e.id === id ? { ...e, name: editName.trim() || e.name, sourceUrl: editUrl.trim() || e.sourceUrl, thumbnailUrl: editThumb } : e
+        );
+        setEntries(updated); saveEntries(categorySlug, updated); setEditingId(null);
+    }
+
+    if (!isOpen) return null;
+
+    /* ── theme tokens ── */
+    const bg = dm ? 'bg-[#18181c]/97 border-white/[0.08] shadow-black/70' : 'bg-white border-gray-200 shadow-gray-200/50';
+    const divider = dm ? 'border-white/[0.07]' : 'border-gray-100';
+    const footBg = dm ? 'bg-[#1e1e22]/80 border-white/[0.07]' : 'bg-gray-50/60 border-gray-100';
+    const title1 = dm ? 'text-white' : 'text-gray-900';
+    const sub = dm ? 'text-zinc-500' : 'text-gray-400';
+    const colName = dm ? 'text-zinc-100' : 'text-gray-900';
+    const colDate = dm ? 'text-zinc-400' : 'text-gray-800';
+    const colHdr = dm ? 'text-zinc-700' : 'text-gray-400';
+    const rowHov = dm ? 'hover:bg-white/[0.04]' : 'hover:bg-gray-50';
+    const inputCls = `w-full text-sm px-4 py-3 rounded-xl outline-none border transition-colors
+    ${dm ? 'bg-white/[0.04] border-white/[0.08] text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20'
+            : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20'}`;
+    const smInputCls = `w-full text-sm px-3 py-2 rounded-xl outline-none border transition-colors
+    ${dm ? 'bg-white/[0.04] border-white/[0.08] text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/50'
+            : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400'}`;
+    const btnGreen = `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] shadow-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-300/40`;
+    const btnGhost = `px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`;
+    const dropZone = `relative flex flex-col items-center justify-center gap-4 py-10 rounded-2xl border-2 border-dashed cursor-pointer transition-all
+    ${dragging ? 'border-emerald-400 bg-emerald-500/10' : dm ? 'border-white/[0.10] hover:border-emerald-500/40 hover:bg-white/[0.02]' : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/30'}`;
+
+    return (
+        <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
+            <div className={`absolute inset-0 backdrop-blur-md ${dm ? 'bg-black/60' : 'bg-black/40'}`} onClick={onBack || onClose} />
+
+            <div className={`relative w-full max-w-2xl rounded-[28px] shadow-2xl border flex flex-col overflow-hidden max-h-[90vh] ${bg}`}
+                style={{ animation: 'vlIn 0.2s ease-out' }}>
+
+                {/* ── Header ── */}
+                <div className={`flex items-center justify-between px-7 pt-6 pb-5 border-b shrink-0 ${divider}`}>
+                    <div className="flex items-center gap-3">
+                        {onBack && (
+                            <button onClick={onBack}
+                                className={`p-1.5 rounded-full mr-1 transition-colors ${dm ? 'text-zinc-500 hover:text-white hover:bg-white/[0.07]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                                <ArrowLeft size={17} />
+                            </button>
+                        )}
+                        <div className={`p-2 rounded-xl ${dm ? 'bg-emerald-500/20' : 'bg-emerald-50'}`}>
+                            <Video size={17} className={dm ? 'text-emerald-400' : 'text-emerald-600'} />
+                        </div>
+                        <div>
+                            <h3 className={`text-[16px] font-semibold tracking-tight ${title1}`}>
+                                {step === 'meta' ? 'Name & Thumbnail' : 'Add Video'}
+                            </h3>
+                            <p className={`text-[11px] ${sub}`}>{categoryName}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose}
+                        className={`p-1.5 rounded-full transition-colors ${dm ? 'text-zinc-500 hover:text-white hover:bg-white/[0.07]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {/* ── Body ── */}
+                <div className="flex-1 overflow-y-auto">
+
+                    {/* ═══ UPLOAD STEP ═══ */}
+                    {step === 'upload' && (
+                        <div className="px-7 py-6 space-y-5">
+                            {/* Drop zone */}
+                            <div onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
+                                onClick={() => fileInputRef.current?.click()} className={dropZone}>
+                                <div className="relative">
+                                    <div className={`w-20 h-16 rounded-2xl flex items-center justify-center ${dm ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+                                        <Film size={36} className={dm ? 'text-emerald-500/70' : 'text-emerald-500'} strokeWidth={1.2} />
+                                    </div>
+                                    <div className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-emerald-500 shadow-lg">
+                                        <Upload size={12} className="text-white" />
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <p className={`text-sm font-semibold ${dm ? 'text-zinc-300' : 'text-gray-700'}`}>Drag and drop to upload</p>
+                                    <p className={`text-xs mt-1 ${sub}`}>MP4, MOV, AVI, MKV and more</p>
+                                </div>
+                                <button onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                                    className="px-7 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-300/40 transition-all active:scale-95">
+                                    Upload
+                                </button>
+                                <p className={`text-[11px] ${dm ? 'text-zinc-700' : 'text-gray-400'}`}>MP4, MOV, AVI, MKV, WEBM are supported</p>
+                                <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
+                            </div>
+
+                            {/* Progress */}
+                            {uploadProgress !== null && fileInfo && (
+                                <div className={`flex items-center gap-4 px-5 py-4 rounded-2xl border ${dm ? 'bg-white/[0.03] border-white/[0.07]' : 'bg-gray-50 border-gray-100'}`}>
+                                    <Film size={22} className={`shrink-0 ${dm ? 'text-zinc-500' : 'text-gray-400'}`} />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className={`text-sm font-medium truncate ${dm ? 'text-zinc-300' : 'text-gray-700'}`}>{fileInfo.name}</span>
+                                            <button onClick={resetToUpload} className={`text-xs shrink-0 ml-3 ${dm ? 'text-zinc-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'}`}>CANCEL</button>
+                                        </div>
+                                        <div className={`w-full rounded-full h-1.5 ${dm ? 'bg-white/[0.08]' : 'bg-gray-200'}`}>
+                                            <div className="h-1.5 rounded-full bg-emerald-500 transition-all duration-100" style={{ width: `${uploadProgress}%` }} />
+                                        </div>
+                                        <p className={`text-[11px] mt-1 ${dm ? 'text-zinc-600' : 'text-gray-400'}`}>
+                                            {fmtSize(fileInfo.size * uploadProgress / 100)} of {fmtSize(fileInfo.size)} · {Math.round(uploadProgress)}% uploaded
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Divider */}
+                            <div className="flex items-center gap-3">
+                                <div className={`flex-1 h-px ${dm ? 'bg-white/[0.07]' : 'bg-gray-100'}`} />
+                                <span className={`text-xs ${sub}`}>or add a link</span>
+                                <div className={`flex-1 h-px ${dm ? 'bg-white/[0.07]' : 'bg-gray-100'}`} />
+                            </div>
+
+                            {/* Link input */}
+                            <div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <div className="flex-1 relative">
+                                        <Link2 size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${dm ? 'text-zinc-600' : 'text-gray-400'}`} />
+                                        <input type="url" placeholder="https://youtube.com/watch?v=... or any video URL"
+                                            value={linkInput}
+                                            onChange={e => { setLinkInput(e.target.value); setLinkError(''); }}
+                                            onKeyDown={e => e.key === 'Enter' && handleLinkSubmit()}
+                                            className={`${inputCls} pl-9`} />
+                                    </div>
+                                    <button onClick={handleLinkSubmit} className={btnGreen}>Add</button>
+                                </div>
+                                {linkError && <p className="text-red-500 text-xs px-1">{linkError}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ═══ META STEP ═══ */}
+                    {step === 'meta' && (
+                        <div className="px-7 py-6 space-y-6">
+                            <div className="flex gap-5">
+                                <div className={`w-44 aspect-video rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${dm ? 'bg-white/[0.05] border-white/[0.08]' : 'bg-gray-100 border-gray-200'}`}>
+                                    {(customThumb || pendingThumb)
+                                        ? <img src={customThumb || pendingThumb} className="w-full h-full object-cover" alt="" />
+                                        : <Play size={28} className={dm ? 'text-zinc-700' : 'text-gray-300'} />}
+                                </div>
+                                <div className="flex-1 space-y-4">
+                                    <div>
+                                        <label className={`text-xs font-semibold uppercase tracking-widest block mb-1.5 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Video Name</label>
+                                        <input type="text" placeholder="Enter a display name" value={pendingName}
+                                            onChange={e => setPendingName(e.target.value)} className={inputCls} autoFocus />
+                                    </div>
+                                    <div>
+                                        <label className={`text-xs font-semibold uppercase tracking-widest block mb-1.5 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Link / URL</label>
+                                        <input type="url" placeholder="Video URL" value={pendingUrl}
+                                            onChange={e => setPendingUrl(e.target.value)} className={inputCls} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Thumb picker */}
+                            <div>
+                                <label className={`text-xs font-semibold uppercase tracking-widest block mb-3 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Choose Thumbnail</label>
+                                <div className="flex gap-3 flex-wrap">
+                                    {thumbSuggestions.map((t, i) => (
+                                        <button key={i} onClick={() => setCustomThumb(t)}
+                                            className={`relative w-32 aspect-video rounded-xl overflow-hidden border-2 transition-all
+                        ${(customThumb ?? pendingThumb) === t ? 'border-emerald-500' : dm ? 'border-transparent hover:border-white/20' : 'border-transparent hover:border-gray-300'}`}>
+                                            <img src={t} className="w-full h-full object-cover" alt="" />
+                                            {(customThumb ?? pendingThumb) === t && (
+                                                <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+                                                    <Check size={20} className="text-white drop-shadow" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                    <button onClick={() => thumbInputRef.current?.click()}
+                                        className={`w-32 aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all
+                      ${dm ? 'border-white/[0.10] hover:border-emerald-500/50 text-zinc-600 hover:text-emerald-400' : 'border-gray-200 hover:border-emerald-400 text-gray-400 hover:text-emerald-500'}`}>
+                                        <Image size={18} />
+                                        <span className="text-[10px] font-medium">Custom</span>
+                                    </button>
+                                    <input ref={thumbInputRef} type="file" accept="image/*" className="hidden"
+                                        onChange={e => handleThumbFile(e, setCustomThumb)} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ═══ HISTORY (only on upload step) ═══ */}
+                    {step === 'upload' && (
+                        <div className="px-7 pb-6 space-y-4">
+                            {entries.length > 0 ? (
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={13} className={sub} />
+                                        <p className={`text-xs font-semibold uppercase tracking-widest ${colHdr}`}>Uploaded Files</p>
+                                    </div>
+                                    {/* Table header */}
+                                    <div className={`grid grid-cols-[40px_1fr_1fr_110px_52px] text-[10px] font-semibold uppercase tracking-widest px-2 ${colHdr}`}>
+                                        <span /><span>Name</span><span>Link</span><span>Date Added</span><span />
+                                    </div>
+                                    <div className="space-y-1">
+                                        {entries.map(e => (
+                                            <div key={e.id}>
+                                                {editingId === e.id ? (
+                                                    <div className={`p-3 rounded-xl border space-y-2 ${dm ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'}`}>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <input value={editName} onChange={ev => setEditName(ev.target.value)} placeholder="Name" className={smInputCls} />
+                                                            <input value={editUrl} onChange={ev => setEditUrl(ev.target.value)} placeholder="URL" className={smInputCls} />
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {editThumb && <img src={editThumb} className="w-16 aspect-video object-cover rounded-lg border border-gray-200" alt="" />}
+                                                            <button onClick={() => editThumbRef.current?.click()} className={`text-xs hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                                Change thumbnail
+                                                            </button>
+                                                            <input type="file" accept="image/*" className="hidden" ref={editThumbRef}
+                                                                onChange={e => handleThumbFile(e, setEditThumb)} />
+                                                        </div>
+                                                        <div className="flex justify-end gap-2">
+                                                            <button onClick={() => setEditingId(null)} className={btnGhost}>Cancel</button>
+                                                            <button onClick={() => saveEdit(e.id)} className={btnGreen}><Check size={14} />Save</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className={`group grid grid-cols-[40px_1fr_1fr_110px_52px] items-center gap-2 px-2 py-2.5 rounded-xl transition-colors ${rowHov}`}>
+                                                        <div className={`w-9 h-6 rounded-md overflow-hidden shrink-0 flex items-center justify-center ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
+                                                            {e.thumbnailUrl
+                                                                ? <img src={e.thumbnailUrl} className="w-full h-full object-cover" alt="" />
+                                                                : <Play size={10} className={dm ? 'text-zinc-600' : 'text-gray-400'} />}
+                                                        </div>
+                                                        {/* Name – black in light */}
+                                                        <p className={`text-sm font-semibold truncate ${colName}`}>{e.name}</p>
+                                                        {/* Link */}
+                                                        <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
+                                                            onClick={ev => ev.stopPropagation()}
+                                                            className={`text-xs truncate hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                            {e.sourceUrl}
+                                                        </a>
+                                                        {/* Date – dark in light */}
+                                                        <span className={`text-[11px] shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
+                                                        {/* Actions */}
+                                                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => startEdit(e)}
+                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                <Pencil size={13} />
+                                                            </button>
+                                                            <button onClick={() => setDeletingItem(e)}
+                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className={`flex flex-col items-center justify-center py-8 gap-2 rounded-2xl border-2 border-dashed ${dm ? 'border-white/[0.06] text-zinc-700' : 'border-gray-100 text-gray-300'}`}>
+                                    <Clock size={22} strokeWidth={1.5} />
+                                    <p className="text-xs">No uploads yet</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Footer ── */}
+                <div className={`flex items-center justify-between px-7 py-4 border-t shrink-0 ${footBg}`}>
+                    <p className={`text-xs ${sub}`}>{entries.length} item{entries.length !== 1 ? 's' : ''}</p>
+                    <div className="flex items-center gap-3">
+                        {step === 'meta' ? (
+                            <>
+                                <button onClick={resetToUpload} className={btnGhost}>Back</button>
+                                <button onClick={commitEntry} disabled={!pendingName.trim() || !pendingUrl.trim()}
+                                    className={`${btnGreen} disabled:opacity-40 disabled:cursor-not-allowed`}>
+                                    <Check size={15} /> Save Video
+                                </button>
+                            </>
+                        ) : (
+                            <button onClick={onClose} className={btnGhost}>Close</button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Delete Confirmation Overlay ── */}
+            {deletingItem && (
+                <div className="fixed inset-0 z-[230] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-[28px]" onClick={() => setDeletingItem(null)} />
+                    <div className={`relative w-full max-w-sm rounded-[24px] shadow-2xl border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200 ${dm ? 'bg-[#18181c] border-white/10' : 'bg-white border-gray-200'}`}>
+                        <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mb-4 text-red-500">
+                            <Trash2 size={24} strokeWidth={1.5} />
+                        </div>
+                        <h3 className={`text-lg font-bold mb-1 ${dm ? 'text-white' : 'text-gray-900'}`}>Delete Video</h3>
+                        <p className={`text-sm mb-6 ${dm ? 'text-zinc-400' : 'text-gray-500'}`}>
+                            Are you sure you want to remove <strong className={dm ? 'text-zinc-200' : 'text-gray-700'}>"{deletingItem.name}"</strong>? This action cannot be undone.
+                        </p>
+                        <div className="flex items-center gap-3 w-full">
+                            <button onClick={() => setDeletingItem(null)}
+                                className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${dm ? 'bg-white/[0.06] hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                                Cancel
+                            </button>
+                            <button onClick={() => confirmDelete(deletingItem.id)}
+                                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-500 hover:bg-red-600 text-white transition-all active:scale-95 shadow-md shadow-red-500/20">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+        @keyframes vlIn {
+          from { opacity:0; transform:scale(.96) translateY(8px); }
+          to   { opacity:1; transform:scale(1) translateY(0); }
+        }
+      `}</style>
+        </div>
+    );
+};
+
+export default VideoLinksModal;
