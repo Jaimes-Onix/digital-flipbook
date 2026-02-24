@@ -4,7 +4,7 @@ import { UploadCloud, FileText, Loader2, ChevronLeft, Presentation, AlertCircle 
 interface PptxConverterProps {
   onBack?: () => void;
   darkMode?: boolean;
-  onConvertSuccess?: (pdfFile: File) => void;
+  onConvertSuccess?: (pdfFile: File, orientation: 'portrait' | 'landscape') => void;
 }
 
 const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false, onConvertSuccess }) => {
@@ -12,6 +12,9 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false,
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
+
+  const [actionOption, setActionOption] = useState<'import' | 'download'>('import');
+  const [orientationOption, setOrientationOption] = useState<'portrait' | 'landscape'>('landscape');
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -65,9 +68,25 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false,
         const newFileName = file.name.replace(/\.(pptx|ppt)$/i, '.pdf');
         const pdfFile = new File([pdfBlob], newFileName, { type: 'application/pdf' });
 
-        // Pass it back up to be handled by the main App
-        if (onConvertSuccess) {
-          onConvertSuccess(pdfFile);
+        if (actionOption === 'download') {
+          // Trigger browser download
+          const url = window.URL.createObjectURL(pdfBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = newFileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          setStatusMessage('Downloaded successfully!');
+
+          // Show message briefly before resetting
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          // Pass it back up to be handled by the main App
+          if (onConvertSuccess) {
+            onConvertSuccess(pdfFile, orientationOption);
+          }
         }
       } else {
         throw new Error('No PDF file was returned from the conversion service.');
@@ -128,8 +147,8 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false,
       )}
 
       <div className={`max-w-md w-full text-center px-8 py-10 shadow-2xl ${darkMode
-          ? 'glass-card shadow-black/30'
-          : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
+        ? 'glass-card shadow-black/30'
+        : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
         }`}>
         <h1 className={`text-3xl font-bold mb-2 tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           PPTX to PDF
@@ -151,8 +170,8 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false,
             <button
               onClick={() => setErrorDetails(null)}
               className={`mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors ${darkMode
-                  ? 'bg-amber-500 text-amber-950 hover:bg-amber-400'
-                  : 'bg-amber-500 text-white hover:bg-amber-600'
+                ? 'bg-amber-500 text-amber-950 hover:bg-amber-400'
+                : 'bg-amber-500 text-white hover:bg-amber-600'
                 }`}
             >
               Try Another File
@@ -218,9 +237,73 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false,
         )}
 
         {!isLoading && !errorDetails && (
-          <div className={`mt-8 flex items-center justify-center gap-2 text-sm ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
-            <FileText size={16} />
-            <span>Supports .pptx and .ppt formats</span>
+          <div className={`mt-8 flex flex-col items-center gap-6 text-sm ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+            <div className={`w-full max-w-[85%] flex flex-col gap-5 text-left border-t pt-6 ${darkMode ? 'border-white/10' : 'border-gray-200'}`}>
+              <div className="flex flex-col gap-3">
+                <span className={`text-sm font-semibold tracking-wide ${darkMode ? 'text-white' : 'text-gray-900'}`}>After Conversion:</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="action"
+                      value="import"
+                      checked={actionOption === 'import'}
+                      onChange={() => setActionOption('import')}
+                      className="accent-orange-500 w-4 h-4 transition-all"
+                    />
+                    <span className={`text-[15px] font-medium transition-colors ${darkMode ? 'text-zinc-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>Import directly</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="action"
+                      value="download"
+                      checked={actionOption === 'download'}
+                      onChange={() => setActionOption('download')}
+                      className="accent-orange-500 w-4 h-4 transition-all"
+                    />
+                    <span className={`text-[15px] font-medium transition-colors ${darkMode ? 'text-zinc-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>Download only</span>
+                  </label>
+                </div>
+              </div>
+
+              {actionOption === 'import' && (
+                <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <span className={`text-sm font-semibold tracking-wide flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Flipbook Orientation:
+                  </span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <label className="flex items-center gap-2.5 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="orientation"
+                        value="landscape"
+                        checked={orientationOption === 'landscape'}
+                        onChange={() => setOrientationOption('landscape')}
+                        className="accent-orange-500 w-4 h-4 transition-all"
+                      />
+                      <span className={`text-[15px] font-medium transition-colors ${darkMode ? 'text-zinc-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>Landscape</span>
+                    </label>
+                    <label className="flex items-center gap-2.5 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="orientation"
+                        value="portrait"
+                        checked={orientationOption === 'portrait'}
+                        onChange={() => setOrientationOption('portrait')}
+                        className="accent-orange-500 w-4 h-4 transition-all"
+                      />
+                      <span className={`text-[15px] font-medium transition-colors ${darkMode ? 'text-zinc-300 group-hover:text-white' : 'text-gray-700 group-hover:text-black'}`}>Portrait</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-2 w-full pt-2">
+              <FileText size={16} />
+              <span>Supports .pptx and .ppt formats</span>
+            </div>
           </div>
         )}
       </div>
