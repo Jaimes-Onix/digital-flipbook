@@ -83,6 +83,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
           summary: s.summary || undefined,
           category: s.category || undefined,
           isFavorite: s.is_favorite,
+          orientation: (s.orientation as "portrait" | "landscape") || 'portrait',
         })));
       } catch (err: any) {
         setError(err.message || 'Failed to load books');
@@ -209,7 +210,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
   const bookMeta = darkMode ? 'text-zinc-600' : 'text-gray-400';
 
   return (
-    <div className={`min-h-screen relative transition-colors duration-300 ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
+    <div className={`h-screen w-full overflow-y-auto overflow-x-hidden relative transition-colors duration-300 thin-scrollbar ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
       <VantaFogBackground darkMode={darkMode} />
 
       {/* Header */}

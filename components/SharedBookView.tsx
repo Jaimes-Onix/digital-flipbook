@@ -60,6 +60,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
           summary: stored.summary || undefined,
           category: stored.category || undefined,
           isFavorite: stored.is_favorite,
+          orientation: (stored.orientation as "portrait" | "landscape") || 'portrait',
         });
         document.title = `${stored.title} - Lifewood Digital Flipbook`;
       } catch (err: any) {
@@ -192,7 +193,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   const subtitleColor = darkMode ? 'text-zinc-500' : 'text-gray-500';
 
   return (
-    <div className={`min-h-screen relative transition-colors duration-300 ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
+    <div className={`h-screen w-full overflow-y-auto overflow-x-hidden relative transition-colors duration-300 thin-scrollbar ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
       <VantaFogBackground darkMode={darkMode} />
 
       {/* Header */}
