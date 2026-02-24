@@ -7,6 +7,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Home from './components/Home';
 import Upload from './components/Upload';
+import PptxConverter from './components/PptxConverter';
 import BookViewer from './components/BookViewer';
 import DflipViewer from './components/DflipViewer';
 import Controls from './components/Controls';
@@ -125,9 +126,10 @@ const App: React.FC = () => {
   const readerContainerRef = useRef<HTMLDivElement>(null);
 
   // Derive current view and filter from route
-  const getCurrentView = (): 'home' | 'upload' | 'library' | 'reader' | 'signin' | 'shared' => {
+  const getCurrentView = (): 'home' | 'upload' | 'convert-pptx' | 'library' | 'reader' | 'signin' | 'shared' => {
     if (location.pathname === '/' || location.pathname === '/home') return 'home';
     if (location.pathname === '/upload') return 'upload';
+    if (location.pathname === '/convert-pptx') return 'convert-pptx';
     if (location.pathname === '/signin') return 'signin';
     if (location.pathname.startsWith('/reader')) return 'reader';
     if (location.pathname.startsWith('/share')) return 'shared';
@@ -755,6 +757,14 @@ const App: React.FC = () => {
                 onBack={() => navigate('/library')}
                 isLoading={!!loadingStatus}
                 statusMessage={loadingStatus || ""}
+                darkMode={darkMode}
+              />
+            } />
+
+            {/* PPTX to PDF Converter Route */}
+            <Route path="/convert-pptx" element={
+              <PptxConverter
+                onBack={() => navigate('/library')}
                 darkMode={darkMode}
               />
             } />

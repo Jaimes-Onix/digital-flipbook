@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home as HomeIcon,
   Library as AllBooksIcon,
+  Presentation,
   UploadCloud,
   MapPin,
   Building,
@@ -30,7 +31,7 @@ import type { CustomCategory } from '../types';
 export type LibraryFilter = string;
 
 interface SidebarProps {
-  currentView: 'home' | 'library' | 'upload' | 'reader';
+  currentView: 'home' | 'library' | 'upload' | 'convert-pptx' | 'reader';
   currentFilter: LibraryFilter;
   darkMode: boolean;
   onToggleDarkMode: () => void;
@@ -214,6 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Navigate</p>
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
           <NavItem icon={AllBooksIcon} label="All Books" active={location.pathname === '/library'} to="/library" />
+          <NavItem icon={Presentation} label="PPTX to PDF" active={location.pathname === '/convert-pptx'} to="/convert-pptx" />
           <NavItem icon={UploadCloud} label="Import PDF" active={location.pathname === '/upload'} to="/upload" />
 
           {/* + Add Category button */}
