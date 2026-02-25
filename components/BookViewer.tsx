@@ -347,8 +347,14 @@ const BookViewer: React.FC<BookViewerProps> = ({
   showSearch = false, onToggleSearch, fullscreenContainerRef,
   orientation = 'portrait'
 }) => {
-  const pageW = orientation === 'landscape' ? LANDSCAPE_W : PORTRAIT_W;
-  const pageH = orientation === 'landscape' ? LANDSCAPE_H : PORTRAIT_H;
+  const defaultAspectRatio = orientation === 'landscape' ? LANDSCAPE_W / LANDSCAPE_H : PORTRAIT_W / PORTRAIT_H;
+  const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(defaultAspectRatio);
+  const [isSinglePage, setIsSinglePage] = useState<boolean>(false);
+
+  // Dynamically calculate page dimensions to perfectly match the PDF aspect ratio.
+  // We use 500 as an arbitrary base resolution, HTMLFlipBook auto-scales it anyway.
+  const pageW = 500 * Math.max(1, pdfAspectRatio);
+  const pageH = pageW / pdfAspectRatio;
 
 
   const [pages, setPages] = useState<number[]>([]);
@@ -514,11 +520,22 @@ const BookViewer: React.FC<BookViewerProps> = ({
     let resizeTimeout: NodeJS.Timeout | null = null;
 
     const updateScale = () => {
-      const w = window.innerWidth - 120;
-      const h = window.innerHeight - 180;
-      const scaleX = w / (pageW * 2);
+      // Use the actual flex container's dimensions to perfectly stretch edge-to-edge
+      const parent = containerRef.current?.parentElement;
+      if (!parent) return;
+
+      const singlePage = pdfAspectRatio > 1.2 || window.innerWidth < 768;
+
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+
+      const spreadW = singlePage ? pageW : pageW * 2;
+      const scaleX = w / spreadW;
       const scaleY = h / pageH;
-      const newScale = Math.min(scaleX, scaleY, 1.3);
+
+      const newScale = Math.min(scaleX, scaleY);
+
+      setIsSinglePage(singlePage);
       setBaseScale(newScale);
     };
 
@@ -550,6 +567,15 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
         if (!pdfDocument.numPages || pdfDocument.numPages < 1) {
           throw new Error('PDF has no pages');
+        }
+
+        try {
+          // Get the exact aspect ratio from the first page of the PDF
+          const page1 = await pdfDocument.getPage(1);
+          const vp = page1.getViewport({ scale: 1 });
+          setPdfAspectRatio(vp.width / vp.height);
+        } catch (e) {
+          console.warn('Could not determine aspect ratio', e);
         }
 
         const nums = Array.from({ length: pdfDocument.numPages }, (_, i) => i + 1);
@@ -688,7 +714,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
           }}
         >
           <HTMLFlipBook
-            key={`${pageW}-${pageH}`}
+            key={`${pageW}-${pageH}-${isSinglePage}`}
             width={pageW}
             height={pageH}
             size="fixed"
@@ -709,7 +735,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
             style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
             startPage={0}
             flippingTime={800}
-            usePortrait={false}
+            usePortrait={isSinglePage}
             drawShadow={true}
             startZIndex={0}
             autoSize={false}
