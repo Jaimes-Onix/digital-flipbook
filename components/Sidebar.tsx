@@ -302,7 +302,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Lifewood Branding Footer */}
           <div className="mt-3 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[260px] lg:group-hover/sidebar:opacity-100">
             <div className="w-[260px]">
-              <div className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center transition-colors ${darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-100 shadow-sm'}`}>
+              <div className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center transition-colors ${darkMode ? 'bg-white border border-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
                 <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Exact Logo" className={`h-[24px] w-auto ${darkMode ? 'opacity-90' : ''}`} />
               </div>
               <div className="flex justify-center items-center mt-2.5 gap-1 text-[11px] font-medium tracking-wide">
