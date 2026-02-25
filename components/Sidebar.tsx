@@ -276,6 +276,17 @@ const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </button>
           <NavItem icon={darkMode ? Sun : Moon} label={darkMode ? "Light Mode" : "Dark Mode"} onClick={onToggleDarkMode} />
+
+          {/* Lifewood Branding Footer */}
+          <div className="mt-3">
+            <div className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center transition-colors ${darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-100 shadow-sm'}`}>
+              <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Exact Logo" className={`h-[24px] w-auto ${darkMode ? 'opacity-90' : ''}`} />
+            </div>
+            <div className="flex justify-center items-center mt-2.5 gap-1 text-[11px] font-medium tracking-wide">
+              <span className={darkMode ? 'text-emerald-400/60' : 'text-[#0B543D]'}>Powered by</span>
+              <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
+            </div>
+          </div>
         </div>
       </aside>
 
