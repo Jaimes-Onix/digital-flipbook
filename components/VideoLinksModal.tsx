@@ -25,9 +25,10 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     onBack?: () => void;
-    categorySlug: string;
-    categoryName: string;
+    categorySlug?: string;
+    categoryName?: string;
     darkMode: boolean;
+    readOnly?: boolean;
 }
 
 /* ─────────────────── helpers ─────────────────── */
@@ -58,7 +59,7 @@ function fmtSize(bytes: number): string {
 
 /* ─────────────────── component ─────────────────── */
 const VideoLinksModal: React.FC<Props> = ({
-    isOpen, onClose, onBack, categorySlug, categoryName, darkMode
+    isOpen, onClose, onBack, categorySlug, categoryName = '', darkMode, readOnly = false
 }) => {
     const dm = darkMode;
 
@@ -66,7 +67,7 @@ const VideoLinksModal: React.FC<Props> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isCommitting, setIsCommitting] = useState(false);
 
-    const [step, setStep] = useState<Step>('upload');
+    const [step, setStep] = useState<Step>(readOnly ? 'meta' : 'upload');
     const [linkInput, setLinkInput] = useState('');
     const [linkError, setLinkError] = useState('');
     const [pendingName, setPendingName] = useState('');
@@ -254,7 +255,7 @@ const VideoLinksModal: React.FC<Props> = ({
                         </div>
                         <div>
                             <h3 className={`text-[16px] font-semibold tracking-tight ${title1}`}>
-                                {step === 'meta' ? 'Name & Thumbnail' : 'Add Video'}
+                                {readOnly ? 'Video Links' : (step === 'meta' ? 'Name & Thumbnail' : 'Add Video')}
                             </h3>
                             <p className={`text-[11px] ${sub}`}>{categoryName}</p>
                         </div>
@@ -277,7 +278,7 @@ const VideoLinksModal: React.FC<Props> = ({
                     )}
 
                     {/* ═══ UPLOAD STEP ═══ */}
-                    {step === 'upload' && !isLoading && (
+                    {step === 'upload' && !readOnly && !isLoading && (
                         <div className="px-7 py-6 space-y-5">
 
 
@@ -299,8 +300,8 @@ const VideoLinksModal: React.FC<Props> = ({
                         </div>
                     )}
 
-                    {/* ═══ META STEP ═══ */}
-                    {step === 'meta' && (
+                    {/* ═══ META STEP (Read Only List or Add Form) ═══ */}
+                    {step === 'meta' && !readOnly && (
                         <div className="px-7 py-6 space-y-6">
                             <div className="flex gap-5">
                                 <div className={`w-44 aspect-video rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border ${dm ? 'bg-white/[0.05] border-white/[0.08]' : 'bg-gray-100 border-gray-200'}`}>
@@ -352,9 +353,9 @@ const VideoLinksModal: React.FC<Props> = ({
                         </div>
                     )}
 
-                    {/* ═══ HISTORY (only on upload step) ═══ */}
-                    {step === 'upload' && !isLoading && (
-                        <div className="px-7 pb-6 space-y-4">
+                    {/* ═══ HISTORY (only on upload step, or readOnly mode) ═══ */}
+                    {(step === 'upload' || readOnly) && !isLoading && (
+                        <div className="px-7 pb-6 space-y-4 pt-6">
                             {entries.length > 0 ? (
                                 <>
                                     <div className="flex items-center gap-2">
@@ -408,16 +409,18 @@ const VideoLinksModal: React.FC<Props> = ({
                                                         {/* Date */}
                                                         <span className={`text-[11px] shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
                                                         {/* Actions */}
-                                                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button onClick={() => startEdit(e)}
-                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
-                                                                <Pencil size={13} />
-                                                            </button>
-                                                            <button onClick={() => setDeletingItem(e)}
-                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
-                                                                <Trash2 size={13} />
-                                                            </button>
-                                                        </div>
+                                                        {!readOnly && (
+                                                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button onClick={() => startEdit(e)}
+                                                                    className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                    <Pencil size={13} />
+                                                                </button>
+                                                                <button onClick={() => setDeletingItem(e)}
+                                                                    className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
+                                                                    <Trash2 size={13} />
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -427,7 +430,7 @@ const VideoLinksModal: React.FC<Props> = ({
                             ) : (
                                 <div className={`flex flex-col items-center justify-center py-8 gap-2 rounded-2xl border-2 border-dashed ${dm ? 'border-white/[0.06] text-zinc-700' : 'border-gray-100 text-gray-300'}`}>
                                     <Clock size={22} strokeWidth={1.5} />
-                                    <p className="text-xs">No uploads yet</p>
+                                    <p className="text-xs">No videos available</p>
                                 </div>
                             )}
                         </div>
@@ -436,15 +439,15 @@ const VideoLinksModal: React.FC<Props> = ({
 
                 {/* ── Footer ── */}
                 <div className={`flex items-center justify-between px-7 py-4 border-t shrink-0 ${footBg}`}>
-                    <p className={`text-xs ${sub}`}>{entries.length} item{entries.length !== 1 ? 's' : ''}</p>
+                    <p className={`text-xs ${sub}`}>{entries.length} video{entries.length !== 1 ? 's' : ''}</p>
                     <div className="flex items-center gap-3">
-                        {step === 'meta' ? (
+                        {step === 'meta' && !readOnly ? (
                             <>
                                 <button onClick={resetToUpload} className={btnGhost} disabled={isCommitting}>Back</button>
                                 <button onClick={commitEntry} disabled={!pendingName.trim() || !pendingUrl.trim() || isCommitting}
                                     className={`${btnGreen} disabled:opacity-40 disabled:cursor-not-allowed`}>
                                     {isCommitting ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                                    {isCommitting ? 'Saving Upload...' : 'Save Video'}
+                                    {isCommitting ? 'Saving Video...' : 'Save Video'}
                                 </button>
                             </>
                         ) : (

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, Moon, Sun, ArrowLeft, Search } from 'lucide-react';
+import { Loader2, Moon, Sun, ArrowLeft, Search, Video } from 'lucide-react';
 import BookViewer from './BookViewer';
 import VantaFogBackground from './VantaFogBackground';
+import VideoLinksModal from './VideoLinksModal';
 import { getDocument } from '../utils/pdfUtils';
 import { loadBooksByCategory } from '../src/lib/bookStorage';
 import type { LibraryBook, BookRef } from '../types';
@@ -41,6 +42,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(true);
   const [loadingBookId, setLoadingBookId] = useState<string | null>(null);
+  const [showVideoLinks, setShowVideoLinks] = useState(false);
 
   // Reader state
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
@@ -231,9 +233,23 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
             <p className={`text-xs ${subtitleColor}`}>Lifewood Philippines Digital Library</p>
           </div>
         </div>
-        <button onClick={() => setDarkMode(d => !d)} className={`p-2.5 rounded-xl transition-colors ${toggleBtn}`}>
-          {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+        <div className="flex items-center gap-2">
+          {category && (
+            <button
+              onClick={() => setShowVideoLinks(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${darkMode
+                ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20'
+                : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                }`}
+            >
+              <Video size={16} />
+              <span className="hidden sm:inline">Video Links</span>
+            </button>
+          )}
+          <button onClick={() => setDarkMode(d => !d)} className={`p-2.5 rounded-xl transition-colors ${toggleBtn}`}>
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        </div>
       </header>
 
       {/* Content */}
@@ -339,6 +355,14 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
           </div>
         </div>
       </main>
+
+      <VideoLinksModal
+        isOpen={showVideoLinks}
+        onClose={() => setShowVideoLinks(false)}
+        categorySlug={category || undefined}
+        darkMode={darkMode}
+        readOnly={true}
+      />
     </div>
   );
 }
