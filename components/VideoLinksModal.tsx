@@ -358,74 +358,103 @@ const VideoLinksModal: React.FC<Props> = ({
                         <div className="px-7 pb-6 space-y-4 pt-6">
                             {entries.length > 0 ? (
                                 <>
-                                    <div className="flex items-center gap-2">
-                                        <Clock size={13} className={sub} />
-                                        <p className={`text-xs font-semibold uppercase tracking-widest ${colHdr}`}>Uploaded Files</p>
-                                    </div>
-                                    {/* Table header */}
-                                    <div className={`grid grid-cols-[40px_1fr_1fr_110px_52px] text-[10px] font-semibold uppercase tracking-widest px-2 ${colHdr}`}>
-                                        <span /><span>Name</span><span>Link</span><span>Date Added</span><span />
-                                    </div>
-                                    <div className="space-y-1">
-                                        {entries.map(e => (
-                                            <div key={e.id}>
-                                                {editingId === e.id ? (
-                                                    <div className={`p-3 rounded-xl border space-y-2 ${dm ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'}`}>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            <input value={editName} onChange={ev => setEditName(ev.target.value)} placeholder="Name" className={smInputCls} />
-                                                            <input value={editUrl} onChange={ev => setEditUrl(ev.target.value)} placeholder="URL" className={smInputCls} disabled={e.isFile} />
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {editThumb && <img src={editThumb} className="w-16 aspect-video object-cover rounded-lg border border-gray-200" alt="" />}
-                                                            <button onClick={() => editThumbRef.current?.click()} className={`text-xs hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                                                                Change thumbnail
-                                                            </button>
-                                                            <input type="file" accept="image/*" className="hidden" ref={editThumbRef}
-                                                                onChange={ev => handleThumbFile(ev, setEditThumb)} />
-                                                        </div>
-                                                        <div className="flex justify-end gap-2">
-                                                            <button onClick={() => setEditingId(null)} className={btnGhost} disabled={isEditingSaving}>Cancel</button>
-                                                            <button onClick={() => saveEdit(e.id)} className={btnGreen} disabled={isEditingSaving}>
-                                                                {isEditingSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                                                                Save
-                                                            </button>
+                                    {readOnly ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {entries.map(e => (
+                                                <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer" key={e.id}
+                                                    className={`group block overflow-hidden rounded-2xl border transition-all duration-300 ${dm ? 'bg-white/[0.02] border-white/5 hover:border-emerald-500/30 hover:bg-white/[0.04]' : 'bg-white border-gray-100 hover:border-emerald-500/30 hover:shadow-md'}`}>
+                                                    <div className="aspect-video relative bg-black/5 flex items-center justify-center overflow-hidden">
+                                                        {e.thumbnailUrl ? (
+                                                            <img src={e.thumbnailUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
+                                                        ) : (
+                                                            <Play size={24} className={dm ? 'text-zinc-600' : 'text-gray-400'} />
+                                                        )}
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                                            <div className="w-12 h-12 rounded-full bg-emerald-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 shadow-xl shadow-emerald-500/20">
+                                                                <Play size={22} fill="currentColor" className="ml-1" />
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                ) : (
-                                                    <div className={`group grid grid-cols-[40px_1fr_1fr_110px_52px] items-center gap-2 px-2 py-2.5 rounded-xl transition-colors ${rowHov}`}>
-                                                        <div className={`w-9 h-6 rounded-md overflow-hidden shrink-0 flex items-center justify-center ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
-                                                            {e.thumbnailUrl
-                                                                ? <img src={e.thumbnailUrl} className="w-full h-full object-cover" alt="" />
-                                                                : <Play size={10} className={dm ? 'text-zinc-600' : 'text-gray-400'} />}
-                                                        </div>
-                                                        {/* Name */}
-                                                        <p className={`text-sm font-semibold truncate ${colName}`}>{e.name}</p>
-                                                        {/* Link */}
-                                                        <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
-                                                            onClick={ev => ev.stopPropagation()}
-                                                            className={`text-xs truncate hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                                                            {e.sourceUrl}
-                                                        </a>
-                                                        {/* Date */}
-                                                        <span className={`text-[11px] shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
-                                                        {/* Actions */}
-                                                        {!readOnly && (
-                                                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button onClick={() => startEdit(e)}
-                                                                    className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
-                                                                    <Pencil size={13} />
-                                                                </button>
-                                                                <button onClick={() => setDeletingItem(e)}
-                                                                    className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
-                                                                    <Trash2 size={13} />
-                                                                </button>
+                                                    <div className="p-3.5 space-y-1">
+                                                        <h4 className={`text-sm font-semibold truncate ${dm ? 'text-zinc-200' : 'text-gray-800'}`}>{e.name}</h4>
+                                                        <p className={`text-xs truncate ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>{e.sourceUrl}</p>
+                                                        <p className={`text-[11px] pt-1 ${dm ? 'text-zinc-500' : 'text-gray-500'}`}>{fmtDate(e.addedAt)}</p>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center gap-2">
+                                                <Clock size={13} className={sub} />
+                                                <p className={`text-xs font-semibold uppercase tracking-widest ${colHdr}`}>Uploaded Files</p>
+                                            </div>
+                                            {/* Table header */}
+                                            <div className={`grid grid-cols-[40px_1fr_1fr_110px_52px] text-[10px] font-semibold uppercase tracking-widest px-2 ${colHdr}`}>
+                                                <span /><span>Name</span><span>Link</span><span>Date Added</span><span />
+                                            </div>
+                                            <div className="space-y-1">
+                                                {entries.map(e => (
+                                                    <div key={e.id}>
+                                                        {editingId === e.id ? (
+                                                            <div className={`p-3 rounded-xl border space-y-2 ${dm ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'}`}>
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    <input value={editName} onChange={ev => setEditName(ev.target.value)} placeholder="Name" className={smInputCls} />
+                                                                    <input value={editUrl} onChange={ev => setEditUrl(ev.target.value)} placeholder="URL" className={smInputCls} disabled={e.isFile} />
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {editThumb && <img src={editThumb} className="w-16 aspect-video object-cover rounded-lg border border-gray-200" alt="" />}
+                                                                    <button onClick={() => editThumbRef.current?.click()} className={`text-xs hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                                        Change thumbnail
+                                                                    </button>
+                                                                    <input type="file" accept="image/*" className="hidden" ref={editThumbRef}
+                                                                        onChange={ev => handleThumbFile(ev, setEditThumb)} />
+                                                                </div>
+                                                                <div className="flex justify-end gap-2">
+                                                                    <button onClick={() => setEditingId(null)} className={btnGhost} disabled={isEditingSaving}>Cancel</button>
+                                                                    <button onClick={() => saveEdit(e.id)} className={btnGreen} disabled={isEditingSaving}>
+                                                                        {isEditingSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                                                                        Save
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className={`group grid grid-cols-[40px_1fr_1fr_110px_52px] items-center gap-2 px-2 py-2.5 rounded-xl transition-colors ${rowHov}`}>
+                                                                <div className={`w-9 h-6 rounded-md overflow-hidden shrink-0 flex items-center justify-center ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
+                                                                    {e.thumbnailUrl
+                                                                        ? <img src={e.thumbnailUrl} className="w-full h-full object-cover" alt="" />
+                                                                        : <Play size={10} className={dm ? 'text-zinc-600' : 'text-gray-400'} />}
+                                                                </div>
+                                                                {/* Name */}
+                                                                <p className={`text-sm font-semibold truncate ${colName}`}>{e.name}</p>
+                                                                {/* Link */}
+                                                                <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
+                                                                    onClick={ev => ev.stopPropagation()}
+                                                                    className={`text-xs truncate hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                                    {e.sourceUrl}
+                                                                </a>
+                                                                {/* Date */}
+                                                                <span className={`text-[11px] shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
+                                                                {/* Actions */}
+                                                                {!readOnly && (
+                                                                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <button onClick={() => startEdit(e)}
+                                                                            className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                            <Pencil size={13} />
+                                                                        </button>
+                                                                        <button onClick={() => setDeletingItem(e)}
+                                                                            className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
+                                                                            <Trash2 size={13} />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
-                                                )}
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 <div className={`flex flex-col items-center justify-center py-8 gap-2 rounded-2xl border-2 border-dashed ${dm ? 'border-white/[0.06] text-zinc-700' : 'border-gray-100 text-gray-300'}`}>
