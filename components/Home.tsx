@@ -201,11 +201,11 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                           </div>
                         </div>
                         <div className="px-3 pb-3">
-                          <div className={`rounded-xl overflow-hidden shadow-inner ${darkMode ? 'bg-zinc-900/50' : 'bg-white'} ${book.orientation === 'landscape' ? 'aspect-[4/3]' : 'aspect-[3/4]'}`}>
+                          <div className={`rounded-xl overflow-hidden shadow-inner ${darkMode ? 'bg-zinc-900/50' : 'bg-white'} aspect-[3/4]`}>
                             <img
                               src={book.coverUrl}
                               alt={book.name}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              className="w-full h-full object-contain bg-black/5 transition-transform duration-500 group-hover:scale-105"
                             />
                           </div>
                         </div>
@@ -280,11 +280,11 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                           <div className={`relative w-40 sm:w-48 md:w-56 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ${isHovered
                             ? (darkMode ? 'ring-4 ring-white/30 bg-zinc-900/80' : 'ring-4 ring-black/20 bg-gray-100')
                             : (darkMode ? 'ring-1 ring-white/10 bg-zinc-900/50' : 'ring-1 ring-black/10 bg-gray-50')
-                            } ${book.orientation === 'landscape' ? 'aspect-[4/3]' : 'aspect-[2/3]'}`}>
+                            } aspect-[2/3]`}>
                             <img
                               src={book.coverUrl}
                               alt={book.name}
-                              className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'
+                              className={`w-full h-full object-contain bg-black/5 transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'
                                 }`}
                             />
                             <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 flex flex-col justify-end p-4 ${isHovered ? 'opacity-100' : 'opacity-0'

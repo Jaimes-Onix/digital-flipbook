@@ -125,20 +125,20 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           return (
             <div
               key={book.id}
-              className={`group cursor-pointer perspective-1000 ${isOpening ? 'z-50 pointer-events-none' : 'z-10'} ${book.orientation === 'landscape' ? 'col-span-1 md:col-span-2' : 'col-span-1'}`}
+              className={`group cursor-pointer perspective-1000 ${isOpening ? 'z-50 pointer-events-none' : 'z-10'} col-span-1`}
               onClick={() => handleBookClick(book)}
             >
-              <div className={`relative mb-3 transition-all duration-500 ${isOpening ? 'animate-zoom-forward' : ''} ${book.orientation === 'landscape' ? 'aspect-[4/3]' : 'aspect-[3/4]'}`}>
+              <div className={`relative mb-3 transition-all duration-500 ${isOpening ? 'animate-zoom-forward' : ''} aspect-[3/4]`}>
                 <div className={`w-full h-full relative transition-all duration-500 ease-out rounded-2xl overflow-hidden
                   ${!isOpening && !isConfirming ? 'group-hover:-translate-y-2 group-hover:scale-[1.02]' : ''}
                   ${darkMode ? 'border border-white/[0.06] group-hover:border-white/[0.12] bg-zinc-900/50' : 'border border-gray-200 group-hover:border-gray-300 bg-gray-100'}
                   ${darkMode ? 'shadow-lg shadow-black/30 group-hover:shadow-xl group-hover:shadow-black/40' : 'shadow-lg shadow-gray-200/60 group-hover:shadow-xl group-hover:shadow-gray-200/80'}
                 `}>
                   {/* Cover Image */}
-                  <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={book.coverUrl} alt={book.name} className="w-full h-full object-contain bg-black/5" loading="lazy" />
 
                   {/* Dark gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                   {/* Favorite */}
                   {book.isFavorite && (
