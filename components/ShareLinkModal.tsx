@@ -13,12 +13,13 @@ interface ShareLinkModalProps {
   darkMode: boolean;
 }
 
-const EXPIRATION_OPTIONS = [
+const EXPIRATION_OPTIONS: { label: string; value: number | null | 'custom' }[] = [
   { label: 'Never', value: null },
   { label: '30 days', value: 30 },
   { label: '15 days', value: 15 },
   { label: '7 days', value: 7 },
   { label: '1 day', value: 1 },
+  { label: 'Custom', value: 'custom' },
 ];
 
 const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
@@ -26,7 +27,8 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string>('');
-  const [expiresInDays, setExpiresInDays] = useState<number | null>(null);
+  const [expiresInDays, setExpiresInDays] = useState<number | null | 'custom'>(null);
+  const [customDays, setCustomDays] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,12 +37,27 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     if (isOpen) {
       setCopied(false);
       setExpiresInDays(null);
+      setCustomDays('');
       generateLink(null);
     } else {
       setGeneratedUrl('');
       setShowDropdown(false);
     }
   }, [isOpen, linkType, target]);
+
+  useEffect(() => {
+    if (expiresInDays === 'custom') {
+      const days = parseInt(customDays, 10);
+      if (!isNaN(days) && days > 0) {
+        const timer = setTimeout(() => {
+          generateLink(days);
+        }, 500);
+        return () => clearTimeout(timer);
+      } else {
+        setGeneratedUrl('');
+      }
+    }
+  }, [customDays, expiresInDays]);
 
   const generateLink = async (days: number | null) => {
     setIsLoading(true);
@@ -56,10 +73,13 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     }
   };
 
-  const handleExpirationChange = (days: number | null) => {
-    setExpiresInDays(days);
+  const handleExpirationChange = (val: number | null | 'custom') => {
+    setExpiresInDays(val);
     setShowDropdown(false);
-    generateLink(days);
+    if (val !== 'custom') {
+      setCustomDays('');
+      generateLink(val);
+    }
   };
 
   if (!isOpen) return null;
@@ -115,7 +135,9 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                   }`}
               >
                 <span className="text-sm">
-                  {EXPIRATION_OPTIONS.find(o => o.value === expiresInDays)?.label || 'Never'}
+                  {expiresInDays === 'custom'
+                    ? customDays ? `Custom: ${customDays} days` : 'Custom...'
+                    : EXPIRATION_OPTIONS.find(o => o.value === expiresInDays)?.label || 'Never'}
                 </span>
                 <ChevronDown size={16} className={`transition-transform duration-200 ${darkMode ? 'text-zinc-500' : 'text-gray-400'} ${showDropdown ? 'rotate-180' : ''}`} />
               </button>
@@ -147,6 +169,32 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
               )}
             </div>
           </div>
+
+          {expiresInDays === 'custom' && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <label className={`block text-xs font-medium uppercase tracking-wider ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+                Number of Days
+              </label>
+              <style>{`
+                input[type='number']::-webkit-inner-spin-button, 
+                input[type='number']::-webkit-outer-spin-button { 
+                  -webkit-appearance: none; 
+                  margin: 0; 
+                }
+              `}</style>
+              <input
+                type="number"
+                min="1"
+                value={customDays}
+                onChange={(e) => setCustomDays(e.target.value)}
+                placeholder="e.g. 2, 45"
+                className={`w-full px-4 py-3 rounded-2xl border transition-colors outline-none focus:ring-2 focus:ring-amber-500/20 ${darkMode
+                  ? 'bg-black/40 border-white/[0.08] text-zinc-200 focus:border-amber-500/50'
+                  : 'bg-white border-gray-200 text-gray-800 focus:border-amber-500 shadow-sm'
+                  }`}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className={`block text-sm font-medium ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
