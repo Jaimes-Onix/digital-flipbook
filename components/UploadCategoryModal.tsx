@@ -63,7 +63,7 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
 
-      <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl shadow-black/50 border w-full max-w-4xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 ${darkMode ? 'bg-[#141418]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}`}>
+      <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl shadow-black/50 border w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 fade-in duration-300 ${darkMode ? 'bg-[#141418]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}`}>
         {/* Close */}
         <button onClick={onClose} className={`absolute top-4 right-4 z-10 p-2 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] hover:bg-white/[0.1] text-zinc-500 hover:text-zinc-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700'}`}>
           <X size={20} />
@@ -78,20 +78,25 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row min-h-[500px]">
+        <div className="flex flex-col sm:flex-row flex-1 min-h-0">
           {/* Left - Preview */}
-          <div className={`flex-1 bg-gradient-to-br p-8 flex flex-col items-center justify-center relative overflow-hidden ${darkMode ? 'from-[#0c0c0e] to-[#141418]' : 'from-gray-100 to-gray-50'}`}>
+          <div className={`sm:flex-1 bg-gradient-to-br p-6 sm:p-8 flex flex-col items-center justify-center relative ${darkMode ? 'from-[#0c0c0e] to-[#141418]' : 'from-gray-100 to-gray-50'}`}>
             <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none" />
             <div className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none" />
 
-            <div className="relative perspective-1000" style={{ perspective: '1000px' }}>
-              <div className={`absolute inset-0 bg-black/40 rounded-2xl blur-2xl transition-all duration-500 ${isFlipping ? 'translate-y-2 scale-90' : 'translate-y-6 scale-95'}`} />
+            <div className="relative w-full flex items-center justify-center" style={{ perspective: '1000px' }}>
               <div
-                className="relative transition-all duration-600"
+                className="w-full flex items-center justify-center transition-all duration-600"
                 style={{ transformStyle: 'preserve-3d', animation: isFlipping ? 'bookFlip 0.6s ease-out' : 'none' }}
               >
-                <div className={`relative rounded-2xl shadow-2xl shadow-black/60 overflow-hidden border border-white/[0.06] ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}>
-                  <img src={book.coverUrl} alt={book.name} className={`object-cover ${book.orientation === 'landscape' ? 'w-[20rem] h-[15rem] sm:w-[24rem] sm:h-[18rem]' : 'w-64 h-80 sm:w-72 sm:h-96'}`} />
+                <div
+                  className={`relative mx-auto rounded-2xl shadow-2xl shadow-black/60 overflow-hidden border border-white/[0.06] ${book.orientation === 'landscape' ? 'w-64 sm:w-72' : 'w-44 sm:w-52'} ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}
+                >
+                  <img
+                    src={book.coverUrl}
+                    alt={book.name}
+                    className={`w-full h-auto object-contain block ${book.orientation === 'landscape' ? 'aspect-[4/3]' : 'aspect-[3/4]'}`}
+                  />
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
                 </div>
               </div>
@@ -102,13 +107,13 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
           </div>
 
           {/* Right - Categories */}
-          <div className="flex-1 p-8 flex flex-col">
+          <div className="flex-1 p-6 sm:p-8 flex flex-col min-h-0 overflow-y-auto">
             <div className="mb-6">
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Organize Your Flipbook</h2>
               <p className={`mt-1 text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>Choose a category to keep things tidy</p>
             </div>
 
-            <div className="flex-1 space-y-2.5">
+            <div className="category-scroll flex-1 space-y-2.5 overflow-y-auto min-h-0 pr-2" style={{ maxHeight: '40vh' }}>
               {/* All categories are dynamic now */}
               {customCategories.map(cat => {
                 const isSelected = selectedCategory === cat.slug;
@@ -174,6 +179,21 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
           0% { transform: rotateY(-90deg) scale(0.9); opacity: 0; }
           50% { opacity: 1; }
           100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+        }
+        .category-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .category-scroll::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 999px;
+        }
+        .category-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.10);
+          border-radius: 999px;
+          transition: background 0.2s;
+        }
+        .category-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.22);
         }
       `}</style>
     </div>

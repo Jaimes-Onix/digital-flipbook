@@ -37,7 +37,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
   return (
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in duration-300">
-        <div className={`backdrop-blur-3xl w-full max-w-sm rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in slide-in-from-bottom-8 duration-500 ${darkMode ? 'bg-[#141418]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}`}>
+        <div className={`backdrop-blur-3xl w-full max-w-sm max-h-[90vh] rounded-[32px] shadow-2xl shadow-black/40 border overflow-y-auto animate-in zoom-in slide-in-from-bottom-8 duration-500 ${darkMode ? 'bg-[#141418]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}`}>
           {!showConfirmDelete ? (
             <div className="p-8 flex flex-col items-center text-center relative">
               {/* Top action buttons */}

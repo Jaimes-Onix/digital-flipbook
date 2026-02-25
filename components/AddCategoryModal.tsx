@@ -111,7 +111,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
             />
 
             {/* Modal */}
-            <div className={`relative w-full max-w-sm rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 ${darkMode
+            <div className={`relative w-full max-w-sm max-h-[90vh] rounded-[28px] shadow-2xl border overflow-y-auto animate-in zoom-in-95 fade-in duration-200 ${darkMode
                 ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
                 : 'bg-white border-gray-200 shadow-gray-300/50'
                 }`}>
@@ -192,8 +192,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                                         key={i.id}
                                         onClick={() => setIcon(i.id)}
                                         className={`w-10 h-10 rounded-xl transition-all duration-150 flex items-center justify-center hover:scale-105 active:scale-95 ${isSelected
-                                                ? darkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                                                : darkMode ? 'bg-white/[0.04] text-zinc-400 border border-transparent hover:bg-white/[0.08]' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
+                                            ? darkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                            : darkMode ? 'bg-white/[0.04] text-zinc-400 border border-transparent hover:bg-white/[0.08]' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
                                             }`}
                                     >
                                         <IconComp size={18} strokeWidth={isSelected ? 2.5 : 2} />
