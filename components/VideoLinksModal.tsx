@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     X, Video, Upload, Link2, Play, Trash2, Image, Check,
     ArrowLeft, Film, Clock, Pencil, Loader2
@@ -228,7 +229,7 @@ const VideoLinksModal: React.FC<Props> = ({
     const btnGreen = `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] shadow-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-300/40`;
     const btnGhost = `px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
             <div className={`absolute inset-0 backdrop-blur-md ${dm ? 'bg-black/60' : 'bg-black/40'}`} onClick={onBack || onClose} />
 
@@ -485,7 +486,8 @@ const VideoLinksModal: React.FC<Props> = ({
           to   { opacity:1; transform:scale(1) translateY(0); }
         }
       `}</style>
-        </div>
+        </div>,
+        document.body
     );
 };
 

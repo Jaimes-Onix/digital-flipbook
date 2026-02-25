@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Play, Video, Trash2, ExternalLink, Plus, History, Grid2X2, Pencil, Check, Loader2 } from 'lucide-react';
 import { loadVideos, updateVideo, deleteVideo, uploadVideoThumbnail } from '../src/lib/videoStorage';
 import { VideoEntry } from './VideoLinksModal';
@@ -121,7 +122,7 @@ const VideoGalleryModal: React.FC<Props> = ({
     const tabInactive = `flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${dm ? 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`;
     const tabWrap = `flex items-center gap-1 p-1 rounded-xl mr-1 ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[210] flex items-center justify-center p-4">
             <div className="absolute inset-0 backdrop-blur-md bg-black/50" onClick={onClose} />
 
@@ -355,7 +356,8 @@ const VideoGalleryModal: React.FC<Props> = ({
           to   { opacity:1; transform:scale(1) translateY(0); }
         }
       `}</style>
-        </div>
+        </div>,
+        document.body
     );
 };
 

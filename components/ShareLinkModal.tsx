@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Link2, Check, Copy } from 'lucide-react';
 
 interface ShareLinkModalProps {
@@ -37,7 +38,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
     setTimeout(() => setCopied(false), 3000);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div
         className={`absolute inset-0 backdrop-blur-md ${darkMode ? 'bg-black/60' : 'bg-black/25'}`}
@@ -45,8 +46,8 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
       />
 
       <div className={`relative w-full max-w-md rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 ${darkMode
-          ? 'bg-[#1c1c20]/95 backdrop-blur-3xl border-white/[0.08] shadow-black/60'
-          : 'bg-white border-gray-200 shadow-gray-300/50'
+        ? 'bg-[#1c1c20]/95 backdrop-blur-3xl border-white/[0.08] shadow-black/60'
+        : 'bg-white border-gray-200 shadow-gray-300/50'
         }`}>
         <div className="flex items-center justify-between px-7 pt-7 pb-1">
           <h3 className={`text-[17px] font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -63,8 +64,8 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
         <div className="px-7 py-5">
           <div className={`flex items-center gap-3 px-4 py-4 rounded-2xl border ${darkMode
-              ? 'bg-white/[0.04] border-white/[0.06]'
-              : 'bg-gray-50 border-gray-200'
+            ? 'bg-white/[0.04] border-white/[0.06]'
+            : 'bg-gray-50 border-gray-200'
             }`}>
             <Link2 size={16} className={`shrink-0 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
             <input
@@ -97,12 +98,12 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
             onClick={handleCopy}
             disabled={!url}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] shadow-lg ${!url
-                ? darkMode ? 'bg-zinc-700 text-zinc-500 shadow-none cursor-not-allowed' : 'bg-gray-200 text-gray-400 shadow-none cursor-not-allowed'
-                : copied
-                  ? 'bg-emerald-500 text-white shadow-emerald-500/25'
-                  : darkMode
-                    ? 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-white/10'
-                    : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-400/20'
+              ? darkMode ? 'bg-zinc-700 text-zinc-500 shadow-none cursor-not-allowed' : 'bg-gray-200 text-gray-400 shadow-none cursor-not-allowed'
+              : copied
+                ? 'bg-emerald-500 text-white shadow-emerald-500/25'
+                : darkMode
+                  ? 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-white/10'
+                  : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-400/20'
               }`}
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -110,7 +111,8 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
