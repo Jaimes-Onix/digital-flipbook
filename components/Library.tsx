@@ -98,7 +98,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
               }`}
           >
-            <Plus size={18} />
+            <Plus size={16} />
             Add PDF
           </button>
         </div>

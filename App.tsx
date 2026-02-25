@@ -439,8 +439,8 @@ const App: React.FC = () => {
     setUploadedBooksPending(prev => {
       const remaining = prev.slice(1);
       if (remaining.length === 0) {
-        // All books categorized, go to library
-        navigate('/library');
+        // All books categorized, go back to originating view or library
+        navigate((location.state as any)?.returnTo || '/library');
         setConversionToast(
           prev.length === 1
             ? "Your flipbook has been added to the library!"
@@ -680,7 +680,7 @@ const App: React.FC = () => {
             <Route path="/upload" element={
               <Upload
                 onFilesSelect={handleFilesSelect}
-                onBack={() => navigate('/library')}
+                onBack={() => navigate((location.state as any)?.returnTo || '/library')}
                 isLoading={!!loadingStatus}
                 statusMessage={loadingStatus || ""}
                 darkMode={darkMode}
@@ -711,7 +711,7 @@ const App: React.FC = () => {
                   darkMode={darkMode}
                   customCategories={customCategories}
                   onSelectBook={(b) => setPendingBook(b)}
-                  onAddNew={() => navigate('/upload')}
+                  onAddNew={() => navigate('/upload', { state: { returnTo: location.pathname } })}
                   onRemoveBook={handleRemoveBook}
                 />
               </div>
@@ -726,7 +726,7 @@ const App: React.FC = () => {
                 isLoading={!!loadingStatus}
                 customCategories={customCategories}
                 onSelectBook={(b) => setPendingBook(b)}
-                onAddNew={() => navigate('/upload')}
+                onAddNew={() => navigate('/upload', { state: { returnTo: location.pathname } })}
                 onRemoveBook={handleRemoveBook}
               />
             } />
