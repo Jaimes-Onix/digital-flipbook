@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const NavItem = ({ icon: Icon, label, active, to, onClick, color, categorySlug, cat }: any) => {
     const content = (
       <>
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${active
+        <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${active
           ? darkMode ? 'bg-emerald-500/15 shadow-lg shadow-emerald-800/20' : 'bg-emerald-50 shadow-lg'
           : darkMode ? 'bg-transparent group-hover:bg-emerald-500/[0.06]' : 'bg-transparent group-hover:bg-gray-100'
           }`}>
@@ -108,16 +108,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-emerald-300' : 'text-gray-900') : (darkMode ? 'text-emerald-400/50 group-hover:text-emerald-300' : 'text-gray-500')} />
           )}
         </div>
-        <span className={`text-sm font-medium tracking-tight transition-colors text-left flex-1 ${active
-          ? darkMode ? 'text-white' : 'text-gray-900'
-          : darkMode ? 'text-emerald-300/50 group-hover:text-emerald-200' : 'text-gray-500 group-hover:text-gray-900'
-          }`}>
-          {label}
-        </span>
+        <div className="flex-1 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
+          <span className={`text-sm font-medium tracking-tight text-left block w-[150px] truncate ${active
+            ? darkMode ? 'text-white' : 'text-gray-900'
+            : darkMode ? 'text-emerald-300/50 group-hover:text-emerald-200' : 'text-gray-500 group-hover:text-gray-900'
+            }`}>
+            {label}
+          </span>
+        </div>
 
         {/* Actions for valid categories (Sharing and Modifying) */}
         {categorySlug && (
-          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity lg:hidden lg:group-hover/sidebar:flex shrink-0">
             {cat?.user_id && (
               <>
                 <button
@@ -157,9 +159,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       </>
     );
 
-    const className = `w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-200 group relative ${active
-      ? darkMode ? 'bg-emerald-500/[0.1]' : 'bg-gray-100'
-      : darkMode ? 'hover:bg-emerald-500/[0.06]' : 'hover:bg-gray-50'
+    const className = `flex items-center gap-3 py-2 rounded-2xl transition-all duration-300 group relative overflow-hidden
+      w-[calc(100vw-40px)] sm:w-[260px] lg:w-12 lg:group-hover/sidebar:w-[260px]
+      px-4 lg:px-0 lg:group-hover/sidebar:px-4
+      justify-start lg:justify-center lg:group-hover/sidebar:justify-start
+      ${active
+        ? darkMode ? 'bg-emerald-500/[0.1]' : 'bg-gray-100'
+        : darkMode ? 'hover:bg-emerald-500/[0.06]' : 'hover:bg-gray-50'
       }`;
 
     if (to) {
@@ -188,7 +194,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
       <aside className={`
-        w-[300px] h-full flex flex-col shrink-0 z-50 transition-all duration-300
+        group/sidebar lg:w-[88px] lg:hover:w-[300px] w-[300px]
+        h-full flex flex-col shrink-0 z-50 transition-all duration-300
         backdrop-blur-xl border-r
         ${darkMode ? 'bg-[#10241e]/95 border-emerald-700/15' : 'bg-white/95 border-gray-200'}
         fixed lg:relative inset-y-0 left-0 transform
@@ -196,23 +203,24 @@ const Sidebar: React.FC<SidebarProps> = ({
         lg:flex
       `}>
         {/* Brand */}
-        <div className="flex items-center gap-3.5 px-7 pt-6 pb-6">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-600/10 border border-emerald-500/25 flex items-center justify-center">
+        <div className="flex items-center gap-3.5 px-7 lg:px-[22px] lg:group-hover/sidebar:px-7 pt-6 pb-6 overflow-hidden transition-all duration-300">
+          <div className="w-11 h-11 shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-600/10 border border-emerald-500/25 flex items-center justify-center">
             <svg viewBox="0 0 512 512" fill="currentColor" className="w-6 h-6 text-emerald-400" xmlns="http://www.w3.org/2000/svg">
               <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
               <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
                 stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
             <span className={`text-[15px] font-semibold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
             <span className={`text-[11px] uppercase tracking-[0.15em] font-medium ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>Digital Flipbook</span>
           </div>
         </div>
 
-        {/* Navigate */}
-        <div className="px-5 space-y-0.5 mb-5">
-          <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Navigate</p>
+        <div className="px-5 space-y-0.5 mb-5 mt-2">
+          <div className="flex items-center overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100 mb-2">
+            <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Navigate</p>
+          </div>
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
           <NavItem icon={AllBooksIcon} label="All Books" active={location.pathname === '/library'} to="/library" />
           <NavItem icon={Presentation} label="PPTX to PDF" active={location.pathname === '/convert-pptx'} to="/convert-pptx" />
@@ -221,26 +229,34 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* + Add Category button */}
           <button
             onClick={() => setShowAddCategory(true)}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-200 group mt-1 ${darkMode
-              ? 'hover:bg-emerald-500/[0.06] border border-dashed border-emerald-700/20 hover:border-emerald-500/30'
-              : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
+            className={`flex items-center gap-3 py-2 rounded-2xl transition-all duration-300 group mt-1 overflow-hidden
+              w-[calc(100vw-40px)] sm:w-[260px] lg:w-12 lg:group-hover/sidebar:w-[260px]
+              px-4 lg:px-0 lg:group-hover/sidebar:px-4
+              justify-start lg:justify-center lg:group-hover/sidebar:justify-start
+              ${darkMode
+                ? 'hover:bg-emerald-500/[0.06] border border-dashed border-emerald-700/20 hover:border-emerald-500/30'
+                : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
               }`}
           >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-emerald-500/[0.06]' : 'group-hover:bg-gray-100'
+            <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-emerald-500/[0.06]' : 'group-hover:bg-gray-100'
               }`}>
               <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-emerald-400/40 group-hover:text-emerald-400' : 'text-gray-400 group-hover:text-emerald-500'}`} />
             </div>
-            <span className={`text-sm font-medium tracking-tight text-left flex-1 transition-colors ${darkMode ? 'text-emerald-300/30 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-500'
-              }`}>
-              Add Category
-            </span>
+            <div className="flex-1 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
+              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-emerald-300/30 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-500'
+                }`}>
+                Add Category
+              </span>
+            </div>
           </button>
         </div>
 
         {/* Categories */}
-        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-          <div className={`sticky top-0 z-10 pt-1 pb-1.5 px-9 mb-1 ${darkMode ? 'bg-[#10241e]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'}`}>
-            <p className={`text-[11px] font-semibold uppercase tracking-[0.15em] ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative flex flex-col">
+          <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 ${darkMode ? 'bg-[#10241e]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} transition-all duration-300`}>
+            <div className="overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
+              <p className={`px-9 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
+            </div>
           </div>
           <div className="px-5 space-y-0.5 pb-4">
             {/* All categories are now dynamic and come from the database */}
@@ -263,28 +279,36 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className={`px-5 pb-5 pt-4 border-t space-y-0.5 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
           <button
             onClick={() => setShowSignOutModal(true)}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition-all duration-200 group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
+            className={`flex items-center gap-3 py-2 rounded-2xl transition-all duration-300 overflow-hidden group
+              w-[calc(100vw-40px)] sm:w-[260px] lg:w-12 lg:group-hover/sidebar:w-[260px]
+              px-4 lg:px-0 lg:group-hover/sidebar:px-4
+              justify-start lg:justify-center lg:group-hover/sidebar:justify-start
+              ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
               }`}
           >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
+            <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
               }`}>
               <LogOut size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'}`} />
             </div>
-            <span className={`text-sm font-medium tracking-tight transition-colors flex-1 text-left ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
-              }`}>
-              Sign Out
-            </span>
+            <div className="flex-1 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
+              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
+                }`}>
+                Sign Out
+              </span>
+            </div>
           </button>
           <NavItem icon={darkMode ? Sun : Moon} label={darkMode ? "Light Mode" : "Dark Mode"} onClick={onToggleDarkMode} />
 
           {/* Lifewood Branding Footer */}
-          <div className="mt-3">
-            <div className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center transition-colors ${darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-100 shadow-sm'}`}>
-              <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Exact Logo" className={`h-[24px] w-auto ${darkMode ? 'opacity-90' : ''}`} />
-            </div>
-            <div className="flex justify-center items-center mt-2.5 gap-1 text-[11px] font-medium tracking-wide">
-              <span className={darkMode ? 'text-emerald-400/60' : 'text-[#0B543D]'}>Powered by</span>
-              <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
+          <div className="mt-3 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[260px] lg:group-hover/sidebar:opacity-100">
+            <div className="w-[260px]">
+              <div className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center transition-colors ${darkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-100 shadow-sm'}`}>
+                <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Exact Logo" className={`h-[24px] w-auto ${darkMode ? 'opacity-90' : ''}`} />
+              </div>
+              <div className="flex justify-center items-center mt-2.5 gap-1 text-[11px] font-medium tracking-wide">
+                <span className={darkMode ? 'text-emerald-400/60' : 'text-[#0B543D]'}>Powered by</span>
+                <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
+              </div>
             </div>
           </div>
         </div>
