@@ -213,7 +213,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         <ShareLinkModal
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
-          url={`${window.location.origin}/share/category/${shareSlug}`}
+          linkType="category"
+          target={shareSlug}
           title={`Share ${sectionTitle}`}
           description="Anyone with this link can view and read these flipbooks."
           darkMode={darkMode || false}

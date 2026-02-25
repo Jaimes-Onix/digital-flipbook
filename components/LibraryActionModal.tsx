@@ -165,14 +165,16 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
         </div>
       </div>
 
-      <ShareLinkModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        url={`${window.location.origin}/share/book/${book.id}`}
-        title="Share Book"
-        description={`Anyone with this link can view and read "${book.name.replace('.pdf', '')}".`}
-        darkMode={darkMode || true}
-      />
+      {book && (
+        <ShareLinkModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          linkType="book"
+          target={book.id}
+          title={`Share "${book.name.replace('.pdf', '')}"`}
+          darkMode={darkMode}
+        />
+      )}
     </>
   );
 };

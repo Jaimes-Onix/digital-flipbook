@@ -82,6 +82,7 @@ const Root: React.FC = () => {
   if (location.pathname.startsWith('/share/')) {
     return (
       <Routes>
+        <Route path="/share/link/:token" element={<SharedLinkResolver />} />
         <Route path="/share/book/:bookId" element={<SharedBookView />} />
         <Route path="/share/category/:category" element={<SharedCategoryView />} />
       </Routes>

@@ -11,13 +11,21 @@ function generateToken(length = 12): string {
 }
 
 /**
- * @deprecated Token-based sharing is replaced by direct ID/slug links.
+ * Create a new token-based share link, optionally with an expiration.
  */
-export async function createShareLink(linkType: 'category' | 'book', target: string): Promise<string> {
+export async function createShareLink(linkType: 'category' | 'book', target: string, expiresInDays?: number | null): Promise<string> {
   const token = generateToken();
+  const dataToInsert: any = { token, link_type: linkType, target };
+
+  if (expiresInDays) {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+    dataToInsert.expires_at = expiresAt.toISOString();
+  }
+
   const { error } = await supabase
     .from('shared_links')
-    .insert({ token, link_type: linkType, target });
+    .insert(dataToInsert);
 
   if (error) {
     console.error('Create share link error:', error);
@@ -28,16 +36,28 @@ export async function createShareLink(linkType: 'category' | 'book', target: str
 }
 
 /**
- * @deprecated Token-based sharing is replaced by direct ID/slug links.
+ * Resolves a token-based shared link.
+ * Returns null if the link has expired or doesn't exist, deleting it if expired.
  */
 export async function resolveShareLink(token: string): Promise<{ linkType: string; target: string } | null> {
   const { data, error } = await supabase
     .from('shared_links')
-    .select('link_type, target')
+    .select('id, link_type, target, expires_at')
     .eq('token', token)
     .single();
 
   if (error || !data) return null;
+
+  // Check expiration (lazy deletion)
+  if (data.expires_at) {
+    const expiresAt = new Date(data.expires_at);
+    if (expiresAt < new Date()) {
+      // Lazy delete
+      await supabase.from('shared_links').delete().eq('id', data.id);
+      return null; // Expired
+    }
+  }
+
   return { linkType: data.link_type, target: data.target };
 }
 

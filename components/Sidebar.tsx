@@ -317,7 +317,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       <ShareLinkModal
         isOpen={!!shareSlug}
         onClose={() => setShareSlug(null)}
-        url={shareSlug ? `${window.location.origin}/share/category/${shareSlug}` : ''}
+        linkType="category"
+        target={shareSlug || ''}
         title={shareModalTitle}
         description="Anyone with this link can view and read these flipbooks."
         darkMode={darkMode}

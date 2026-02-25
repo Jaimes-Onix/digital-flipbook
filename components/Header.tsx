@@ -64,7 +64,8 @@ const Header: React.FC<HeaderProps> = ({
           <ShareLinkModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            url={`${window.location.origin}/share/book/${readerBookId}`}
+            linkType="book"
+            target={readerBookId}
             title="Share Book"
             description={`Anyone with this link can view and read "${readerBookName || 'this book'}".`}
             darkMode={darkMode}

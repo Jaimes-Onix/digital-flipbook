@@ -13,8 +13,7 @@ import Controls from './components/Controls';
 import Library from './components/Library';
 import LibraryActionModal from './components/LibraryActionModal';
 import UploadCategoryModal from './components/UploadCategoryModal';
-import SharedBookView from './components/SharedBookView';
-import SharedCategoryView from './components/SharedCategoryView';
+import SharedLinkResolver from './components/SharedLinkResolver';
 import FeaturedCarousel from './components/FeaturedCarousel';
 import SignIn from './components/SignIn';
 import { getDocument } from './utils/pdfUtils';
@@ -731,9 +730,8 @@ const App: React.FC = () => {
               />
             } />
 
-            {/* Sharing Routes */}
-            <Route path="/share/book/:bookId" element={<SharedBookView />} />
-            <Route path="/share/category/:category" element={<SharedCategoryView />} />
+            {/* Sharing Route - Token resolution */}
+            <Route path="/share/link/:token" element={<SharedLinkResolver />} />
 
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
