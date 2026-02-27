@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart, Link2, Video } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock } from 'lucide-react';
 import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
 import VideoLinksModal from './VideoLinksModal';
 import VideoGalleryModal from './VideoGalleryModal';
+import DeleteHistoryModal from './DeleteHistoryModal';
 
 
 
@@ -45,6 +46,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const [showShareModal, setShowShareModal] = useState(false);
   const [showVideoLinksModal, setShowVideoLinksModal] = useState(false);
   const [showVideoGallery, setShowVideoGallery] = useState(false);
+  const [showDeleteHistory, setShowDeleteHistory] = useState(false);
 
   // Share slug: any non-special filter is a shareable category (built-in or user-created)
   const shareSlug = (filter !== 'all' && filter !== 'favorites') ? filter : undefined;
@@ -91,6 +93,16 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               Video Links
             </button>
           )}
+          <button
+            onClick={() => setShowDeleteHistory(true)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+              ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 shadow-black/20'
+              : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+              }`}
+          >
+            <Clock size={16} />
+            Delete History
+          </button>
           <button
             onClick={onAddNew}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
@@ -176,7 +188,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               </div>
 
               <div className={`space-y-1 transition-all duration-300 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
-                <h3 className={`text-sm font-medium line-clamp-1 transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-gray-800 group-hover:text-gray-900'
+                <h3 className={`text-sm font-medium transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-gray-800 group-hover:text-gray-900'
                   }`}>
                   {book.name.replace('.pdf', '')}
                 </h3>
@@ -242,6 +254,14 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           onAddVideo={() => { setShowVideoGallery(false); setShowVideoLinksModal(true); }}
         />
       )}
+
+      <DeleteHistoryModal
+        isOpen={showDeleteHistory}
+        onClose={() => setShowDeleteHistory(false)}
+        category={filter !== 'all' && filter !== 'favorites' ? filter : undefined}
+        categoryName={sectionTitle}
+        darkMode={darkMode || false}
+      />
     </div>
   );
 };

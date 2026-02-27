@@ -61,6 +61,60 @@ export async function resolveShareLink(token: string): Promise<{ linkType: strin
   return { linkType: data.link_type, target: data.target };
 }
 
+export interface SharedLinkInfo {
+  id: string;
+  token: string;
+  created_at: string;
+  expires_at: string | null;
+  status: 'active' | 'expired' | 'no_expiry';
+}
+
+/**
+ * Load all shared links for a given target (book ID or category slug).
+ */
+export async function loadSharedLinks(
+  linkType: 'category' | 'book',
+  target: string
+): Promise<SharedLinkInfo[]> {
+  const { data, error } = await supabase
+    .from('shared_links')
+    .select('id, token, created_at, expires_at')
+    .eq('link_type', linkType)
+    .eq('target', target)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Load shared links error:', error);
+    return [];
+  }
+
+  const now = new Date();
+  return (data || []).map((link: any) => ({
+    id: link.id,
+    token: link.token,
+    created_at: link.created_at,
+    expires_at: link.expires_at,
+    status: link.expires_at
+      ? new Date(link.expires_at) < now ? 'expired' : 'active'
+      : 'no_expiry',
+  }));
+}
+
+/**
+ * Delete a specific shared link by ID.
+ */
+export async function deleteSharedLink(linkId: string): Promise<void> {
+  const { error } = await supabase
+    .from('shared_links')
+    .delete()
+    .eq('id', linkId);
+
+  if (error) {
+    console.error('Delete shared link error:', error);
+    throw new Error(`Failed to delete shared link: ${error.message}`);
+  }
+}
+
 // Type for book in database
 export interface StoredBook {
   id: string;
@@ -305,14 +359,13 @@ export async function updateBook(
 
 /**
  * Delete a book and all its associated storage files.
- * Fetches real Supabase storage URLs from the DB before deleting the row,
- * since the pdfUrl in LibraryBook may be a blob:// URL used by the viewer.
+ * Logs the deletion to deleted_books_log before removing.
  */
 export async function deleteBook(bookId: string): Promise<void> {
-  // Step 1: fetch the real storage URLs from the database
+  // Step 1: fetch the full book row for logging + storage cleanup
   const { data: bookRow, error: fetchError } = await supabase
     .from('books')
-    .select('pdf_url, cover_url')
+    .select('title, category, cover_url, total_pages, pdf_url, user_id')
     .eq('id', bookId)
     .single();
 
@@ -321,7 +374,21 @@ export async function deleteBook(bookId: string): Promise<void> {
     throw new Error(`Failed to fetch book for deletion: ${fetchError.message}`);
   }
 
-  // Step 2: delete the database row
+  // Step 2: log the deletion to deleted_books_log
+  try {
+    await supabase.from('deleted_books_log').insert({
+      user_id: bookRow.user_id,
+      book_title: bookRow.title,
+      category: bookRow.category || null,
+      cover_url: bookRow.cover_url || null,
+      total_pages: bookRow.total_pages,
+    });
+  } catch (logErr) {
+    console.warn('Failed to log book deletion:', logErr);
+    // Don't block deletion even if logging fails
+  }
+
+  // Step 3: delete the database row
   const { error: dbError } = await supabase
     .from('books')
     .delete()
@@ -332,12 +399,9 @@ export async function deleteBook(bookId: string): Promise<void> {
     throw new Error(`Failed to delete book: ${dbError.message}`);
   }
 
-  // Step 3: delete storage files using the real Supabase URLs
+  // Step 4: delete storage files using the real Supabase URLs
   try {
     if (bookRow?.pdf_url) {
-      // PDF path inside bucket: everything after '/pdfs/'
-      // e.g. https://xxx.supabase.co/storage/v1/object/public/pdfs/books/file.pdf
-      //       → path = 'books/file.pdf'
       const pdfMatch = bookRow.pdf_url.match(/\/pdfs\/(.+)$/);
       if (pdfMatch?.[1]) {
         const { error } = await supabase.storage.from('pdfs').remove([pdfMatch[1]]);
@@ -347,9 +411,6 @@ export async function deleteBook(bookId: string): Promise<void> {
     }
 
     if (bookRow?.cover_url) {
-      // Cover path inside bucket: everything after '/covers/'
-      // e.g. https://xxx.supabase.co/storage/v1/object/public/covers/covers/id-cover.jpg
-      //       → path = 'covers/id-cover.jpg'
       const coverMatch = bookRow.cover_url.match(/\/covers\/(.+)$/);
       if (coverMatch?.[1]) {
         const { error } = await supabase.storage.from('covers').remove([coverMatch[1]]);
@@ -359,6 +420,75 @@ export async function deleteBook(bookId: string): Promise<void> {
     }
   } catch (e) {
     console.warn('Could not delete storage files:', e);
+  }
+}
+
+// --- Deleted Books History ---
+
+export interface DeletedBookLog {
+  id: string;
+  book_title: string;
+  category: string | null;
+  cover_url: string | null;
+  total_pages: number | null;
+  deleted_at: string;
+}
+
+/**
+ * Load deleted book history, optionally filtered by category.
+ */
+export async function loadDeletedBooks(category?: string): Promise<DeletedBookLog[]> {
+  let query = supabase
+    .from('deleted_books_log')
+    .select('id, book_title, category, cover_url, total_pages, deleted_at')
+    .order('deleted_at', { ascending: false });
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Load deleted books error:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Clear a specific entry from the deleted books log.
+ */
+export async function clearDeletedBookLog(logId: string): Promise<void> {
+  const { error } = await supabase
+    .from('deleted_books_log')
+    .delete()
+    .eq('id', logId);
+
+  if (error) {
+    console.error('Clear deleted book log error:', error);
+  }
+}
+
+/**
+ * Clear all deleted book log entries for a category (or all if no category).
+ */
+export async function clearAllDeletedBookLogs(category?: string): Promise<void> {
+  let query = supabase.from('deleted_books_log').delete();
+
+  // Need a filter for delete — use user_id from auth
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) return;
+
+  query = query.eq('user_id', userId);
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { error } = await query;
+  if (error) {
+    console.error('Clear all deleted book logs error:', error);
   }
 }
 
