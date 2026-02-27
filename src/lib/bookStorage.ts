@@ -293,6 +293,7 @@ export async function loadBooks(): Promise<StoredBook[]> {
   const { data, error } = await supabase
     .from('books')
     .select('*')
+    .eq('is_deleted', false)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -329,6 +330,7 @@ export async function loadBooksByCategory(category: string): Promise<StoredBook[
     .from('books')
     .select('*')
     .eq('category', category)
+    .eq('is_deleted', false)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -358,64 +360,77 @@ export async function updateBook(
 }
 
 /**
- * Delete a book and all its associated storage files.
- * Logs the deletion to deleted_books_log before removing.
+ * Soft-delete a book (mark as deleted, preserve files for undo).
  */
 export async function deleteBook(bookId: string): Promise<void> {
-  // Step 1: fetch the full book row for logging + storage cleanup
+  console.log('[deleteBook] Soft-deleting bookId:', bookId);
+
+  const { error } = await supabase
+    .from('books')
+    .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+    .eq('id', bookId);
+
+  if (error) {
+    console.error('[deleteBook] Soft-delete failed:', error);
+    throw new Error(`Failed to delete book: ${error.message}`);
+  }
+  console.log('[deleteBook] Soft-delete OK');
+}
+
+/**
+ * Restore a soft-deleted book (undo deletion).
+ */
+export async function restoreBook(bookId: string): Promise<void> {
+  const { error } = await supabase
+    .from('books')
+    .update({ is_deleted: false, deleted_at: null })
+    .eq('id', bookId);
+
+  if (error) {
+    console.error('Restore book error:', error);
+    throw new Error(`Failed to restore book: ${error.message}`);
+  }
+}
+
+/**
+ * Permanently delete a book and its storage files (cannot be undone).
+ */
+export async function permanentlyDeleteBook(bookId: string): Promise<void> {
+  // Fetch book info for storage cleanup
   const { data: bookRow, error: fetchError } = await supabase
     .from('books')
-    .select('title, category, cover_url, total_pages, pdf_url, user_id')
+    .select('pdf_url, cover_url')
     .eq('id', bookId)
     .single();
 
   if (fetchError) {
-    console.error('Delete book fetch error:', fetchError);
-    throw new Error(`Failed to fetch book for deletion: ${fetchError.message}`);
+    console.error('Permanent delete fetch error:', fetchError);
+    throw new Error(`Failed to fetch book: ${fetchError.message}`);
   }
 
-  // Step 2: log the deletion to deleted_books_log
-  try {
-    await supabase.from('deleted_books_log').insert({
-      user_id: bookRow.user_id,
-      book_title: bookRow.title,
-      category: bookRow.category || null,
-      cover_url: bookRow.cover_url || null,
-      total_pages: bookRow.total_pages,
-    });
-  } catch (logErr) {
-    console.warn('Failed to log book deletion:', logErr);
-    // Don't block deletion even if logging fails
-  }
-
-  // Step 3: delete the database row
+  // Delete from database
   const { error: dbError } = await supabase
     .from('books')
     .delete()
     .eq('id', bookId);
 
   if (dbError) {
-    console.error('Delete book DB error:', dbError);
-    throw new Error(`Failed to delete book: ${dbError.message}`);
+    console.error('Permanent delete DB error:', dbError);
+    throw new Error(`Failed to permanently delete book: ${dbError.message}`);
   }
 
-  // Step 4: delete storage files using the real Supabase URLs
+  // Delete storage files
   try {
     if (bookRow?.pdf_url) {
       const pdfMatch = bookRow.pdf_url.match(/\/pdfs\/(.+)$/);
       if (pdfMatch?.[1]) {
-        const { error } = await supabase.storage.from('pdfs').remove([pdfMatch[1]]);
-        if (error) console.warn('PDF storage delete error:', error.message);
-        else console.log('PDF deleted from storage:', pdfMatch[1]);
+        await supabase.storage.from('pdfs').remove([pdfMatch[1]]);
       }
     }
-
     if (bookRow?.cover_url) {
       const coverMatch = bookRow.cover_url.match(/\/covers\/(.+)$/);
       if (coverMatch?.[1]) {
-        const { error } = await supabase.storage.from('covers').remove([coverMatch[1]]);
-        if (error) console.warn('Cover storage delete error:', error.message);
-        else console.log('Cover deleted from storage:', coverMatch[1]);
+        await supabase.storage.from('covers').remove([coverMatch[1]]);
       }
     }
   } catch (e) {
@@ -435,12 +450,13 @@ export interface DeletedBookLog {
 }
 
 /**
- * Load deleted book history, optionally filtered by category.
+ * Load soft-deleted books, optionally filtered by category.
  */
 export async function loadDeletedBooks(category?: string): Promise<DeletedBookLog[]> {
   let query = supabase
-    .from('deleted_books_log')
-    .select('id, book_title, category, cover_url, total_pages, deleted_at')
+    .from('books')
+    .select('id, title, category, cover_url, total_pages, deleted_at')
+    .eq('is_deleted', true)
     .order('deleted_at', { ascending: false });
 
   if (category) {
@@ -454,41 +470,51 @@ export async function loadDeletedBooks(category?: string): Promise<DeletedBookLo
     return [];
   }
 
-  return data || [];
+  // Map to DeletedBookLog shape
+  return (data || []).map((b: any) => ({
+    id: b.id,
+    book_title: b.title,
+    category: b.category,
+    cover_url: b.cover_url,
+    total_pages: b.total_pages,
+    deleted_at: b.deleted_at,
+  }));
 }
 
 /**
- * Clear a specific entry from the deleted books log.
+ * Permanently delete a specific soft-deleted book (remove from DB + storage).
  */
 export async function clearDeletedBookLog(logId: string): Promise<void> {
-  const { error } = await supabase
-    .from('deleted_books_log')
-    .delete()
-    .eq('id', logId);
-
-  if (error) {
-    console.error('Clear deleted book log error:', error);
-  }
+  await permanentlyDeleteBook(logId);
 }
 
 /**
- * Clear all deleted book log entries for a category (or all if no category).
+ * Permanently delete all soft-deleted books for a category (or all if no category).
  */
 export async function clearAllDeletedBookLogs(category?: string): Promise<void> {
-  let query = supabase.from('deleted_books_log').delete();
+  // First load all soft-deleted books to get their storage paths
+  let query = supabase
+    .from('books')
+    .select('id, pdf_url, cover_url')
+    .eq('is_deleted', true);
 
-  // Need a filter for delete — use user_id from auth
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  if (!userId) return;
-
-  query = query.eq('user_id', userId);
   if (category) {
     query = query.eq('category', category);
   }
 
-  const { error } = await query;
-  if (error) {
-    console.error('Clear all deleted book logs error:', error);
+  const { data: books, error: fetchErr } = await query;
+  if (fetchErr || !books) {
+    console.error('Clear all deleted books - fetch error:', fetchErr);
+    return;
+  }
+
+  // Delete storage files and DB rows for each
+  for (const book of books) {
+    try {
+      await permanentlyDeleteBook(book.id);
+    } catch (e) {
+      console.warn('Failed to permanently delete book:', book.id, e);
+    }
   }
 }
 

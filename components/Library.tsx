@@ -29,9 +29,10 @@ interface LibraryProps {
   onSelectBook: (book: LibraryBook) => void;
   onAddNew: () => void;
   onRemoveBook: (id: string) => void;
+  onRestoreBook?: () => void;
 }
 
-const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook }) => {
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook }) => {
   const filteredBooks = useMemo(() => {
     if (filter === 'all') return books;
     if (filter === 'favorites') return books.filter(b => b.isFavorite);
@@ -261,6 +262,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         category={filter !== 'all' && filter !== 'favorites' ? filter : undefined}
         categoryName={sectionTitle}
         darkMode={darkMode || false}
+        onRestore={onRestoreBook}
       />
     </div>
   );

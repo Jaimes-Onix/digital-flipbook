@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Trash2, Loader2, Clock, BookX } from 'lucide-react';
-import { loadDeletedBooks, clearDeletedBookLog, clearAllDeletedBookLogs, type DeletedBookLog } from '../src/lib/bookStorage';
+import { X, Trash2, Loader2, Clock, BookX, Undo2 } from 'lucide-react';
+import { loadDeletedBooks, clearDeletedBookLog, clearAllDeletedBookLogs, restoreBook, type DeletedBookLog } from '../src/lib/bookStorage';
 
 interface DeleteHistoryModalProps {
     isOpen: boolean;
@@ -9,6 +9,7 @@ interface DeleteHistoryModalProps {
     category?: string;
     categoryName?: string;
     darkMode: boolean;
+    onRestore?: () => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -35,7 +36,7 @@ function timeAgo(dateStr: string): string {
 }
 
 const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
-    isOpen, onClose, category, categoryName, darkMode
+    isOpen, onClose, category, categoryName, darkMode, onRestore
 }) => {
     const [logs, setLogs] = useState<DeletedBookLog[]>([]);
     const [loading, setLoading] = useState(false);
@@ -75,6 +76,16 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
             setLogs([]);
         } catch (err) {
             console.error('Failed to clear all logs:', err);
+        }
+    };
+
+    const handleRestore = async (bookId: string) => {
+        try {
+            await restoreBook(bookId);
+            setLogs(prev => prev.filter(l => l.id !== bookId));
+            onRestore?.(); // Refresh the library
+        } catch (err) {
+            console.error('Failed to restore book:', err);
         }
     };
 
@@ -142,8 +153,8 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
                                 <div
                                     key={log.id}
                                     className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-colors ${darkMode
-                                            ? 'hover:bg-white/[0.03]'
-                                            : 'hover:bg-gray-50'
+                                        ? 'hover:bg-white/[0.03]'
+                                        : 'hover:bg-gray-50'
                                         }`}
                                 >
                                     {/* Cover thumbnail */}
@@ -182,17 +193,29 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* Remove log entry */}
-                                    <button
-                                        onClick={() => handleRemoveLog(log.id)}
-                                        className={`p-2 rounded-xl transition-colors flex-shrink-0 ${darkMode
-                                            ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10'
-                                            : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                                            }`}
-                                        title="Remove from history"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
+                                    {/* Actions: Undo + Permanently Delete */}
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button
+                                            onClick={() => handleRestore(log.id)}
+                                            className={`p-2 rounded-xl transition-colors ${darkMode
+                                                ? 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-500/10'
+                                                : 'text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50'
+                                                }`}
+                                            title="Undo — Restore this book"
+                                        >
+                                            <Undo2 size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleRemoveLog(log.id)}
+                                            className={`p-2 rounded-xl transition-colors ${darkMode
+                                                ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10'
+                                                : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                                                }`}
+                                            title="Permanently delete"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

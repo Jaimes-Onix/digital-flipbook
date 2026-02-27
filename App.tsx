@@ -458,14 +458,37 @@ const App: React.FC = () => {
     setBooks(prev => prev.filter(b => b.id !== bookId));
     if (pendingBook?.id === bookId) setPendingBook(null);
 
-    // Delete from Supabase
+    // Soft-delete in Supabase
     if (book) {
       try {
         await deleteBookFromSupabase(bookId);
-        console.log('Book deleted from Supabase');
+        console.log('Book soft-deleted in Supabase');
       } catch (e) {
         console.error('Failed to delete book from Supabase:', e);
       }
+    }
+  };
+
+  const handleRestoreBook = async () => {
+    // Reload all books from Supabase to get the restored one
+    try {
+      const storedBooks = await loadBooksFromSupabase();
+      const libraryBooks: LibraryBook[] = storedBooks.map((stored) => ({
+        id: stored.id,
+        name: stored.title,
+        doc: null,
+        pdfUrl: stored.pdf_url,
+        coverUrl: stored.cover_url || '',
+        totalPages: stored.total_pages,
+        summary: stored.summary || undefined,
+        category: stored.category || undefined,
+        isFavorite: stored.is_favorite,
+        orientation: (stored.orientation as any) || 'portrait'
+      }));
+      setBooks(libraryBooks);
+      console.log('Books reloaded after restore');
+    } catch (e) {
+      console.error('Failed to reload books after restore:', e);
     }
   };
 
@@ -725,6 +748,7 @@ const App: React.FC = () => {
                   onSelectBook={(b) => setPendingBook(b)}
                   onAddNew={() => navigate('/upload', { state: { returnTo: location.pathname } })}
                   onRemoveBook={handleRemoveBook}
+                  onRestoreBook={handleRestoreBook}
                 />
               </div>
             } />
@@ -740,6 +764,7 @@ const App: React.FC = () => {
                 onSelectBook={(b) => setPendingBook(b)}
                 onAddNew={() => navigate('/upload', { state: { returnTo: location.pathname } })}
                 onRemoveBook={handleRemoveBook}
+                onRestoreBook={handleRestoreBook}
               />
             } />
 
