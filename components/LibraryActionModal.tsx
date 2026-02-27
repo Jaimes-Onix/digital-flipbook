@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -18,6 +18,7 @@ interface LibraryActionModalProps {
   onClose: () => void;
   onSelectMode: (mode: 'manual' | 'preview') => void;
   onUpdateCategory?: (id: string, category?: BookCategory) => void;
+  onUpdateName?: (id: string, newName: string) => void;
   onToggleFavorite?: (id: string) => void;
   isLoadingBook?: boolean;
   onRemove?: (id: string) => void;
@@ -25,12 +26,41 @@ interface LibraryActionModalProps {
 }
 
 const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
-  book, onClose, onSelectMode, onUpdateCategory, onToggleFavorite, isLoadingBook, onRemove, darkMode = true
+  book, onClose, onSelectMode, onUpdateCategory, onUpdateName, onToggleFavorite, isLoadingBook, onRemove, darkMode = true
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); }, [book?.id]);
+  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); setIsEditingName(false); }, [book?.id]);
+
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [isEditingName]);
+
+  const handleStartEditing = () => {
+    if (!book) return;
+    setEditedName(book.name.replace('.pdf', ''));
+    setIsEditingName(true);
+  };
+
+  const handleSaveName = () => {
+    if (!book || !onUpdateName) return;
+    const trimmed = editedName.trim();
+    if (trimmed && trimmed !== book.name.replace('.pdf', '')) {
+      onUpdateName(book.id, trimmed);
+    }
+    setIsEditingName(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingName(false);
+  };
 
   if (!book) return null;
 
@@ -72,9 +102,53 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                 <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" />
               </div>
 
-              <h3 className={`text-lg font-bold mb-1 line-clamp-1 px-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                {book.name.replace('.pdf', '')}
-              </h3>
+              {/* Editable Book Name */}
+              {isEditingName ? (
+                <div className="flex items-center gap-2 mb-1 px-2 w-full max-w-[280px]">
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveName();
+                      if (e.key === 'Escape') handleCancelEdit();
+                    }}
+                    className={`flex-1 text-lg font-bold text-center rounded-xl px-3 py-1.5 outline-none border transition-colors min-w-0 ${darkMode
+                      ? 'bg-white/[0.06] text-white border-white/10 focus:border-white/25'
+                      : 'bg-gray-100 text-gray-900 border-gray-200 focus:border-gray-400'
+                      }`}
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    className="p-1.5 rounded-full bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors flex-shrink-0"
+                    title="Save"
+                  >
+                    <Check size={14} />
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className={`p-1.5 rounded-full transition-colors flex-shrink-0 ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                    title="Cancel"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 mb-1 px-4 group cursor-pointer" onClick={onUpdateName ? handleStartEditing : undefined}>
+                  <h3 className={`text-lg font-bold line-clamp-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {book.name.replace('.pdf', '')}
+                  </h3>
+                  {onUpdateName && (
+                    <button
+                      className={`p-1 rounded-full transition-all ${darkMode ? 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                      title="Edit name"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                  )}
+                </div>
+              )}
               <p className={`text-[11px] mb-5 uppercase tracking-widest font-medium ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
                 {book.totalPages} Pages
               </p>

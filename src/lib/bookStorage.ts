@@ -286,11 +286,11 @@ export async function loadBooksByCategory(category: string): Promise<StoredBook[
 }
 
 /**
- * Update book metadata (category, favorite, summary)
+ * Update book metadata (title, category, favorite, summary)
  */
 export async function updateBook(
   bookId: string,
-  updates: Partial<Pick<StoredBook, 'category' | 'is_favorite' | 'summary'>>
+  updates: Partial<Pick<StoredBook, 'title' | 'category' | 'is_favorite' | 'summary'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('books')

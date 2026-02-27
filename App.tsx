@@ -482,6 +482,19 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateBookName = async (bookId: string, newName: string) => {
+    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, name: newName } : b));
+    if (pendingBook?.id === bookId) {
+      setPendingBook(prev => prev ? { ...prev, name: newName } : null);
+    }
+    // Save to Supabase
+    try {
+      await updateBookInSupabase(bookId, { title: newName });
+    } catch (e) {
+      console.error('Failed to save book name to Supabase:', e);
+    }
+  };
+
   const handleUpdateBookCategory = async (bookId: string, category?: import('./types').BookCategory) => {
     setBooks(prev => prev.map(b => b.id === bookId ? { ...b, category } : b));
     if (pendingBook?.id === bookId) {
@@ -764,6 +777,7 @@ const App: React.FC = () => {
         onClose={() => setPendingBook(null)}
         onSelectMode={handleSelectMode}
         onUpdateCategory={handleUpdateBookCategory}
+        onUpdateName={handleUpdateBookName}
         onToggleFavorite={handleToggleFavorite}
         isLoadingBook={isLoadingBook}
         onRemove={handleRemoveBook}
