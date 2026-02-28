@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown } from 'lucide-react';
 import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
@@ -48,6 +48,32 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const [showVideoLinksModal, setShowVideoLinksModal] = useState(false);
   const [showVideoGallery, setShowVideoGallery] = useState(false);
   const [showDeleteHistory, setShowDeleteHistory] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'az' | 'za' | 'most-pages' | 'fewest-pages'>('newest');
+  const [sortOpen, setSortOpen] = useState(false);
+
+  // Apply search + sort
+  const sortedBooks = useMemo(() => {
+    let result = [...filteredBooks];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(b => b.name.toLowerCase().includes(q));
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'newest': break; // Already ordered by created_at desc from DB
+      case 'oldest': result.reverse(); break;
+      case 'az': result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'za': result.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case 'most-pages': result.sort((a, b) => b.totalPages - a.totalPages); break;
+      case 'fewest-pages': result.sort((a, b) => a.totalPages - b.totalPages); break;
+    }
+
+    return result;
+  }, [filteredBooks, searchQuery, sortBy]);
 
   // Share slug: any non-special filter is a shareable category (built-in or user-created)
   const shareSlug = (filter !== 'all' && filter !== 'favorites') ? filter : undefined;
@@ -117,6 +143,76 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         </div>
       </div>
 
+      {/* Search & Sort toolbar */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className={`flex items-center flex-1 max-w-sm gap-2 px-4 py-2.5 rounded-2xl transition-all ${darkMode
+          ? 'bg-white/[0.04] border border-white/[0.08] focus-within:border-white/[0.15] focus-within:bg-white/[0.06]'
+          : 'bg-gray-100 border border-gray-200 focus-within:border-gray-300 focus-within:bg-white'
+          }`}>
+          <Search size={15} className={`flex-shrink-0 ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search books..."
+            className={`w-full bg-transparent outline-none text-sm ${darkMode ? 'text-zinc-200 placeholder:text-zinc-600' : 'text-gray-800 placeholder:text-gray-400'}`}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className={`p-0.5 rounded-full ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <div className="relative">
+          <button
+            onClick={() => setSortOpen(!sortOpen)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl cursor-pointer transition-all ${darkMode
+              ? 'bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.06]'
+              : 'bg-gray-100 border border-gray-200 hover:bg-gray-50'
+              }`}
+          >
+            <ArrowUpDown size={14} className={`${darkMode ? 'text-zinc-500' : 'text-gray-400'}`} />
+            <span className={`text-sm ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
+              {{ newest: 'Newest First', oldest: 'Oldest First', az: 'A → Z', za: 'Z → A', 'most-pages': 'Most Pages', 'fewest-pages': 'Fewest Pages' }[sortBy]}
+            </span>
+          </button>
+          {sortOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+              <div className={`absolute right-0 top-full mt-2 z-50 min-w-[180px] rounded-2xl shadow-2xl border overflow-hidden ${darkMode
+                ? 'bg-[#1c1c20] border-white/[0.08] shadow-black/60'
+                : 'bg-white border-gray-200 shadow-gray-300/50'
+                }`}>
+                {([
+                  { value: 'newest', label: 'Newest First' },
+                  { value: 'oldest', label: 'Oldest First' },
+                  { value: 'az', label: 'A → Z' },
+                  { value: 'za', label: 'Z → A' },
+                  { value: 'most-pages', label: 'Most Pages' },
+                  { value: 'fewest-pages', label: 'Fewest Pages' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSortBy(opt.value); setSortOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === opt.value
+                      ? darkMode ? 'bg-white/[0.08] text-white font-medium' : 'bg-emerald-50 text-emerald-700 font-medium'
+                      : darkMode ? 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        {searchQuery && (
+          <span className={`text-xs ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
+            {sortedBooks.length} result{sortedBooks.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
       {/* Skeleton loading */}
       {isLoading && filteredBooks.length === 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
@@ -131,7 +227,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
-        {filteredBooks.map((book) => {
+        {sortedBooks.map((book) => {
           const isOpening = openingBookId === book.id;
           const isConfirming = confirmingDeleteId === book.id;
 
@@ -191,7 +287,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               <div className={`space-y-1 transition-all duration-300 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
                 <h3 className={`text-sm font-medium transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-gray-800 group-hover:text-gray-900'
                   }`}>
-                  {book.name.replace('.pdf', '')}
+                  {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                 </h3>
                 <p className={`text-[10px] font-medium uppercase tracking-[0.12em] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
                   {book.totalPages} Pages

@@ -102,7 +102,7 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
               </div>
             </div>
 
-            <h3 className={`mt-8 text-xl font-bold text-center max-w-[280px] truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>{book.name.replace('.pdf', '')}</h3>
+            <h3 className={`mt-8 text-xl font-bold text-center max-w-[280px] truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>{book.name.replace('.pdf', '').replace(/_/g, ' ')}</h3>
             <p className={`text-sm mt-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{book.totalPages} pages</p>
           </div>
 

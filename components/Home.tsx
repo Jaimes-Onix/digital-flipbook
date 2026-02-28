@@ -186,7 +186,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                         <div className="px-4 pt-4 pb-2 flex justify-between items-start gap-2">
                           <div className="text-left flex-1 min-w-0">
                             <p className={`${cardTextColor} text-sm font-bold truncate leading-tight`}>
-                              {book.name.replace('.pdf', '')}
+                              {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                             </p>
                             <p className={`${cardSubTextColor} text-[11px] mt-0.5 font-medium`}>
                               {book.totalPages} pages
@@ -290,7 +290,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                             <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 flex flex-col justify-end p-4 ${isHovered ? 'opacity-100' : 'opacity-0'
                               }`}>
                               <p className="text-white text-sm font-semibold truncate">
-                                {book.name.replace('.pdf', '')}
+                                {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                               </p>
                               <p className="text-gray-300 text-xs mt-1">
                                 {book.totalPages} pages

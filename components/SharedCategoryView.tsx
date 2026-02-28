@@ -321,7 +321,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
 
                         <div className="space-y-1">
                           <h3 className={`text-sm font-medium line-clamp-1 transition-colors ${bookTitleColor}`}>
-                            {book.name.replace('.pdf', '')}
+                            {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                           </h3>
                           <p className={`text-[10px] font-medium uppercase tracking-[0.12em] ${bookMeta}`}>
                             {book.totalPages} Pages

@@ -166,7 +166,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
             <button onClick={() => { setReaderOpen(false); setShowSearch(false); }} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${readerCloseBtn}`} title="Back">
               <ArrowLeft size={18} />
             </button>
-            <span className={`text-sm font-semibold truncate ${readerTitle}`}>{book.name.replace('.pdf', '')}</span>
+            <span className={`text-sm font-semibold truncate ${readerTitle}`}>{book.name.replace('.pdf', '').replace(/_/g, ' ')}</span>
             <span className={`text-sm shrink-0 ${readerPageInfoColor}`}>{pageInfoText}</span>
           </div>
           <button onClick={() => setDarkMode(d => !d)} className={`p-2 rounded-full transition-colors ${toggleBtn}`}>
@@ -225,7 +225,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
 
             {/* Info */}
             <h2 className={`text-xl font-bold mb-1.5 line-clamp-2 ${titleColor}`}>
-              {book.name.replace('.pdf', '')}
+              {book.name.replace('.pdf', '').replace(/_/g, ' ')}
             </h2>
             <p className={`text-[11px] uppercase tracking-widest font-medium mb-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
               {book.totalPages} Pages

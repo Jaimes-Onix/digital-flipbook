@@ -43,6 +43,7 @@ export interface LibraryBook {
   category?: BookCategory;
   isFavorite?: boolean;
   orientation?: 'portrait' | 'landscape';
+  createdAt?: string;
 }
 
 export interface BookRef {

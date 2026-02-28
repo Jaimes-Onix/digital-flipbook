@@ -238,7 +238,8 @@ const App: React.FC = () => {
           summary: stored.summary || undefined,
           category: stored.category || undefined,
           isFavorite: stored.is_favorite,
-          orientation: (stored.orientation as any) || 'portrait'
+          orientation: (stored.orientation as any) || 'portrait',
+          createdAt: stored.created_at
         }));
 
         setBooks(libraryBooks);
@@ -364,7 +365,8 @@ const App: React.FC = () => {
           totalPages: savedBook.total_pages,
           category: savedBook.category || undefined,
           isFavorite: savedBook.is_favorite,
-          orientation: savedBook.orientation || orientation
+          orientation: savedBook.orientation || orientation,
+          createdAt: savedBook.created_at
         });
       }
 
@@ -483,7 +485,8 @@ const App: React.FC = () => {
         summary: stored.summary || undefined,
         category: stored.category || undefined,
         isFavorite: stored.is_favorite,
-        orientation: (stored.orientation as any) || 'portrait'
+        orientation: (stored.orientation as any) || 'portrait',
+        createdAt: stored.created_at
       }));
       setBooks(libraryBooks);
       console.log('Books reloaded after restore');
