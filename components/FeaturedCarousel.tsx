@@ -40,17 +40,17 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
   if (!currentBook) return null;
 
   return (
-    <div className={`relative w-full h-[520px] overflow-hidden flex items-center justify-center mb-12 ${darkMode ? 'bg-black' : 'bg-gray-100'}`}>
+    <div className={`relative w-full h-[520px] overflow-hidden flex items-center justify-center mb-12 ${darkMode ? 'bg-black' : 'bg-black'}`}>
       {/* Dynamic Background with crossfade transition */}
       <div
         key={`bg-${currentBook.id}`}
-        className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000 scale-110 blur-2xl animate-in fade-in duration-1000 ${darkMode ? 'brightness-[0.35]' : 'brightness-[0.85] opacity-60'
+        className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000 scale-110 blur-lg animate-in fade-in duration-1000 ${darkMode ? 'brightness-[0.35]' : 'brightness-[0.35]'
           }`}
         style={{ backgroundImage: `url(${currentBook.coverUrl})` }}
       />
 
       {/* Vignette */}
-      <div className={`absolute inset-0 z-0 ${darkMode ? 'bg-gradient-to-b from-black/20 via-transparent to-black/40' : 'bg-gradient-to-b from-white/30 via-transparent to-white/50'
+      <div className={`absolute inset-0 z-0 ${darkMode ? 'bg-gradient-to-b from-black/20 via-transparent to-black/40' : 'bg-gradient-to-b from-black/20 via-transparent to-black/60'
         }`} />
 
       <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 px-12 h-full py-16">
@@ -86,17 +86,17 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
         {/* Book Info Section */}
         <div
           key={`info-${currentBook.id}`}
-          className={`flex-1 flex flex-col animate-in slide-in-from-right-12 fade-in duration-700 ${darkMode ? 'text-white' : 'text-gray-900'}`}
+          className={`flex-1 flex flex-col animate-in slide-in-from-right-12 fade-in duration-700 ${darkMode ? 'text-white' : 'text-white'}`}
         >
           <div className="space-y-5">
-            <h4 className={`font-black uppercase tracking-[0.4em] text-[10px] opacity-90 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            <h4 className={`font-black uppercase tracking-[0.4em] text-[10px] opacity-90 ${darkMode ? 'text-blue-400' : 'text-blue-400'}`}>
               Featured Selection
             </h4>
-            <h2 className="text-5xl font-serif font-bold leading-tight mb-2 drop-shadow-lg">
+            <h2 className="text-5xl font-serif font-bold leading-tight mb-2 drop-shadow-lg text-white">
               {currentBook.name.replace('.pdf', '')}
             </h2>
             <div className="w-16 h-1 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
-            <p className={`text-xl leading-relaxed font-light italic max-w-md line-clamp-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p className={`text-xl leading-relaxed font-light italic max-w-md line-clamp-3 ${darkMode ? 'text-gray-300' : 'text-gray-300'}`}>
               {currentBook.summary || "Explore this premier selection from our curated collection of digital publications."}
             </p>
           </div>
@@ -123,8 +123,8 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
               key={idx}
               onClick={() => setCurrentIndex(idx)}
               className={`h-1.5 rounded-full transition-all duration-500 ${idx === currentIndex
-                  ? 'w-12 bg-blue-500 shadow-lg shadow-blue-500/40'
-                  : darkMode ? 'w-4 bg-white/20 hover:bg-white/40' : 'w-4 bg-black/20 hover:bg-black/40'
+                ? 'w-12 bg-blue-500 shadow-lg shadow-blue-500/40'
+                : darkMode ? 'w-4 bg-white/20 hover:bg-white/40' : 'w-4 bg-black/20 hover:bg-black/40'
                 }`}
               aria-label={`Go to featured book ${idx + 1}`}
             />

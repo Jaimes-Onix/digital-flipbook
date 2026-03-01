@@ -102,11 +102,10 @@ const SignIn: React.FC = () => {
 
       {/* ========== FLOATING CARD — sits on top of background ========== */}
       <div className="relative z-10 h-full w-full flex items-center justify-center p-3 sm:p-5 lg:p-8">
-        <div className={`relative w-full max-w-[1400px] h-full max-h-[820px] rounded-[24px] overflow-hidden flex transition-all duration-300 ${
-          dark
+        <div className={`relative w-full max-w-[1400px] h-full max-h-[820px] rounded-[24px] overflow-hidden flex transition-all duration-300 ${dark
             ? 'shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8),0_0_40px_rgba(16,185,129,0.05)] border border-white/[0.06]'
             : 'shadow-[0_30px_100px_-20px_rgba(0,0,0,0.12)] border border-gray-200/80'
-        }`}>
+          }`}>
 
           {/* ---- Left: Illustration Panel ---- */}
           <div className="hidden lg:flex lg:w-[54%] relative flex-col justify-between overflow-hidden bg-[#0c1a15]">
@@ -202,7 +201,7 @@ const SignIn: React.FC = () => {
                 {/* Text lines on left page */}
                 <div className="absolute space-y-3" style={{ left: 'calc(50% - 160px)', top: 'calc(50% - 80px)', width: '120px', opacity: 0.25 }}>
                   {[100, 75, 90, 65, 85, 70].map((w, i) => (
-                    <div key={i} className="h-[2px] rounded-full bg-emerald-400" style={{ width: `${w}%`, opacity: 0.4 + (i % 3) * 0.15 }} />
+                    <div key={i} className="h-[2px] rounded-full bg-lime-400" style={{ width: `${w}%`, opacity: 0.4 + (i % 3) * 0.15 }} />
                   ))}
                 </div>
                 {/* Floating flipped pages — gentle bobbing */}
@@ -289,16 +288,16 @@ const SignIn: React.FC = () => {
                   { icon: Layers, label: '6 Categories' },
                   { icon: Sparkles, label: 'AI Summaries' },
                 ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-emerald-500/[0.08] border-emerald-500/[0.12]">
-                    <Icon size={12} className="text-emerald-400" />
-                    <span className="text-[10px] font-medium tracking-wide text-emerald-300/80">{label}</span>
+                  <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-lime-500/[0.08] border-lime-500/[0.12]">
+                    <Icon size={12} className="text-lime-400" />
+                    <span className="text-[10px] font-medium tracking-wide text-lime-300/80">{label}</span>
                   </div>
                 ))}
               </div>
 
               <h1 className="text-3xl xl:text-4xl font-extrabold leading-[1.15] tracking-tight mb-3 text-white">
                 Lifewood Philippines<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-emerald-400 to-teal-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-lime-400 to-teal-400">
                   Digital Flipbook
                 </span>
               </h1>
@@ -309,18 +308,16 @@ const SignIn: React.FC = () => {
           </div>
 
           {/* ---- Right: Sign-in Form ---- */}
-          <div className={`w-full lg:w-[46%] flex flex-col justify-center items-center px-8 sm:px-12 py-10 relative transition-colors duration-300 ${
-            dark ? 'bg-[#0c0c10]' : 'bg-white'
-          }`}>
+          <div className={`w-full lg:w-[46%] flex flex-col justify-center items-center px-8 sm:px-12 py-10 relative transition-colors duration-300 ${dark ? 'bg-[#0c0c10]' : 'bg-white'
+            }`}>
 
             {/* Dark/Light mode toggle — top right */}
             <button
               onClick={() => setDark(!dark)}
-              className={`absolute top-5 right-5 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                dark
+              className={`absolute top-5 right-5 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${dark
                   ? 'bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
               title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {dark ? <Sun size={16} /> : <Moon size={16} />}
@@ -328,12 +325,12 @@ const SignIn: React.FC = () => {
 
             {/* Brand mark — mobile only */}
             <div className="lg:hidden flex items-center gap-3 mb-10">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-200'}`}>
-                <BookOpen size={20} className={dark ? 'text-emerald-400' : 'text-emerald-600'} />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dark ? 'bg-emerald-500/10 border border-lime-500/20' : 'bg-emerald-50 border border-emerald-200'}`}>
+                <BookOpen size={20} className={dark ? 'text-lime-400' : 'text-emerald-600'} />
               </div>
               <div>
                 <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</p>
-                <p className={`text-[10px] uppercase tracking-[0.15em] ${dark ? 'text-emerald-500/60' : 'text-emerald-600/60'}`}>Digital Flipbook</p>
+                <p className={`text-[10px] uppercase tracking-[0.15em] ${dark ? 'text-lime-500/60' : 'text-emerald-600/60'}`}>Digital Flipbook</p>
               </div>
             </div>
 
@@ -353,11 +350,10 @@ const SignIn: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@lifewood.com"
-                      className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 ${
-                        dark
+                      className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 ${dark
                           ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
                           : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
-                      }`}
+                        }`}
                       required
                     />
                   </div>
@@ -368,20 +364,18 @@ const SignIn: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 ${
-                        dark
+                      className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 ${dark
                           ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
                           : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
-                      }`}
+                        }`}
                       required
                     />
                   </div>
                 </div>
 
                 {error && (
-                  <div className={`flex items-center gap-2 text-sm p-3 rounded-xl border ${
-                    dark ? 'text-red-400 bg-red-400/10 border-red-400/20' : 'text-red-600 bg-red-50 border-red-200'
-                  }`}>
+                  <div className={`flex items-center gap-2 text-sm p-3 rounded-xl border ${dark ? 'text-red-400 bg-red-400/10 border-red-400/20' : 'text-red-600 bg-red-50 border-red-200'
+                    }`}>
                     <AlertCircle size={16} className="shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -390,7 +384,7 @@ const SignIn: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center items-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all duration-200 hover:shadow-emerald-500/30 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center items-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all duration-200 hover:shadow-lime-500/30 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' }}
                 >
                   {isLoading ? (
@@ -425,8 +419,8 @@ const SignIn: React.FC = () => {
             <div className="flex flex-col items-center text-center">
               {loginStatus === 'loading' ? (
                 <>
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-5">
-                    <Loader2 size={30} className="animate-spin text-emerald-400" />
+                  <div className="w-16 h-16 rounded-full bg-lime-500/10 flex items-center justify-center mb-5">
+                    <Loader2 size={30} className="animate-spin text-lime-400" />
                   </div>
                   <h3 className="text-lg font-bold text-white mb-1.5">Signing you in...</h3>
                   <p className="text-sm text-zinc-500">Please wait a moment</p>
@@ -434,8 +428,8 @@ const SignIn: React.FC = () => {
               ) : (
                 <>
                   <div className="relative mb-5">
-                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
-                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <div className="absolute inset-0 bg-lime-500/20 rounded-full blur-xl animate-pulse" />
+                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center shadow-lg shadow-lime-500/20">
                       <CheckCircle2 size={32} className="text-white" />
                     </div>
                   </div>

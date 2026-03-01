@@ -116,9 +116,9 @@ const VideoGalleryModal: React.FC<Props> = ({
     const colDate = dm ? 'text-zinc-400' : 'text-gray-800';
     const colHdr = dm ? 'text-zinc-700' : 'text-gray-400';
     const inputCls = `w-full text-sm px-3 py-2 rounded-xl border outline-none transition-colors
-    ${dm ? 'bg-white/[0.05] border-white/[0.10] text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/50'
+    ${dm ? 'bg-white/[0.05] border-white/[0.10] text-zinc-200 placeholder-zinc-600 focus:border-lime-500/50'
             : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400'}`;
-    const tabActive = `flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500 text-white shadow-md shadow-emerald-200/40 transition-all`;
+    const tabActive = `flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-lime-500 text-white shadow-md shadow-emerald-200/40 transition-all`;
     const tabInactive = `flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${dm ? 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`;
     const tabWrap = `flex items-center gap-1 p-1 rounded-xl mr-1 ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`;
 
@@ -133,7 +133,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                 <div className={`flex items-center justify-between px-8 pt-7 pb-5 border-b shrink-0 ${divider}`}>
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-xl ${dm ? 'bg-emerald-500/20' : 'bg-emerald-50'}`}>
-                            <Video size={20} className={dm ? 'text-emerald-400' : 'text-emerald-600'} />
+                            <Video size={20} className={dm ? 'text-lime-400' : 'text-emerald-600'} />
                         </div>
                         <div>
                             <h2 className={`text-2xl font-bold tracking-tight ${title1}`}>{title}</h2>
@@ -154,7 +154,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                         {onAddVideo && (
                             <button onClick={onAddVideo}
                                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
-                  bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-300/40 transition-all active:scale-95">
+                  bg-lime-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-300/40 transition-all active:scale-95">
                                 <Plus size={15} /> Add Video
                             </button>
                         )}
@@ -180,7 +180,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                 entries.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-full gap-3">
                                         <div className={`w-20 h-20 rounded-full flex items-center justify-center ${dm ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
-                                            <Play size={36} strokeWidth={1.2} className={dm ? 'text-emerald-500 ml-1' : 'text-emerald-400 ml-1'} />
+                                            <Play size={36} strokeWidth={1.2} className={dm ? 'text-lime-500 ml-1' : 'text-lime-400 ml-1'} />
                                         </div>
                                         <p className={`text-base font-semibold ${dm ? 'text-zinc-400' : 'text-gray-500'}`}>No videos yet</p>
                                         <p className={`text-sm ${dm ? 'text-zinc-700' : 'text-gray-300'}`}>Click "Add Video" to get started</p>
@@ -213,7 +213,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                     <p className={`text-[11px] ${dm ? 'text-zinc-500' : 'text-gray-600'}`}>{fmtDate(e.addedAt)}</p>
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
-                                                            className={`p-1 rounded-md transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400' : 'text-gray-400 hover:text-emerald-600'}`}>
+                                                            className={`p-1 rounded-md transition-colors ${dm ? 'text-zinc-600 hover:text-lime-400' : 'text-gray-400 hover:text-emerald-600'}`}>
                                                             <ExternalLink size={12} />
                                                         </a>
                                                         <button onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); setDeletingItem(e); }}
@@ -249,7 +249,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                         {entries.map(e => (
                                             <div key={e.id}>
                                                 {editingId === e.id ? (
-                                                    <div className={`p-4 rounded-2xl border space-y-3 ${dm ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'}`}>
+                                                    <div className={`p-4 rounded-2xl border space-y-3 ${dm ? 'border-lime-500/30 bg-lime-500/10' : 'border-emerald-200 bg-lime-50'}`}>
                                                         <div className="grid grid-cols-2 gap-3">
                                                             <div>
                                                                 <label className={`text-[10px] font-semibold uppercase tracking-widest block mb-1 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Name</label>
@@ -266,7 +266,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                                 Cancel
                                                             </button>
                                                             <button onClick={() => saveEdit(e.id)} disabled={isEditingSaving}
-                                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500 hover:bg-emerald-600 text-white transition-all active:scale-95 disabled:opacity-50">
+                                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-lime-500 hover:bg-emerald-600 text-white transition-all active:scale-95 disabled:opacity-50">
                                                                 {isEditingSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
                                                             </button>
                                                         </div>
@@ -285,7 +285,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                         {/* Link */}
                                                         <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
                                                             onClick={ev => ev.stopPropagation()}
-                                                            className={`text-xs truncate hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                            className={`text-xs truncate hover:underline ${dm ? 'text-lime-400' : 'text-emerald-600'}`}>
                                                             {e.sourceUrl}
                                                         </a>
 
@@ -295,7 +295,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                         {/* Actions */}
                                                         <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
                                                             <button onClick={() => startEdit(e)}
-                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-lime-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
                                                                 <Pencil size={13} />
                                                             </button>
                                                             <button onClick={() => setDeletingItem(e)}

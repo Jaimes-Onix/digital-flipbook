@@ -222,12 +222,12 @@ const VideoLinksModal: React.FC<Props> = ({
     const colHdr = dm ? 'text-zinc-700' : 'text-gray-400';
     const rowHov = dm ? 'hover:bg-white/[0.04]' : 'hover:bg-gray-50';
     const inputCls = `w-full text-sm px-4 py-3 rounded-xl outline-none border transition-colors
-    ${dm ? 'bg-white/[0.08] border-white/[0.15] text-zinc-100 placeholder-zinc-500 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30'
+    ${dm ? 'bg-white/[0.08] border-white/[0.15] text-zinc-100 placeholder-zinc-500 focus:border-lime-500/60 focus:ring-1 focus:ring-lime-500/30'
             : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20'}`;
     const smInputCls = `w-full text-sm px-3 py-2 rounded-xl outline-none border transition-colors
-    ${dm ? 'bg-white/[0.08] border-white/[0.15] text-zinc-100 placeholder-zinc-500 focus:border-emerald-500/60'
+    ${dm ? 'bg-white/[0.08] border-white/[0.15] text-zinc-100 placeholder-zinc-500 focus:border-lime-500/60'
             : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400'}`;
-    const btnGreen = `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] shadow-md bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-300/40`;
+    const btnGreen = `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] shadow-md bg-lime-500 hover:bg-emerald-600 text-white shadow-emerald-300/40`;
     const btnGhost = `px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`;
 
     return createPortal(
@@ -248,9 +248,9 @@ const VideoLinksModal: React.FC<Props> = ({
                         )}
                         <div className={`p-2 rounded-xl ${dm ? 'bg-emerald-500/20' : 'bg-emerald-50'}`}>
                             {isCommitting ? (
-                                <Loader2 size={17} className={`animate-spin ${dm ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                                <Loader2 size={17} className={`animate-spin ${dm ? 'text-lime-400' : 'text-emerald-600'}`} />
                             ) : (
-                                <Video size={17} className={dm ? 'text-emerald-400' : 'text-emerald-600'} />
+                                <Video size={17} className={dm ? 'text-lime-400' : 'text-emerald-600'} />
                             )}
                         </div>
                         <div>
@@ -331,10 +331,10 @@ const VideoLinksModal: React.FC<Props> = ({
                                     {thumbSuggestions.map((t, i) => (
                                         <button key={i} onClick={() => setCustomThumb(t)}
                                             className={`relative w-32 aspect-video rounded-xl overflow-hidden border-2 transition-all
-                        ${(customThumb ?? pendingThumb) === t ? 'border-emerald-500' : dm ? 'border-transparent hover:border-white/20' : 'border-transparent hover:border-gray-300'}`}>
+                        ${(customThumb ?? pendingThumb) === t ? 'border-lime-500' : dm ? 'border-transparent hover:border-white/20' : 'border-transparent hover:border-gray-300'}`}>
                                             <img src={t} className="w-full h-full object-cover" alt="" />
                                             {(customThumb ?? pendingThumb) === t && (
-                                                <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-lime-500/20 flex items-center justify-center">
                                                     <Check size={20} className="text-white drop-shadow" />
                                                 </div>
                                             )}
@@ -342,7 +342,7 @@ const VideoLinksModal: React.FC<Props> = ({
                                     ))}
                                     <button onClick={() => thumbInputRef.current?.click()}
                                         className={`w-32 aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-all
-                      ${dm ? 'border-white/[0.10] hover:border-emerald-500/50 text-zinc-600 hover:text-emerald-400' : 'border-gray-200 hover:border-emerald-400 text-gray-400 hover:text-emerald-500'}`}>
+                      ${dm ? 'border-white/[0.10] hover:border-lime-500/50 text-zinc-600 hover:text-lime-400' : 'border-gray-200 hover:border-emerald-400 text-gray-400 hover:text-emerald-500'}`}>
                                         <Image size={18} />
                                         <span className="text-[10px] font-medium">Custom</span>
                                     </button>
@@ -362,7 +362,7 @@ const VideoLinksModal: React.FC<Props> = ({
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {entries.map(e => (
                                                 <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer" key={e.id}
-                                                    className={`group block overflow-hidden rounded-2xl border transition-all duration-300 ${dm ? 'bg-white/[0.02] border-white/5 hover:border-emerald-500/30 hover:bg-white/[0.04]' : 'bg-white border-gray-100 hover:border-emerald-500/30 hover:shadow-md'}`}>
+                                                    className={`group block overflow-hidden rounded-2xl border transition-all duration-300 ${dm ? 'bg-white/[0.02] border-white/5 hover:border-lime-500/30 hover:bg-white/[0.04]' : 'bg-white border-gray-100 hover:border-lime-500/30 hover:shadow-md'}`}>
                                                     <div className="aspect-video relative bg-black/5 flex items-center justify-center overflow-hidden">
                                                         {e.thumbnailUrl ? (
                                                             <img src={e.thumbnailUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
@@ -370,14 +370,14 @@ const VideoLinksModal: React.FC<Props> = ({
                                                             <Play size={24} className={dm ? 'text-zinc-600' : 'text-gray-400'} />
                                                         )}
                                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                                                            <div className="w-12 h-12 rounded-full bg-emerald-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 shadow-xl shadow-emerald-500/20">
+                                                            <div className="w-12 h-12 rounded-full bg-lime-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 shadow-xl shadow-lime-500/20">
                                                                 <Play size={22} fill="currentColor" className="ml-1" />
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div className="p-3.5 space-y-1">
                                                         <h4 className={`text-sm font-semibold truncate ${dm ? 'text-zinc-200' : 'text-gray-800'}`}>{e.name}</h4>
-                                                        <p className={`text-xs truncate ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>{e.sourceUrl}</p>
+                                                        <p className={`text-xs truncate ${dm ? 'text-lime-400' : 'text-emerald-600'}`}>{e.sourceUrl}</p>
                                                         <p className={`text-[11px] pt-1 ${dm ? 'text-zinc-500' : 'text-gray-500'}`}>{fmtDate(e.addedAt)}</p>
                                                     </div>
                                                 </a>
@@ -397,14 +397,14 @@ const VideoLinksModal: React.FC<Props> = ({
                                                 {entries.map(e => (
                                                     <div key={e.id}>
                                                         {editingId === e.id ? (
-                                                            <div className={`p-3 rounded-xl border space-y-2 ${dm ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-emerald-200 bg-emerald-50'}`}>
+                                                            <div className={`p-3 rounded-xl border space-y-2 ${dm ? 'border-lime-500/30 bg-lime-500/10' : 'border-emerald-200 bg-lime-50'}`}>
                                                                 <div className="grid grid-cols-2 gap-2">
                                                                     <input value={editName} onChange={ev => setEditName(ev.target.value)} placeholder="Name" className={smInputCls} />
                                                                     <input value={editUrl} onChange={ev => setEditUrl(ev.target.value)} placeholder="URL" className={smInputCls} disabled={e.isFile} />
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     {editThumb && <img src={editThumb} className="w-16 aspect-video object-cover rounded-lg border border-gray-200" alt="" />}
-                                                                    <button onClick={() => editThumbRef.current?.click()} className={`text-xs hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                                    <button onClick={() => editThumbRef.current?.click()} className={`text-xs hover:underline ${dm ? 'text-lime-400' : 'text-emerald-600'}`}>
                                                                         Change thumbnail
                                                                     </button>
                                                                     <input type="file" accept="image/*" className="hidden" ref={editThumbRef}
@@ -430,7 +430,7 @@ const VideoLinksModal: React.FC<Props> = ({
                                                                 {/* Link */}
                                                                 <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
                                                                     onClick={ev => ev.stopPropagation()}
-                                                                    className={`text-xs truncate hover:underline ${dm ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                                                                    className={`text-xs truncate hover:underline ${dm ? 'text-lime-400' : 'text-emerald-600'}`}>
                                                                     {e.sourceUrl}
                                                                 </a>
                                                                 {/* Date */}
@@ -439,7 +439,7 @@ const VideoLinksModal: React.FC<Props> = ({
                                                                 {!readOnly && (
                                                                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                         <button onClick={() => startEdit(e)}
-                                                                            className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-emerald-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                            className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-lime-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
                                                                             <Pencil size={13} />
                                                                         </button>
                                                                         <button onClick={() => setDeletingItem(e)}

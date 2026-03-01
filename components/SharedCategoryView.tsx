@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2, Moon, Sun, ArrowLeft, Search, Video } from 'lucide-react';
 import BookViewer from './BookViewer';
-import VantaFogBackground from './VantaFogBackground';
 import VideoLinksModal from './VideoLinksModal';
 import { getDocument } from '../utils/pdfUtils';
 import { loadBooksByCategory } from '../src/lib/bookStorage';
@@ -142,7 +141,6 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
   if (!category) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
-        <VantaFogBackground darkMode={true} />
         <div className="relative z-10 text-center px-6">
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-6">
             <Search size={28} className="text-red-400" />
@@ -168,7 +166,6 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
 
     return (
       <div ref={readerContainerRef} className="fixed inset-0 z-0 flex flex-col overflow-hidden bg-black">
-        <VantaFogBackground variant="reader" />
 
         <header className={`relative z-50 h-14 flex items-center justify-between px-5 backdrop-blur-xl border-b transition-colors shrink-0 ${readerHeaderBg}`}>
           <div className="flex items-center gap-3 min-w-0">
@@ -213,13 +210,12 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
 
   return (
     <div className={`h-screen w-full overflow-y-auto overflow-x-hidden relative transition-colors duration-300 thin-scrollbar ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
-      <VantaFogBackground darkMode={darkMode} />
 
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-50 backdrop-blur-xl border-b transition-colors ${headerBg}`}>
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 512 512" fill="currentColor" className="w-5 h-5 text-emerald-400" xmlns="http://www.w3.org/2000/svg">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500/20 to-lime-500/5 border border-lime-500/20 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 512 512" fill="currentColor" className="w-5 h-5 text-lime-400" xmlns="http://www.w3.org/2000/svg">
               <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
               <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
                 stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -344,8 +340,8 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
         {/* Footer */}
         <div className={`text-center py-10 border-t ${darkMode ? 'border-white/[0.04]' : 'border-gray-200'}`}>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center">
-              <svg viewBox="0 0 512 512" fill="currentColor" className="w-3.5 h-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-lime-500/20 to-lime-500/5 border border-lime-500/20 flex items-center justify-center">
+              <svg viewBox="0 0 512 512" fill="currentColor" className="w-3.5 h-3.5 text-lime-400" xmlns="http://www.w3.org/2000/svg">
                 <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
                 <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
                   stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />

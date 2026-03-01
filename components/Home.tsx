@@ -45,11 +45,11 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             className={`rounded-3xl px-10 py-10 mb-2 max-w-3xl relative overflow-hidden ${darkMode
-              ? 'bg-[#0c1a15]/80 backdrop-blur-2xl shadow-2xl shadow-black/30 border border-emerald-900/20'
-              : 'bg-white/50 backdrop-blur-2xl shadow-2xl shadow-black/5 border border-white/60'
+              ? 'bg-[#141418]/80 backdrop-blur-2xl shadow-2xl shadow-black/30 border border-white/[0.06]'
+              : 'bg-white/70 backdrop-blur-2xl shadow-xl shadow-gray-200/50 border border-gray-200/60'
               }`}
           >
-            {/* Emerald glow orbs — dark mode only */}
+            {/* lime glow orbs — dark mode only */}
             {darkMode && (
               <>
                 <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full pointer-events-none"
@@ -72,11 +72,11 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                 { icon: Sparkles, label: 'AI Summaries' },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border ${darkMode
-                  ? 'bg-emerald-500/[0.08] border-emerald-500/[0.15]'
+                  ? 'bg-emerald-500/[0.08] border-lime-500/[0.15]'
                   : 'bg-emerald-50 border-emerald-200/60'
                   }`}>
-                  <Icon size={13} className={darkMode ? 'text-emerald-400' : 'text-emerald-600'} />
-                  <span className={`text-[11px] font-medium tracking-wide ${darkMode ? 'text-emerald-300/80' : 'text-emerald-700'}`}>{label}</span>
+                  <Icon size={13} className={darkMode ? 'text-lime-400' : 'text-emerald-600'} />
+                  <span className={`text-[11px] font-medium tracking-wide ${darkMode ? 'text-white/80' : 'text-emerald-700'}`}>{label}</span>
                 </div>
               ))}
             </motion.div>
@@ -92,7 +92,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
               </span>
               <br />
               <span className={`font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${darkMode
-                ? 'from-emerald-300 via-emerald-400 to-teal-400'
+                ? 'from-lime-300 via-lime-400 to-teal-400'
                 : 'from-emerald-600 via-emerald-500 to-teal-500'
                 }`}>
                 Digital Flipbook
@@ -102,7 +102,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className={`relative z-10 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed ${darkMode ? 'text-white/50' : 'text-gray-600'}`}
+              className={`relative z-10 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed ${darkMode ? 'text-white/50' : 'text-slate-600'}`}
             >
               Your immersive library experience. Read, share, and explore beautifully crafted flipbooks.
             </motion.p>
@@ -118,7 +118,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                 whileTap={{ scale: 0.95 }}
                 onClick={onUpload}
                 className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold transition-all shadow-xl ${darkMode
-                  ? 'text-white shadow-emerald-900/30'
+                  ? 'text-white shadow-lime-900/30'
                   : 'text-white shadow-emerald-300/40'
                   }`}
                 style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)' }}
@@ -131,7 +131,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                 whileTap={{ scale: 0.95 }}
                 onClick={onBrowseLibrary}
                 className={`flex items-center gap-2 px-7 py-3.5 rounded-full font-medium border transition-all ${darkMode
-                  ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.12] text-emerald-300 border-emerald-500/20'
+                  ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.12] text-white border-lime-500/20'
                   : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
                   }`}
               >
@@ -155,8 +155,11 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                 {featuredBooks.map((book, index) => {
                   const style = getCardStyle(index, featuredBooks.length);
                   const cardBg = darkMode ? 'bg-[#E8E8E8]' : 'bg-[#2A2A2D]';
-                  const cardTextColor = darkMode ? 'text-gray-900' : 'text-white';
+                  const titleColor = darkMode ? 'text-gray-900' : 'text-slate-900';
+                  const cardTextColor = darkMode ? 'text-gray-900' : 'text-slate-900';
                   const cardSubTextColor = darkMode ? 'text-amber-600' : 'text-amber-400';
+                  const titlePillColor = darkMode ? 'text-lime-400 bg-emerald-500/10' : 'text-emerald-700 bg-emerald-50';
+                  const descriptionColor = darkMode ? 'text-gray-400' : 'text-slate-500';
                   const heartColor = darkMode
                     ? (book.isFavorite ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600')
                     : (book.isFavorite ? 'text-white' : 'text-gray-500 group-hover:text-gray-300');
@@ -232,7 +235,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
               className="relative pb-16 pt-8 overflow-hidden"
             >
               <div className="text-center mb-8">
-                <p className={`text-xs uppercase tracking-[0.3em] font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                <p className={`text-xs uppercase tracking-[0.3em] font-medium ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
                   FEATURED FLIPBOOKS
                 </p>
               </div>
@@ -287,12 +290,12 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
                               className={`w-full h-full object-contain bg-black/5 transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'
                                 }`}
                             />
-                            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 flex flex-col justify-end p-4 ${isHovered ? 'opacity-100' : 'opacity-0'
-                              }`}>
-                              <p className="text-white text-sm font-semibold truncate">
+                            <div className={`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end p-4 ${isHovered ? 'opacity-100' : 'opacity-0'
+                              } ${darkMode ? 'bg-gradient-to-t from-black/80 via-black/20 to-transparent' : 'bg-gradient-to-t from-white/95 via-white/40 to-white/10'}`}>
+                              <p className={`text-sm font-bold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                                 {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                               </p>
-                              <p className="text-gray-300 text-xs mt-1">
+                              <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {book.totalPages} pages
                               </p>
                             </div>

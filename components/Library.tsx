@@ -100,7 +100,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
             <button
               onClick={() => setShowShareModal(true)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
-                ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20'
+                ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-lime-500/50 hover:shadow-lime-500/20 shadow-black/40'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
                 }`}
             >
@@ -133,7 +133,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           <button
             onClick={onAddNew}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
-              ? 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.08] shadow-black/20'
+              ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-lime-400 border border-white/10 hover:border-lime-500/50 hover:shadow-lime-500/20 shadow-black/40'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
               }`}
           >
@@ -145,8 +145,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
 
       {/* Search & Sort toolbar */}
       <div className="flex items-center gap-3 mb-8">
-        <div className={`flex items-center flex-1 max-w-sm gap-2 px-4 py-2.5 rounded-2xl transition-all ${darkMode
-          ? 'bg-white/[0.04] border border-white/[0.08] focus-within:border-white/[0.15] focus-within:bg-white/[0.06]'
+        <div className={`flex items-center flex-1 max-w-sm gap-2 px-4 py-2.5 rounded-2xl transition-all shadow-md ${darkMode
+          ? 'bg-zinc-900/80 border border-white/10 focus-within:border-lime-500/50 focus-within:ring-1 focus-within:ring-lime-500/50 shadow-black/40'
           : 'bg-gray-100 border border-gray-200 focus-within:border-gray-300 focus-within:bg-white'
           }`}>
           <Search size={15} className={`flex-shrink-0 ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`} />
@@ -166,8 +166,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         <div className="relative">
           <button
             onClick={() => setSortOpen(!sortOpen)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl cursor-pointer transition-all ${darkMode
-              ? 'bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.06]'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl cursor-pointer transition-all shadow-md ${darkMode
+              ? 'bg-zinc-900/80 border border-white/10 hover:border-lime-500/50 shadow-black/40'
               : 'bg-gray-100 border border-gray-200 hover:bg-gray-50'
               }`}
           >
@@ -284,8 +284,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
                 </div>
               </div>
 
-              <div className={`space-y-1 transition-all duration-300 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
-                <h3 className={`text-sm font-medium transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-gray-800 group-hover:text-gray-900'
+              <div className={`space-y-1 transition-all duration-300 mt-3 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
+                <h3 className={`text-sm font-semibold transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-slate-800 group-hover:text-slate-900'
                   }`}>
                   {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                 </h3>
@@ -301,7 +301,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         {filteredBooks.length === 0 && !isLoading && (
           <button
             onClick={onAddNew}
-            className={`group aspect-[3/4] border border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-emerald-500/[0.03] ${darkMode ? 'border-white/[0.08] hover:border-emerald-500/30' : 'border-gray-200 hover:border-emerald-400'
+            className={`group aspect-[3/4] border border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-emerald-500/[0.03] ${darkMode ? 'border-white/[0.08] hover:border-lime-500/30' : 'border-gray-200 hover:border-emerald-400'
               }`}
           >
             <div className="p-5 rounded-full bg-white/[0.03] group-hover:bg-emerald-500/10 group-hover:scale-110 transition-all">

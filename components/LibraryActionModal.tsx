@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock } from 'lucide-react';
+import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock, FolderSync } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -22,18 +22,22 @@ interface LibraryActionModalProps {
   isLoadingBook?: boolean;
   onRemove?: (id: string) => void;
   darkMode?: boolean;
+  customCategories?: import('../types').CustomCategory[];
 }
 
 const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
-  book, onClose, onSelectMode, onUpdateCategory, onUpdateName, onToggleFavorite, isLoadingBook, onRemove, darkMode = true
+  book, onClose, onSelectMode, onUpdateCategory, onUpdateName, onToggleFavorite, isLoadingBook, onRemove, darkMode = true, customCategories = []
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [showTransferSuccess, setShowTransferSuccess] = useState(false);
+  const [transferredTo, setTransferredTo] = useState('');
   const [editedName, setEditedName] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); setIsEditingName(false); }, [book?.id]);
+  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); setIsEditingName(false); setIsTransferring(false); setShowTransferSuccess(false); }, [book?.id]);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -70,7 +74,22 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
           className={`backdrop-blur-3xl w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {!showConfirmDelete ? (
+          {showTransferSuccess ? (
+            <div className="p-10 flex flex-col items-center justify-center text-center w-full min-h-[400px]">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg ${darkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.15)]' : 'bg-orange-50 text-orange-500 border border-orange-200'}`}>
+                <Check size={40} className="animate-in zoom-in duration-300" />
+              </div>
+              <h3 className={`text-2xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Transfer Successful!</h3>
+              <p className={`text-base mb-10 leading-relaxed max-w-sm ${darkMode ? 'text-zinc-400' : 'text-gray-500'}`}>
+                "<span className={`font-semibold ${darkMode ? 'text-zinc-200' : 'text-gray-700'}`}>{book?.name.replace('.pdf', '').replace(/_/g, ' ')}</span>" has been successfully moved to <span className={`font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>{transferredTo}</span>.
+              </p>
+              <button
+                onClick={() => setShowTransferSuccess(false)}
+                className={`w-full max-w-[200px] py-4 rounded-2xl font-bold transition-all active:scale-[0.98] shadow-lg ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'}`}>
+                Done
+              </button>
+            </div>
+          ) : !showConfirmDelete ? (
             <div className="flex flex-col md:flex-row">
 
               {/* Left side — Book Cover */}
@@ -87,7 +106,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                 <div className="flex justify-end gap-2.5 mb-5">
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className={`p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10' : 'bg-gray-100 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'}`}
+                    className={`p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'bg-gray-100 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'}`}
                     title="Share Book"
                   >
                     <Share2 size={18} />
@@ -136,7 +155,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                     />
                     <button
                       onClick={handleSaveName}
-                      className="p-2 rounded-full bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors flex-shrink-0"
+                      className="p-2 rounded-full bg-lime-500/15 text-lime-400 hover:bg-lime-500/25 transition-colors flex-shrink-0"
                       title="Save"
                     >
                       <Check size={16} />
@@ -169,66 +188,130 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   {book.totalPages} Pages
                 </p>
                 {book.createdAt && (
-                  <div className={`flex items-center gap-1.5 mb-6 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+                  <div className={`flex items-center gap-1.5 mb-6 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`}>
                     <Clock size={15} />
                     <span className="text-sm font-medium">
-                      Added {new Date(book.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      Date Added: {new Date(book.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 )}
 
-                {/* Category Chips */}
+                {/* Category Display or Selection */}
                 {onUpdateCategory && (
                   <div className="mb-6">
-                    <p className={`text-sm font-semibold uppercase tracking-[0.15em] mb-3 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Category</p>
-                    <div className="flex flex-wrap gap-2.5">
-                      {CATEGORY_OPTIONS.map(({ value, label }) => (
+                    <p className={`text-sm font-semibold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Category</p>
+
+                    {!isTransferring ? (
+                      <div className="flex items-center gap-4">
+                        <span className={`text-xl font-bold ${darkMode ? (book.category ? 'text-white' : 'text-zinc-500') : (book.category ? 'text-gray-900' : 'text-gray-400')}`}>
+                          {book.category
+                            ? (CATEGORY_OPTIONS.find(c => c.value === book.category)?.label || customCategories.find(c => c.slug === book.category)?.name || book.category)
+                            : "Uncategorized"}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-2.5">
+                          {/* Built-in Categories */}
+                          {CATEGORY_OPTIONS.map(({ value, label }) => (
+                            <button
+                              key={value}
+                              onClick={() => {
+                                onUpdateCategory(book.id, book.category === value ? undefined : value);
+                                if (book.category !== value) {
+                                  setTransferredTo(label);
+                                  setShowTransferSuccess(true);
+                                }
+                                setIsTransferring(false);
+                              }}
+                              className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${book.category === value
+                                ? darkMode
+                                  ? 'bg-lime-500/20 text-lime-400 border-lime-500/50 shadow-[0_0_15px_rgba(132,204,22,0.15)]'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : darkMode
+                                  ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white border-transparent'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-transparent'
+                                }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                          {/* Custom Categories */}
+                          {customCategories.map((cat) => (
+                            <button
+                              key={cat.slug}
+                              onClick={() => {
+                                onUpdateCategory(book.id, book.category === cat.slug ? undefined : cat.slug);
+                                if (book.category !== cat.slug) {
+                                  setTransferredTo(cat.name);
+                                  setShowTransferSuccess(true);
+                                }
+                                setIsTransferring(false);
+                              }}
+                              className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${book.category === cat.slug
+                                ? darkMode
+                                  ? 'bg-lime-500/20 text-lime-400 border-lime-500/50 shadow-[0_0_15px_rgba(132,204,22,0.15)]'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : darkMode
+                                  ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white border-transparent'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-transparent'
+                                }`}
+                            >
+                              {cat.name}
+                            </button>
+                          ))}
+                        </div>
                         <button
-                          key={value}
-                          onClick={() => onUpdateCategory(book.id, book.category === value ? undefined : value)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${book.category === value
-                            ? darkMode
-                              ? 'bg-white/15 text-white border-white/20'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : darkMode
-                              ? 'bg-white/[0.04] text-zinc-500 hover:bg-white/[0.08] hover:text-zinc-300 border-transparent'
-                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border-transparent'
-                            }`}
+                          onClick={() => setIsTransferring(false)}
+                          className={`text-sm tracking-wide ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
                         >
-                          {label}
+                          Cancel
                         </button>
-                      ))}
-                      {book.category && (
-                        <button
-                          onClick={() => onUpdateCategory(book.id, undefined)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${darkMode ? 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100'}`}
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* Action Buttons */}
-                <div className="space-y-4 mt-4">
-                  <button
-                    onClick={() => onSelectMode('manual')}
-                    disabled={isLoadingBook}
-                    className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
-                      }`}
-                  >
-                    {isLoadingBook ? (
-                      <><Loader2 size={22} className="animate-spin" /> Loading Book...</>
-                    ) : (
-                      <><BookOpen size={22} className="group-hover:scale-110 transition-transform" /> Read Now</>
+                <div className="space-y-4 mt-6">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => onSelectMode('manual')}
+                      disabled={isLoadingBook}
+                      className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
+                        }`}
+                    >
+                      {isLoadingBook ? (
+                        <>
+                          <Loader2 size={20} className="animate-spin" />
+                          <span>Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <BookOpen size={20} className="transition-transform group-hover:scale-110" />
+                          <span>Read Now</span>
+                        </>
+                      )}
+                    </button>
+
+                    {onUpdateCategory && (
+                      <button
+                        onClick={() => setIsTransferring(!isTransferring)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold transition-all active:scale-[0.98] shadow-lg ${isTransferring
+                          ? (darkMode ? 'bg-white/[0.15] text-white border border-white/20' : 'bg-gray-200 text-gray-800 border-gray-300')
+                          : (darkMode ? 'bg-orange-500 hover:bg-orange-400 text-zinc-900 border border-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.3)]' : 'bg-orange-500 hover:bg-orange-600 text-white border border-orange-600')
+                          }`}
+                      >
+                        <FolderSync size={20} />
+                        <span>Transfer Book</span>
+                      </button>
                     )}
-                  </button>
+                  </div>
 
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowShareModal(true)}
-                      className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-[0.98] ${darkMode ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-[0.98] ${darkMode ? 'bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 border border-lime-500/20' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                         }`}
                     >
                       <Share2 size={20} /> Share Book

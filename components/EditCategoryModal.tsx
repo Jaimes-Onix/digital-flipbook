@@ -108,7 +108,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, darkMode,
                 <div className={`px-6 py-4 flex items-center justify-between border-b ${darkMode ? 'border-white/5 bg-white/[0.02]' : 'border-gray-100 bg-gray-50/50'
                     }`}>
                     <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${darkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${darkMode ? 'bg-lime-500/20 text-lime-400' : 'bg-emerald-100 text-emerald-600'
                             }`}>
                             <FolderEdit size={16} strokeWidth={2.5} />
                         </div>
@@ -129,7 +129,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, darkMode,
                 <form onSubmit={handleSave} className="p-6 space-y-6">
                     {/* Name */}
                     <div className="space-y-2">
-                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-lime-400/50' : 'text-gray-400'}`}>
                             Category Name
                         </label>
                         <input
@@ -138,16 +138,16 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, darkMode,
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Sales Presentations"
                             autoFocus
-                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-emerald-500/20 ${darkMode
-                                    ? 'bg-[#0f0f11] border-white/10 text-white placeholder:text-zinc-600 focus:border-emerald-500/50'
-                                    : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-emerald-400'
+                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 outline-none focus:ring-2 focus:ring-lime-500/20 ${darkMode
+                                ? 'bg-[#0f0f11] border-white/10 text-white placeholder:text-zinc-600 focus:border-lime-500/50'
+                                : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-emerald-400'
                                 }`}
                         />
                     </div>
 
                     {/* Color */}
                     <div className="space-y-2">
-                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-lime-400/50' : 'text-gray-400'}`}>
                             Color theme
                         </label>
                         <div className="flex items-center gap-2.5 flex-wrap">
@@ -170,7 +170,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, darkMode,
 
                     {/* Icon Picker */}
                     <div className="space-y-2">
-                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-lime-400/50' : 'text-gray-400'}`}>
                             Icon
                         </label>
                         <div className="flex items-center gap-2.5 flex-wrap">
@@ -183,8 +183,8 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, darkMode,
                                         type="button"
                                         onClick={() => setIcon(i.id)}
                                         className={`w-10 h-10 rounded-xl transition-all duration-150 flex items-center justify-center hover:scale-105 active:scale-95 ${isSelected
-                                                ? darkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                                                : darkMode ? 'bg-white/[0.04] text-zinc-400 border border-transparent hover:bg-white/[0.08]' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
+                                            ? darkMode ? 'bg-lime-500/20 text-lime-400 border border-lime-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                            : darkMode ? 'bg-white/[0.04] text-zinc-400 border border-transparent hover:bg-white/[0.08]' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
                                             }`}
                                     >
                                         <IconComp size={18} strokeWidth={isSelected ? 2.5 : 2} />
@@ -205,12 +205,12 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, darkMode,
                             type="submit"
                             disabled={!name.trim() || isSaving}
                             className={`w-full py-3.5 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 ${!name.trim() || isSaving
-                                    ? (darkMode ? 'bg-white/5 text-zinc-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
-                                    : 'bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-emerald-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)]'
+                                ? (darkMode ? 'bg-white/5 text-zinc-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
+                                : 'bg-emerald-500 hover:bg-lime-400 active:scale-[0.98] text-lime-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)]'
                                 }`}
                         >
                             {isSaving ? (
-                                <div className="w-5 h-5 border-2 border-emerald-950/30 border-t-emerald-950 rounded-full animate-spin" />
+                                <div className="w-5 h-5 border-2 border-lime-950/30 border-t-lime-950 rounded-full animate-spin" />
                             ) : (
                                 'Save Changes'
                             )}

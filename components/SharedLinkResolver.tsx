@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { resolveShareLink } from '../src/lib/bookStorage';
-import VantaFogBackground from './VantaFogBackground';
 import SharedCategoryView from './SharedCategoryView';
 import SharedBookView from './SharedBookView';
 
@@ -40,9 +39,8 @@ export default function SharedLinkResolver() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
-        <VantaFogBackground darkMode={true} />
         <div className="relative z-10 flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-emerald-400" />
+          <Loader2 className="w-10 h-10 animate-spin text-lime-400" />
           <p className="text-zinc-400 font-medium">Loading shared content...</p>
         </div>
       </div>
@@ -52,7 +50,6 @@ export default function SharedLinkResolver() {
   if (error || !resolvedLink) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
-        <VantaFogBackground darkMode={true} />
         <div className="relative z-10 text-center px-6 max-w-md w-full">
           <div className="w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
             <AlertCircle size={36} className="text-red-400" />

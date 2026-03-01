@@ -25,8 +25,8 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(0,0,0,0.6)' }}>
       <div
         className={`relative w-full max-w-md rounded-3xl p-8 shadow-2xl animate-scale-in ${darkMode
-            ? 'bg-zinc-900 border border-white/[0.08]'
-            : 'bg-white border border-gray-200'
+          ? 'bg-zinc-900 border border-white/[0.08]'
+          : 'bg-white border border-gray-200'
           }`}
         style={{ animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
       >
@@ -57,25 +57,25 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
           <button
             onClick={() => setSelected('portrait')}
             className={`group relative flex flex-col items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-200 ${selected === 'portrait'
-                ? darkMode
-                  ? 'border-emerald-500 bg-emerald-500/[0.08]'
-                  : 'border-emerald-500 bg-emerald-50'
-                : darkMode
-                  ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
-                  : 'border-gray-200 hover:border-gray-300 bg-gray-50'
+              ? darkMode
+                ? 'border-lime-500 bg-lime-500/[0.08]'
+                : 'border-lime-500 bg-lime-50'
+              : darkMode
+                ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
+                : 'border-gray-200 hover:border-gray-300 bg-gray-50'
               }`}
           >
             {/* Portrait book illustration */}
             <div className={`relative flex items-center justify-center rounded-lg transition-colors duration-200 ${selected === 'portrait'
-                ? 'text-emerald-500'
-                : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
+              ? 'text-lime-500'
+              : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
               }`}>
               {/* Tall rectangle for portrait */}
               <div className={`w-12 h-16 rounded-sm border-2 flex flex-col overflow-hidden transition-colors duration-200 ${selected === 'portrait'
-                  ? 'border-emerald-500 bg-emerald-500/10'
-                  : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
+                ? 'border-lime-500 bg-lime-500/10'
+                : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
                 }`}>
-                <div className={`h-[30%] border-b transition-colors ${selected === 'portrait' ? 'border-emerald-500/40 bg-emerald-500/20' : darkMode ? 'border-zinc-700 bg-zinc-700' : 'border-gray-200 bg-gray-200'}`} />
+                <div className={`h-[30%] border-b transition-colors ${selected === 'portrait' ? 'border-lime-500/40 bg-lime-500/20' : darkMode ? 'border-zinc-700 bg-zinc-700' : 'border-gray-200 bg-gray-200'}`} />
                 <div className="flex-1 flex flex-col gap-[3px] p-1 pt-1.5">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className={`h-[2px] rounded-full ${selected === 'portrait' ? 'bg-emerald-500/40' : darkMode ? 'bg-zinc-600' : 'bg-gray-300'}`} />
@@ -85,12 +85,12 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
             </div>
 
             <div className="text-center">
-              <p className={`font-semibold text-sm ${selected === 'portrait' ? 'text-emerald-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Portrait</p>
+              <p className={`font-semibold text-sm ${selected === 'portrait' ? 'text-lime-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Portrait</p>
               <p className={`text-xs mt-0.5 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Tall format</p>
             </div>
 
             {selected === 'portrait' && (
-              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
                 <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
                   <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -102,25 +102,25 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
           <button
             onClick={() => setSelected('landscape')}
             className={`group relative flex flex-col items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-200 ${selected === 'landscape'
-                ? darkMode
-                  ? 'border-emerald-500 bg-emerald-500/[0.08]'
-                  : 'border-emerald-500 bg-emerald-50'
-                : darkMode
-                  ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
-                  : 'border-gray-200 hover:border-gray-300 bg-gray-50'
+              ? darkMode
+                ? 'border-lime-500 bg-lime-500/[0.08]'
+                : 'border-lime-500 bg-lime-50'
+              : darkMode
+                ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
+                : 'border-gray-200 hover:border-gray-300 bg-gray-50'
               }`}
           >
             {/* Landscape book illustration */}
             <div className={`relative flex items-center justify-center transition-colors duration-200 ${selected === 'landscape'
-                ? 'text-emerald-500'
-                : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
+              ? 'text-lime-500'
+              : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
               }`}>
               {/* Wide rectangle for landscape */}
               <div className={`w-16 h-12 rounded-sm border-2 flex flex-col overflow-hidden transition-colors duration-200 ${selected === 'landscape'
-                  ? 'border-emerald-500 bg-emerald-500/10'
-                  : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
+                ? 'border-lime-500 bg-lime-500/10'
+                : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
                 }`}>
-                <div className={`h-[28%] border-b transition-colors ${selected === 'landscape' ? 'border-emerald-500/40 bg-emerald-500/20' : darkMode ? 'border-zinc-700 bg-zinc-700' : 'border-gray-200 bg-gray-200'}`} />
+                <div className={`h-[28%] border-b transition-colors ${selected === 'landscape' ? 'border-lime-500/40 bg-lime-500/20' : darkMode ? 'border-zinc-700 bg-zinc-700' : 'border-gray-200 bg-gray-200'}`} />
                 <div className="flex-1 flex flex-col gap-[3px] p-1 pt-1.5">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className={`h-[2px] rounded-full ${selected === 'landscape' ? 'bg-emerald-500/40' : darkMode ? 'bg-zinc-600' : 'bg-gray-300'}`} />
@@ -130,12 +130,12 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
             </div>
 
             <div className="text-center">
-              <p className={`font-semibold text-sm ${selected === 'landscape' ? 'text-emerald-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Landscape</p>
+              <p className={`font-semibold text-sm ${selected === 'landscape' ? 'text-lime-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Landscape</p>
               <p className={`text-xs mt-0.5 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Wide format</p>
             </div>
 
             {selected === 'landscape' && (
-              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
                 <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
                   <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -149,15 +149,15 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
           <button
             onClick={onCancel}
             className={`flex-1 py-3 rounded-xl font-medium text-sm transition-colors ${darkMode
-                ? 'bg-white/[0.06] text-zinc-300 hover:bg-white/[0.1]'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-white/[0.06] text-zinc-300 hover:bg-white/[0.1]'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             Cancel
           </button>
           <button
             onClick={() => onConfirm(selected)}
-            className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-emerald-500 hover:bg-emerald-400 transition-colors"
+            className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-lime-500 hover:bg-lime-400 transition-colors"
           >
             Import Book
           </button>
@@ -231,11 +231,11 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
         )}
 
         <div className={`max-w-md w-full text-center px-8 py-10 shadow-2xl ${darkMode
-            ? 'glass-card shadow-black/30'
-            : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
+          ? 'glass-card shadow-black/30'
+          : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
           }`}>
-          <h1 className={`text-3xl font-bold mb-2 tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Import PDF</h1>
-          <p className={`mb-10 text-base ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>Create premium digital flipbooks from your documents.</p>
+          <h1 className={`text-3xl font-bold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${darkMode ? 'from-lime-300 via-lime-400 to-teal-400' : 'from-lime-500 via-lime-600 to-teal-600'}`}>Import PDF</h1>
+          <p className={`mb-10 text-base ${darkMode ? 'text-white' : 'text-gray-500'}`}>Create premium digital flipbooks from your documents.</p>
 
           <div
             onDragOver={handleDragOver}
@@ -246,13 +246,13 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
               border border-dashed transition-all duration-300 ease-out
               flex flex-col items-center justify-center gap-6
               ${darkMode ? 'bg-white/[0.02]' : 'bg-gray-50'}
-              ${isLoading ? 'border-emerald-500/30 bg-emerald-500/[0.03] cursor-wait' : ''}
+              ${isLoading ? 'border-lime-500/30 bg-lime-500/[0.03] cursor-wait' : ''}
               ${!isLoading && isDragging
-                ? 'border-emerald-500 bg-emerald-500/[0.05] scale-[1.02]'
+                ? 'border-lime-500 bg-lime-500/[0.05] shadow-[0_0_30px_rgba(132,204,22,0.2)] scale-[1.02]'
                 : !isLoading
                   ? darkMode
-                    ? 'border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.03]'
-                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-100'
+                    ? 'border-white/[0.08] hover:border-lime-500/50 hover:bg-lime-500/[0.03] hover:shadow-[0_0_20px_rgba(132,204,22,0.1)]'
+                    : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
                   : ''
               }
             `}
@@ -260,27 +260,27 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
             {isLoading ? (
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-lg animate-pulse" />
-                  <Loader2 className="relative w-12 h-12 text-emerald-500 animate-spin" strokeWidth={2} />
+                  <div className="absolute inset-0 bg-lime-500/20 rounded-full blur-lg animate-pulse" />
+                  <Loader2 className="relative w-12 h-12 text-lime-500 animate-spin" strokeWidth={2} />
                 </div>
-                <span className={`font-medium text-base tracking-wide px-8 ${darkMode ? 'text-zinc-400' : 'text-gray-500'}`}>
+                <span className={`font-medium text-base tracking-wide px-8 ${darkMode ? 'text-white' : 'text-gray-500'}`}>
                   {statusMessage || "Processing..."}
                 </span>
               </div>
             ) : (
               <>
                 <div className={`p-5 rounded-2xl transition-colors duration-300 ${isDragging
-                    ? 'bg-emerald-500/10 text-emerald-500'
-                    : darkMode
-                      ? 'bg-white/[0.04] text-zinc-600 group-hover:bg-white/[0.06] group-hover:text-zinc-400'
-                      : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-500'
+                  ? 'bg-lime-500/20 text-lime-400'
+                  : darkMode
+                    ? 'bg-lime-500/10 text-lime-500 group-hover:bg-lime-500/20 group-hover:text-lime-400 group-hover:shadow-[0_0_20px_rgba(132,204,22,0.2)]'
+                    : 'bg-emerald-100 text-emerald-600 group-hover:bg-emerald-200 group-hover:text-emerald-700'
                   }`}>
                   <UploadCloud size={48} strokeWidth={1.5} />
                 </div>
 
                 <div className="space-y-1">
                   <p className={`text-lg font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Drag & Drop PDF</p>
-                  <p className={`text-sm ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>or click to browse files</p>
+                  <p className={`text-sm ${darkMode ? 'text-white/80' : 'text-gray-400'}`}>or click to browse files</p>
                 </div>
 
                 <input
@@ -296,7 +296,7 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
           </div>
 
           {!isLoading && (
-            <div className={`mt-8 flex items-center justify-center gap-2 text-sm ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+            <div className={`mt-8 flex items-center justify-center gap-2 text-sm ${darkMode ? 'text-white/80' : 'text-gray-400'}`}>
               <FileText size={16} />
               <span>Lifewood Standard PDF Support</span>
             </div>

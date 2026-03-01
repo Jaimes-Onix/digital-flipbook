@@ -52,8 +52,8 @@ const ConversionSuccessModal: React.FC<{
 
         <div className="flex justify-center mb-6">
           <div className="relative">
-            <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
-            <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <div className="absolute inset-0 bg-lime-500/20 rounded-full blur-xl animate-pulse" />
+            <div className="relative w-20 h-20 bg-gradient-to-br from-lime-500 to-lime-600 rounded-full flex items-center justify-center shadow-lg shadow-lime-500/20">
               <CheckCircle2 size={40} className="text-white" />
             </div>
           </div>
@@ -802,6 +802,7 @@ const App: React.FC = () => {
       <LibraryActionModal
         book={pendingBook}
         darkMode={darkMode}
+        customCategories={customCategories}
         onClose={() => setPendingBook(null)}
         onSelectMode={handleSelectMode}
         onUpdateCategory={handleUpdateBookCategory}
@@ -846,7 +847,7 @@ const App: React.FC = () => {
           {conversionToast.startsWith('Conversion failed') ? (
             <AlertCircle size={22} className="text-red-400 shrink-0" />
           ) : (
-            <CheckCircle2 size={22} className="text-emerald-500 shrink-0" />
+            <CheckCircle2 size={22} className="text-lime-500 shrink-0" />
           )}
           <span className="font-medium text-sm max-w-md">{conversionToast}</span>
         </div>

@@ -94,8 +94,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     const content = (
       <>
         <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${active
-          ? darkMode ? 'bg-emerald-500/15 shadow-lg shadow-emerald-800/20' : 'bg-emerald-50 shadow-lg'
-          : darkMode ? 'bg-transparent group-hover:bg-emerald-500/[0.06]' : 'bg-transparent group-hover:bg-gray-100'
+          ? darkMode ? 'bg-lime-500/15 shadow-lg shadow-lime-800/20' : 'bg-emerald-50 shadow-lg'
+          : darkMode ? 'bg-transparent group-hover:bg-lime-500/[0.06]' : 'bg-transparent group-hover:bg-gray-100'
           }`}>
           {color ? (
             <Icon
@@ -105,13 +105,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               className="transition-all duration-200"
             />
           ) : (
-            <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-emerald-300' : 'text-gray-900') : (darkMode ? 'text-emerald-400/50 group-hover:text-emerald-300' : 'text-gray-500')} />
+            <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-lime-400' : 'text-gray-900') : (darkMode ? 'text-zinc-400 group-hover:text-zinc-200' : 'text-gray-500')} />
           )}
         </div>
         <div className="flex-1 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
           <span className={`text-sm font-medium tracking-tight text-left block w-[150px] truncate ${active
             ? darkMode ? 'text-white' : 'text-gray-900'
-            : darkMode ? 'text-emerald-300/50 group-hover:text-emerald-200' : 'text-gray-500 group-hover:text-gray-900'
+            : darkMode ? 'text-zinc-400 group-hover:text-white' : 'text-gray-500 group-hover:text-gray-900'
             }`}>
             {label}
           </span>
@@ -128,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     e.stopPropagation();
                     setCategoryToEdit(cat);
                   }}
-                  className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                   title="Edit Category"
                 >
                   <Pencil size={14} />
@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
             <button
               onClick={(e) => handleShareClick(e, categorySlug, label)}
-              className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-emerald-400/40 hover:text-emerald-300 hover:bg-emerald-500/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+              className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
               title="Generate share link"
             >
               <Link2 size={14} />
@@ -164,14 +164,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       px-4 lg:px-0 lg:group-hover/sidebar:px-4
       justify-start lg:justify-center lg:group-hover/sidebar:justify-start
       ${active
-        ? darkMode ? 'bg-emerald-500/[0.1]' : 'bg-gray-100'
-        : darkMode ? 'hover:bg-emerald-500/[0.06]' : 'hover:bg-gray-50'
+        ? darkMode ? 'bg-lime-500/[0.1]' : 'bg-gray-100'
+        : darkMode ? 'hover:bg-lime-500/[0.06]' : 'hover:bg-gray-50'
       }`;
 
     if (to) {
       return (
         <Link to={to} className={className} onClick={() => onMobileClose?.()}>
-          {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-emerald-500 rounded-r-full" style={{ boxShadow: '0 0 12px rgba(34,197,94,0.4)' }} />}
+          {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-lime-500 rounded-r-full" style={{ boxShadow: '0 0 12px rgba(34,197,94,0.4)' }} />}
           {content}
         </Link>
       );
@@ -197,15 +197,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         group/sidebar lg:w-[88px] lg:hover:w-[300px] w-[300px]
         h-full flex flex-col shrink-0 z-50 transition-all duration-300
         backdrop-blur-xl border-r
-        ${darkMode ? 'bg-[#10241e]/95 border-emerald-700/15' : 'bg-white/95 border-gray-200'}
+        ${darkMode ? 'bg-[#0e0e11]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}
         fixed lg:relative inset-y-0 left-0 transform
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         lg:flex
       `}>
         {/* Brand */}
         <div className="flex items-center gap-3.5 px-7 lg:px-[22px] lg:group-hover/sidebar:px-7 pt-6 pb-6 overflow-hidden transition-all duration-300">
-          <div className="w-11 h-11 shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-600/10 border border-emerald-500/25 flex items-center justify-center">
-            <svg viewBox="0 0 512 512" fill="currentColor" className="w-6 h-6 text-emerald-400" xmlns="http://www.w3.org/2000/svg">
+          <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-lime-500/25 to-lime-600/10 border border-lime-500/25' : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20'}`}>
+            <svg viewBox="0 0 512 512" fill="currentColor" className={`w-6 h-6 ${darkMode ? 'text-lime-400' : 'text-emerald-500'}`} xmlns="http://www.w3.org/2000/svg">
               <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
               <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
                 stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -213,13 +213,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
             <span className={`text-[15px] font-semibold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
-            <span className={`text-[11px] uppercase tracking-[0.15em] font-medium ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>Digital Flipbook</span>
+            <span className={`text-[11px] uppercase tracking-[0.15em] font-medium ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Digital Flipbook</span>
           </div>
         </div>
 
         <div className="px-5 space-y-0.5 mb-5 mt-2">
           <div className="flex items-center overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100 mb-2">
-            <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Navigate</p>
+            <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Navigate</p>
           </div>
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
           <NavItem icon={AllBooksIcon} label="All Books" active={location.pathname === '/library'} to="/library" />
@@ -234,16 +234,16 @@ const Sidebar: React.FC<SidebarProps> = ({
               px-4 lg:px-0 lg:group-hover/sidebar:px-4
               justify-start lg:justify-center lg:group-hover/sidebar:justify-start
               ${darkMode
-                ? 'hover:bg-emerald-500/[0.06] border border-dashed border-emerald-700/20 hover:border-emerald-500/30'
+                ? 'hover:bg-lime-500/[0.06] border border-dashed border-lime-700/20 hover:border-lime-500/30'
                 : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
               }`}
           >
-            <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-emerald-500/[0.06]' : 'group-hover:bg-gray-100'
+            <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-lime-500/[0.06]' : 'group-hover:bg-gray-100'
               }`}>
-              <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-emerald-400/40 group-hover:text-emerald-400' : 'text-gray-400 group-hover:text-emerald-500'}`} />
+              <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-zinc-500 group-hover:text-lime-400' : 'text-gray-400 group-hover:text-emerald-500'}`} />
             </div>
             <div className="flex-1 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
-              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-emerald-300/30 group-hover:text-emerald-300' : 'text-gray-400 group-hover:text-emerald-500'
+              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-zinc-600 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-emerald-500'
                 }`}>
                 Add Category
               </span>
@@ -253,9 +253,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Categories */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative flex flex-col">
-          <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 ${darkMode ? 'bg-[#10241e]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} transition-all duration-300`}>
+          <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 ${darkMode ? 'bg-[#0e0e11]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} transition-all duration-300`}>
             <div className="overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
-              <p className={`px-9 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-emerald-400/40' : 'text-gray-400'}`}>Categories</p>
+              <p className={`px-9 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Categories</p>
             </div>
           </div>
           <div className="px-5 space-y-0.5 pb-4">
@@ -276,7 +276,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className={`px-5 pb-5 pt-4 border-t space-y-0.5 ${darkMode ? 'border-emerald-700/15' : 'border-gray-200'}`}>
+        <div className={`px-5 pb-5 pt-4 border-t space-y-0.5 ${darkMode ? 'border-white/[0.06]' : 'border-gray-200'}`}>
           <button
             onClick={() => setShowSignOutModal(true)}
             className={`flex items-center gap-3 py-2 rounded-2xl transition-all duration-300 overflow-hidden group
@@ -306,7 +306,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Exact Logo" className={`h-[24px] w-auto ${darkMode ? 'opacity-90' : ''}`} />
               </div>
               <div className="flex justify-center items-center mt-2.5 gap-1 text-[11px] font-medium tracking-wide">
-                <span className={darkMode ? 'text-emerald-400/60' : 'text-[#0B543D]'}>Powered by</span>
+                <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
                 <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
               </div>
             </div>
@@ -363,7 +363,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           />
 
           <div className={`relative w-full max-w-sm rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 ${darkMode
-            ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
+            ? 'bg-[#141418]/95 backdrop-blur-3xl border-white/[0.06] shadow-black/60'
             : 'bg-white border-gray-200 shadow-gray-300/50'
             }`}>
             <div className="flex flex-col items-center text-center p-8 pt-10">
@@ -375,7 +375,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Sign Out?
               </h3>
-              <p className={`text-sm leading-relaxed mb-8 max-w-[260px] ${darkMode ? 'text-emerald-300/40' : 'text-gray-500'}`}>
+              <p className={`text-sm leading-relaxed mb-8 max-w-[260px] ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
                 Are you sure you want to sign out of your account?
               </p>
 
@@ -389,7 +389,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={() => setShowSignOutModal(false)}
                   className={`w-full py-3.5 rounded-2xl font-bold transition-all active:scale-[0.98] ${darkMode
-                    ? 'bg-emerald-500/[0.06] hover:bg-emerald-500/[0.1] text-emerald-300/70'
+                    ? 'bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                     }`}
                 >

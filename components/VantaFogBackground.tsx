@@ -11,7 +11,7 @@ interface VantaFogProps {
 
 const CONFIGS = {
   default: {
-    highlightColor: 0x064e3b, // emerald-900
+    highlightColor: 0x365314, // lime-900
     midtoneColor: 0x18181b,   // zinc-900
     lowlightColor: 0x09090b,  // zinc-950
     baseColor: 0x09090b,      // zinc-950

@@ -81,7 +81,7 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
         <div className="flex flex-col sm:flex-row flex-1 min-h-0">
           {/* Left - Preview */}
           <div className={`sm:flex-1 bg-gradient-to-br p-6 sm:p-8 flex flex-col items-center justify-center relative ${darkMode ? 'from-[#0c0c0e] to-[#141418]' : 'from-gray-100 to-gray-50'}`}>
-            <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-lime-500/5 rounded-full blur-[80px] pointer-events-none" />
             <div className="absolute bottom-1/4 right-1/4 w-32 h-32 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none" />
 
             <div className="relative w-full flex items-center justify-center" style={{ perspective: '1000px' }}>
@@ -124,8 +124,8 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
                     key={cat.id}
                     onClick={() => setSelectedCategory(isSelected ? undefined : cat.slug)}
                     className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isSelected
-                      ? darkMode ? 'bg-white/[0.08] border-white/[0.15] shadow-lg' : 'bg-emerald-50 border-emerald-200 shadow-lg'
-                      : darkMode ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-400' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      ? darkMode ? 'bg-lime-500/[0.08] border-lime-500/30 shadow-[0_0_20px_rgba(132,204,22,0.1)]' : 'bg-emerald-50 border-emerald-200 shadow-lg'
+                      : darkMode ? 'border-white/[0.04] hover:border-lime-500/30 hover:bg-lime-500/[0.02] text-zinc-400' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                       }`}
                   >
                     <div
@@ -135,7 +135,7 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
                       <Icon size={20} style={{ color: cat.color }} />
                     </div>
                     <span className={`font-medium flex-1 text-left ${isSelected ? darkMode ? 'text-white' : 'text-emerald-800' : ''}`}>{cat.name}</span>
-                    {isSelected && <Check size={20} className="text-emerald-500" />}
+                    {isSelected && <Check size={20} className="text-lime-500" />}
                   </button>
                 );
               })}
@@ -160,7 +160,7 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
 
             {/* Confirm */}
             <button onClick={handleConfirm}
-              className={`mt-6 w-full py-4 font-semibold rounded-2xl transition-colors active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 ${darkMode ? 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-white/5' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-300/30'
+              className={`mt-6 w-full py-4 font-semibold rounded-2xl transition-colors active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 ${darkMode ? 'bg-lime-500 text-lime-950 hover:bg-lime-400 shadow-[0_0_20px_rgba(132,204,22,0.2)]' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-300/30'
                 }`}>
               {isLastBook ? 'Add to Library' : 'Next Book'}
               {!isLastBook && <ChevronRight size={20} />}

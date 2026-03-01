@@ -112,14 +112,14 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
 
             {/* Modal */}
             <div className={`relative w-full max-w-sm max-h-[90vh] rounded-[28px] shadow-2xl border overflow-y-auto animate-in zoom-in-95 fade-in duration-200 ${darkMode
-                ? 'bg-[#122a22]/95 backdrop-blur-3xl border-emerald-700/15 shadow-black/60'
+                ? 'bg-[#141418]/95 backdrop-blur-3xl border-white/[0.06] shadow-black/60'
                 : 'bg-white border-gray-200 shadow-gray-300/50'
                 }`}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-7 pt-7 pb-5">
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${darkMode ? 'bg-emerald-500/15' : 'bg-emerald-50'}`}>
-                            <FolderPlus size={20} className="text-emerald-400" />
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${darkMode ? 'bg-lime-500/15' : 'bg-emerald-50'}`}>
+                            <FolderPlus size={20} className="text-lime-400" />
                         </div>
                         <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                             New Category
@@ -136,7 +136,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                 <div className="px-7 pb-7 space-y-5">
                     {/* Name Input */}
                     <div className="space-y-2">
-                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-lime-400/50' : 'text-gray-400'}`}>
                             Category Name
                         </label>
                         <input
@@ -148,20 +148,20 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                             placeholder="e.g. Marketing, HR, Finance..."
                             maxLength={40}
                             className={`w-full px-4 py-3 rounded-2xl text-sm font-medium outline-none transition-all border ${darkMode
-                                ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-zinc-600 focus:border-emerald-500/40 focus:bg-white/[0.07]'
+                                ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-zinc-600 focus:border-lime-500/40 focus:bg-white/[0.07]'
                                 : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400 focus:bg-white'
                                 }`}
                         />
                         {slug && name && (
                             <p className={`text-[11px] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
-                                Slug: <span className={`font-mono ${darkMode ? 'text-emerald-400/60' : 'text-emerald-500'}`}>{slug}</span>
+                                Slug: <span className={`font-mono ${darkMode ? 'text-lime-400/60' : 'text-lime-500'}`}>{slug}</span>
                             </p>
                         )}
                     </div>
 
                     {/* Color Picker */}
                     <div className="space-y-2">
-                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-lime-400/50' : 'text-gray-400'}`}>
                             Color
                         </label>
                         <div className="flex items-center gap-2.5 flex-wrap">
@@ -180,7 +180,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
 
                     {/* Icon Picker */}
                     <div className="space-y-2">
-                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-emerald-400/50' : 'text-gray-400'}`}>
+                        <label className={`text-xs font-semibold uppercase tracking-widest ${darkMode ? 'text-lime-400/50' : 'text-gray-400'}`}>
                             Icon
                         </label>
                         <div className="flex items-center gap-2.5 flex-wrap">
@@ -192,7 +192,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, darkMode, o
                                         key={i.id}
                                         onClick={() => setIcon(i.id)}
                                         className={`w-10 h-10 rounded-xl transition-all duration-150 flex items-center justify-center hover:scale-105 active:scale-95 ${isSelected
-                                            ? darkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                            ? darkMode ? 'bg-lime-500/20 text-lime-400 border border-lime-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                                             : darkMode ? 'bg-white/[0.04] text-zinc-400 border border-transparent hover:bg-white/[0.08]' : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
                                             }`}
                                     >

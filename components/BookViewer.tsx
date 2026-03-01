@@ -317,7 +317,7 @@ const Thumbnail: React.FC<{
       ref={containerRef}
       onClick={onClick}
       className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${isActive
-        ? 'border-emerald-500 shadow-md shadow-emerald-500/20 scale-[1.02]'
+        ? 'border-lime-500 shadow-md shadow-lime-500/20 scale-[1.02]'
         : 'border-transparent hover:border-white/10'
         }`}
     >
@@ -474,7 +474,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
         parts.push(text.substring(lastIndex, idx));
       }
       parts.push(
-        <mark key={keyIdx++} className="bg-emerald-500/30 text-emerald-300 rounded px-0.5">
+        <mark key={keyIdx++} className="bg-lime-500/30 text-lime-300 rounded px-0.5">
           {text.substring(idx, idx + query.length)}
         </mark>
       );
@@ -884,7 +884,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search in document..."
-                className="w-full pl-3 pr-8 py-2 text-sm border border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/30 bg-white/[0.04] text-white placeholder-zinc-600"
+                className="w-full pl-3 pr-8 py-2 text-sm border border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 bg-white/[0.04] text-white placeholder-zinc-600"
               />
               {searchQuery && (
                 <button
@@ -900,7 +900,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
                 type="checkbox"
                 checked={exactMatch}
                 onChange={(e) => setExactMatch(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-zinc-600 bg-white/[0.04] text-emerald-500 focus:ring-emerald-500/30"
+                className="w-3.5 h-3.5 rounded border-zinc-600 bg-white/[0.04] text-lime-500 focus:ring-lime-500/30"
               />
               <span className="text-xs text-zinc-500">Exact match</span>
             </label>
@@ -934,10 +934,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
                       <button
                         key={result.page}
                         onClick={() => goToPage(result.page)}
-                        className="text-left p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-emerald-500/20 transition-colors group"
+                        className="text-left p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] hover:border-lime-500/20 transition-colors group"
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-semibold text-zinc-400 group-hover:text-emerald-400">{pageLabel}</span>
+                          <span className="text-xs font-semibold text-zinc-400 group-hover:text-lime-400">{pageLabel}</span>
                         </div>
                         {result.snippets.map((snippet, i) => (
                           <p key={i} className="text-xs text-zinc-500 leading-relaxed mb-1 select-text">

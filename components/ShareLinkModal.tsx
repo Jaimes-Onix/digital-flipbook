@@ -261,9 +261,9 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                 <label className={`block text-xs font-medium uppercase tracking-wider ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>Number of Days</label>
                 <style>{`input[type='number']::-webkit-inner-spin-button,input[type='number']::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}`}</style>
                 <input type="number" min="1" value={customDays} onChange={(e) => setCustomDays(e.target.value)} placeholder="e.g. 2, 45"
-                  className={`w-full px-4 py-3 rounded-2xl border transition-colors outline-none focus:ring-2 focus:ring-emerald-500/20 ${darkMode
-                    ? 'bg-black/40 border-white/[0.08] text-zinc-200 focus:border-emerald-500/50'
-                    : 'bg-white border-gray-200 text-gray-800 focus:border-emerald-500 shadow-sm'
+                  className={`w-full px-4 py-3 rounded-2xl border transition-colors outline-none focus:ring-2 focus:ring-lime-500/20 ${darkMode
+                    ? 'bg-black/40 border-white/[0.08] text-zinc-200 focus:border-lime-500/50'
+                    : 'bg-white border-gray-200 text-gray-800 focus:border-lime-500 shadow-sm'
                     }`}
                 />
               </div>
@@ -274,8 +274,8 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
               onClick={handleManualGenerate}
               disabled={isLoading || (expiresInDays === 'custom' && (!customDays || parseInt(customDays, 10) <= 0))}
               className={`w-full py-3.5 rounded-2xl font-semibold transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${darkMode
-                ? 'bg-emerald-500 text-white hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-500'
-                : 'bg-emerald-600 text-white hover:bg-emerald-500 disabled:bg-gray-100 disabled:text-gray-400'
+                ? 'bg-emerald-500 text-black hover:bg-lime-400 disabled:bg-zinc-800 disabled:text-zinc-500'
+                : 'bg-emerald-600 text-black hover:bg-emerald-500 disabled:bg-gray-100 disabled:text-gray-400'
                 }`}
             >
               {isLoading ? (
@@ -290,10 +290,10 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
               <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                 <label className={`block text-sm font-medium ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Share Link</label>
                 <div className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl border overflow-hidden ${darkMode ? 'bg-black/40 border-white/[0.08]' : 'bg-gray-50 border-gray-200'}`}>
-                  <Link2 size={16} className={`shrink-0 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                  <Link2 size={16} className={`shrink-0 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`} />
                   {isLoading ? (
                     <div className="flex-1 flex items-center py-0.5">
-                      <Loader2 size={14} className="animate-spin text-emerald-500 mr-2" />
+                      <Loader2 size={14} className="animate-spin text-lime-500 mr-2" />
                       <span className={`text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Generating unique link...</span>
                     </div>
                   ) : (
@@ -380,7 +380,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                                   disabled={link.status === 'expired'}
                                   className={`text-sm font-mono leading-tight transition-colors ${link.status === 'expired'
                                     ? darkMode ? 'text-zinc-600 line-through cursor-default' : 'text-gray-400 line-through cursor-default'
-                                    : darkMode ? 'text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer' : 'text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer'
+                                    : darkMode ? 'text-lime-400 hover:text-lime-300 hover:underline cursor-pointer' : 'text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer'
                                     }`}
                                   title={link.status !== 'expired' ? 'Click to copy' : 'Link expired'}
                                   style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', maxWidth: '100%', textAlign: 'left' }}
@@ -407,7 +407,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                                 {link.status === 'expired' ? (
                                   <XCircle size={24} className="text-red-400 mx-auto" />
                                 ) : (
-                                  <CheckCircle2 size={24} className="text-emerald-400 mx-auto" />
+                                  <CheckCircle2 size={24} className="text-lime-400 mx-auto" />
                                 )}
                               </td>
 
@@ -444,7 +444,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] shadow-lg ${!generatedUrl || isLoading
               ? darkMode ? 'bg-zinc-700 text-zinc-500 shadow-none cursor-not-allowed' : 'bg-gray-200 text-gray-400 shadow-none cursor-not-allowed'
               : copied
-                ? 'bg-emerald-500 text-white shadow-emerald-500/25'
+                ? 'bg-emerald-500 text-white shadow-lime-500/25'
                 : darkMode
                   ? 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-white/10'
                   : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20'
