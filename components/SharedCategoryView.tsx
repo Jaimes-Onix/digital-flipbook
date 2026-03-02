@@ -165,9 +165,8 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
       : `page ${currentPage + 1} of ${selectedBook.totalPages}`;
 
     return (
-      <div ref={readerContainerRef} className="fixed inset-0 z-0 flex flex-col overflow-hidden bg-black">
-
-        <header className={`relative z-50 h-14 flex items-center justify-between px-5 backdrop-blur-xl border-b transition-colors shrink-0 ${readerHeaderBg}`}>
+      <div ref={readerContainerRef} className="fixed inset-0 z-0 overflow-hidden bg-black">
+        <header className={`absolute top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-5 backdrop-blur-xl border-b transition-colors ${readerHeaderBg}`}>
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => { setSelectedBook(null); setShowSearch(false); }}
@@ -184,7 +183,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
           </button>
         </header>
 
-        <div className="flex-1 w-full min-h-0 relative z-10">
+        <div className="absolute inset-0 w-full h-full z-10">
           <BookViewer
             pdfDocument={selectedBook.doc}
             onFlip={setCurrentPage}

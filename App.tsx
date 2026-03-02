@@ -676,7 +676,7 @@ const App: React.FC = () => {
           }
         />}
 
-        <main className={`flex-1 relative w-full h-full ${isLandingPage ? '' : 'pt-14'} overflow-y-auto no-scrollbar`}>
+        <main className={`flex-1 relative w-full h-full ${isLandingPage || view === 'reader' || view === 'shared' ? '' : 'pt-14'} overflow-y-auto no-scrollbar`}>
           <Routes>
             {/* Home Route - with 3D effects */}
             <Route path="/" element={

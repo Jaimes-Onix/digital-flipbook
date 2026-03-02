@@ -518,16 +518,17 @@ const BookViewer: React.FC<BookViewerProps> = ({
   // Calculate base scale to fit screen
   useEffect(() => {
     let resizeTimeout: NodeJS.Timeout | null = null;
+    let observer: ResizeObserver | null = null;
 
     const updateScale = () => {
-      // Use the actual flex container's dimensions to perfectly stretch edge-to-edge
-      const parent = containerRef.current?.parentElement;
-      if (!parent) return;
+      const bookContainer = containerRef.current?.querySelector('.book-area-container');
+      if (!bookContainer) return;
 
       const singlePage = pdfAspectRatio > 1.2 || window.innerWidth < 768;
 
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
+      // Consider standard safe padding: 40px width padding, 40px height padding
+      const w = Math.max(0, bookContainer.clientWidth - 40);
+      const h = Math.max(0, bookContainer.clientHeight - 40);
 
       const spreadW = singlePage ? pageW : pageW * 2;
       const scaleX = w / spreadW;
@@ -537,21 +538,40 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
       setIsSinglePage(singlePage);
       setBaseScale(newScale);
+
+      // Force HTMLFlipBook to recalculate its internal canvas offset after scale applied
+      setTimeout(() => {
+        bookRef.current?.pageFlip()?.update();
+      }, 50);
     };
 
     const handleResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(updateScale, 100);
+      resizeTimeout = setTimeout(updateScale, 50);
     };
 
-    updateScale();
+    const bookArea = containerRef.current?.querySelector('.book-area-container');
+    if (bookArea) {
+      observer = new ResizeObserver(() => {
+        handleResize();
+      });
+      observer.observe(bookArea);
+    }
 
+    // Fallbacks
     window.addEventListener('resize', handleResize);
+
+    // Initial calls carefully staggered so DOM and React settle
+    updateScale();
+    setTimeout(updateScale, 100);
+    setTimeout(updateScale, 500); // Failsafe for slow layout repaints
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (observer) observer.disconnect();
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
-  }, [pageW, pageH]);
+  }, [pageW, pageH, pdfAspectRatio]);
 
   // Initialize pages
   useEffect(() => {
@@ -586,6 +606,9 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
         setLoading(false);
         console.log(`BookViewer ready: ${pdfDocument.numPages} pages`);
+        setTimeout(() => {
+          bookRef.current?.pageFlip()?.update();
+        }, 100);
       } catch (err: any) {
         console.error('BookViewer init error:', err);
         setError(err.message || 'Failed to load book');
@@ -686,7 +709,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
   return (
     <div
       ref={containerRef}
-      className="df-container w-full h-full flex flex-col relative"
+      className="df-container w-full h-full flex flex-col relative pt-14"
       style={{
         background: 'transparent',
         touchAction: 'pan-x pan-y'
@@ -694,7 +717,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
       onWheel={(e) => { if (e.ctrlKey) e.preventDefault(); }}
     >
       {/* Main Book Area */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+      <div className="flex-1 relative flex items-center justify-center overflow-hidden book-area-container">
         {/* Left Navigation */}
         <button
           onClick={flipPrev}
@@ -707,10 +730,11 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
         {/* The Book */}
         <div
-          className="relative book-3d-container"
+          className="absolute top-1/2 left-1/2 book-3d-container"
           style={{
-            transform: `scale(${scale})`,
-            transformOrigin: 'center center'
+            width: isSinglePage ? pageW : pageW * 2,
+            height: pageH,
+            transform: `translate(-50%, -50%) scale(${scale})`,
           }}
         >
           <HTMLFlipBook
@@ -727,6 +751,9 @@ const BookViewer: React.FC<BookViewerProps> = ({
             mobileScrollSupport={true}
             onFlip={handleFlip}
             onChangeState={handleChangeState}
+            onInit={() => {
+              setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
+            }}
             ref={(el: any) => {
               bookRef.current = el;
               if (el) onBookInit(el);
