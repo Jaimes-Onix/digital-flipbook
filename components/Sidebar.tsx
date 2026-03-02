@@ -19,7 +19,8 @@ import {
   Folder,
   LucideIcon,
   Pencil,
-  Trash2
+  Trash2,
+  Star
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -260,7 +261,55 @@ const Sidebar: React.FC<SidebarProps> = ({
               </span>
             </div>
           </button>
-          <NavItem icon={darkMode ? Sun : Moon} label={darkMode ? "Light Mode" : "Dark Mode"} onClick={onToggleDarkMode} />
+          <div className="w-[calc(100vw-40px)] sm:w-[260px] lg:w-12 lg:group-hover/sidebar:w-[260px] px-4 lg:px-0 lg:group-hover/sidebar:px-4 flex justify-start lg:justify-center lg:group-hover/sidebar:justify-start items-center py-2 transition-all duration-300">
+            <button
+              onClick={onToggleDarkMode}
+              className={`
+                relative flex items-center h-10 lg:h-8 lg:group-hover/sidebar:h-10 rounded-[20px] transition-all duration-500 overflow-hidden shrink-0 border
+                w-[calc(100vw-40px)] sm:w-[260px] lg:w-8 lg:group-hover/sidebar:w-[260px]
+                ${darkMode ? 'bg-[#313338] border-black/20' : 'bg-gradient-to-r from-[#ffd32a] to-[#ff9f1a] border-white/20'}
+              `}
+              style={{
+                boxShadow: darkMode ? 'inset 0 3px 6px rgba(0,0,0,0.6)' : 'inset 0 2px 5px rgba(200,80,0,0.4)'
+              }}
+            >
+              <div className={`
+                absolute inset-0 flex items-center w-[200%] transition-transform duration-500 ease-in-out
+                ${darkMode ? 'translate-x-[0%]' : '-translate-x-[50%]'}
+                opacity-100 lg:opacity-0 lg:group-hover/sidebar:opacity-100
+              `}>
+                <div className="w-1/2 flex items-center justify-start pl-4">
+                  <span className={`text-[12px] font-black tracking-tighter select-none text-white`} style={{ fontFamily: '"Arial Rounded MT Bold", Arial, sans-serif' }}>
+                    NIGHTMODE
+                  </span>
+                </div>
+                <div className="w-1/2 flex items-center justify-end pr-4">
+                  <span className={`text-[12px] font-black tracking-tighter select-none text-white`} style={{ fontFamily: '"Arial Rounded MT Bold", Arial, sans-serif' }}>
+                    DAYMODE
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className={`
+                  absolute top-1/2 -translate-y-1/2 h-[34px] w-[34px] lg:h-7 lg:w-7 lg:group-hover/sidebar:h-[34px] lg:group-hover/sidebar:w-[34px] rounded-full flex items-center justify-center transition-all duration-500 shadow-md border
+                  ${darkMode
+                    ? 'bg-[#0f0f11] border-black/50 translate-x-[calc(100vw-80px)] sm:translate-x-[222px] lg:translate-x-0.5 lg:group-hover/sidebar:translate-x-[222px]'
+                    : 'bg-white border-white/50 translate-x-1 lg:translate-x-0.5 lg:group-hover/sidebar:translate-x-1'}
+                `}
+              >
+                {darkMode ? (
+                  <div className="relative flex items-center justify-center w-full h-full">
+                    <Moon size={16} fill="#FFD700" color="#FFD700" strokeWidth={0} className="transform -scale-x-100" />
+                    <Star size={6} fill="#FFD700" color="#FFD700" strokeWidth={0} className="absolute top-[8px] right-[6px]" />
+                    <Star size={4} fill="#FFD700" color="#FFD700" strokeWidth={0} className="absolute bottom-[6px] left-[6px]" />
+                  </div>
+                ) : (
+                  <Sun size={20} fill="none" stroke="#FFD700" strokeWidth={2.5} />
+                )}
+              </div>
+            </button>
+          </div>
 
           {/* Lifewood Branding Footer */}
           <div className="mt-3 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[260px] lg:group-hover/sidebar:opacity-100">
