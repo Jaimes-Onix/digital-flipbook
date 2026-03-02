@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Library as LibraryIcon, Menu, LayoutGrid, Layers, X, Share2 } from 'lucide-react';
+import { Library as LibraryIcon, Menu, LayoutGrid, Layers, X, Share2, Presentation, UploadCloud } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 
 interface HeaderProps {
-  view: 'home' | 'library' | 'reader' | 'upload' | 'convert-pptx' | 'shared';
+  view: 'home' | 'library' | 'reader' | 'upload' | 'convert-pptx' | 'shared' | 'signin';
   darkMode: boolean;
   homeVariant?: 1 | 2;
   onToggleHomeVariant?: () => void;
@@ -96,26 +96,28 @@ const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2">
-        {view !== 'upload' && (
-          <>
-            {view !== 'home' && (
-              <button onClick={() => navigate('/')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${navInactive}`}>Home</button>
-            )}
-            <button onClick={() => navigate('/library')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'library' ? navActive : navInactive}`}>
-              <LibraryIcon size={15} /><span>My Books</span>
-            </button>
+        {view !== 'home' && (
+          <button onClick={() => navigate('/')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${navInactive}`}>Home</button>
+        )}
+        <button onClick={() => navigate('/library')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'library' ? navActive : navInactive}`}>
+          <LibraryIcon size={15} /><span>All Books</span>
+        </button>
+        <button onClick={() => navigate('/convert-pptx')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'convert-pptx' ? navActive : navInactive}`}>
+          <Presentation size={15} /><span>PPTX to PDF</span>
+        </button>
+        <button onClick={() => navigate('/upload')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'upload' ? navActive : navInactive}`}>
+          <UploadCloud size={15} /><span>Import PDF</span>
+        </button>
 
-            {view === 'home' && onToggleHomeVariant && (
-              <div className={`flex items-center rounded-full p-1 border ${toggleBg}`}>
-                <button onClick={homeVariant === 1 ? undefined : onToggleHomeVariant} className={`p-1.5 rounded-full transition-all ${homeVariant === 1 ? toggleActive : toggleInactive}`} title="Card View">
-                  <LayoutGrid size={14} />
-                </button>
-                <button onClick={homeVariant === 2 ? undefined : onToggleHomeVariant} className={`p-1.5 rounded-full transition-all ${homeVariant === 2 ? toggleActive : toggleInactive}`} title="Showcase View">
-                  <Layers size={14} />
-                </button>
-              </div>
-            )}
-          </>
+        {view === 'home' && onToggleHomeVariant && (
+          <div className={`flex items-center rounded-full p-1 border ${toggleBg}`}>
+            <button onClick={homeVariant === 1 ? undefined : onToggleHomeVariant} className={`p-1.5 rounded-full transition-all ${homeVariant === 1 ? toggleActive : toggleInactive}`} title="Card View">
+              <LayoutGrid size={14} />
+            </button>
+            <button onClick={homeVariant === 2 ? undefined : onToggleHomeVariant} className={`p-1.5 rounded-full transition-all ${homeVariant === 2 ? toggleActive : toggleInactive}`} title="Showcase View">
+              <Layers size={14} />
+            </button>
+          </div>
         )}
       </div>
     </header>

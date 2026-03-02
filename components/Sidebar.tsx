@@ -188,9 +188,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Navigate</p>
           </div>
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
-          <NavItem icon={AllBooksIcon} label="All Books" active={location.pathname === '/library'} to="/library" />
-          <NavItem icon={Presentation} label="PPTX to PDF" active={location.pathname === '/convert-pptx'} to="/convert-pptx" />
-          <NavItem icon={UploadCloud} label="Import PDF" active={location.pathname === '/upload'} to="/upload" />
 
           {/* + Add Category button */}
           <button
