@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown, Pencil } from 'lucide-react';
 import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
 import VideoLinksModal from './VideoLinksModal';
 import VideoGalleryModal from './VideoGalleryModal';
 import DeleteHistoryModal from './DeleteHistoryModal';
+import EditCategoryModal from './EditCategoryModal';
+import DeleteCategoryModal from './DeleteCategoryModal';
 
 
 
@@ -30,9 +32,11 @@ interface LibraryProps {
   onAddNew: () => void;
   onRemoveBook: (id: string) => void;
   onRestoreBook?: () => void;
+  onCategoryEdited?: (updatedCat: CustomCategory, oldSlug: string) => void;
+  onCategoryDeleted?: (categoryId: string, oldSlug: string) => void;
 }
 
-const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook }) => {
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited, onCategoryDeleted }) => {
   const filteredBooks = useMemo(() => {
     if (filter === 'all') return books;
     if (filter === 'favorites') return books.filter(b => b.isFavorite);
@@ -51,6 +55,12 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'az' | 'za' | 'most-pages' | 'fewest-pages'>('newest');
   const [sortOpen, setSortOpen] = useState(false);
+
+  // For Edit/Delete Custom Category
+  const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
+
+  const currentCustomCategory = customCategories.find(c => c.slug === filter);
 
   // Apply search + sort
   const sortedBooks = useMemo(() => {
@@ -90,12 +100,34 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
 
   return (
     <div className={`w-full max-w-7xl mx-auto px-6 py-12 transition-all duration-500 ${openingBookId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h2 className={`text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>{sectionTitle}</h2>
-          <p className={`text-sm mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className={`text-3xl font-bold tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {sectionTitle}
+            </h2>
+            <p className={`text-sm mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
+          </div>
+          {currentCustomCategory && currentCustomCategory.user_id && (
+            <div className="flex pl-2 items-center gap-2">
+              <button
+                onClick={() => setCategoryToEdit(currentCustomCategory)}
+                className={`p-2 rounded-full transition-all shadow-sm ${darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/10 hover:border-lime-500/50 shadow-black/40' : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 border border-gray-200'}`}
+                title="Edit Category"
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                onClick={() => setCategoryToDelete(currentCustomCategory)}
+                className={`p-2 rounded-full transition-all shadow-sm ${darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-red-500/70 hover:text-red-400 border border-white/10 hover:border-red-500/50 shadow-black/40' : 'bg-red-50 hover:bg-red-100 text-red-500 border border-red-200'}`}
+                title="Delete Category"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-3">
           {shareSlug && (
             <button
               onClick={() => setShowShareModal(true)}
@@ -359,6 +391,26 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         categoryName={sectionTitle}
         darkMode={darkMode || false}
         onRestore={onRestoreBook}
+      />
+
+      <EditCategoryModal
+        isOpen={!!categoryToEdit}
+        darkMode={darkMode || false}
+        category={categoryToEdit}
+        onClose={() => setCategoryToEdit(null)}
+        onCategoryEdited={(updatedCat, oldSlug) => {
+          if (onCategoryEdited) onCategoryEdited(updatedCat, oldSlug);
+        }}
+      />
+
+      <DeleteCategoryModal
+        isOpen={!!categoryToDelete}
+        darkMode={darkMode || false}
+        category={categoryToDelete}
+        onClose={() => setCategoryToDelete(null)}
+        onCategoryDeleted={(id, oldSlug) => {
+          if (onCategoryDeleted) onCategoryDeleted(id, oldSlug);
+        }}
       />
     </div>
   );

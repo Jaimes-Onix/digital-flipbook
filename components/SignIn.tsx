@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
 import { Loader2, AlertCircle, BookOpen, Layers, Sparkles, Moon, Sun, CheckCircle2 } from 'lucide-react';
@@ -68,6 +68,13 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [dark, setDark] = useState(true);
   const [loginStatus, setLoginStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [categoryCount, setCategoryCount] = useState(0);
+
+  useEffect(() => {
+    supabase.from('book_categories').select('*', { count: 'exact', head: true }).then(({ count, error }) => {
+      if (!error && count !== null) setCategoryCount(count);
+    });
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,8 +110,8 @@ const SignIn: React.FC = () => {
       {/* ========== FLOATING CARD — sits on top of background ========== */}
       <div className="relative z-10 h-full w-full flex items-center justify-center p-3 sm:p-5 lg:p-8">
         <div className={`relative w-full max-w-[1400px] h-full max-h-[820px] rounded-[24px] overflow-hidden flex transition-all duration-300 ${dark
-            ? 'shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8),0_0_40px_rgba(16,185,129,0.05)] border border-white/[0.06]'
-            : 'shadow-[0_30px_100px_-20px_rgba(0,0,0,0.12)] border border-gray-200/80'
+          ? 'shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8),0_0_40px_rgba(16,185,129,0.05)] border border-white/[0.06]'
+          : 'shadow-[0_30px_100px_-20px_rgba(0,0,0,0.12)] border border-gray-200/80'
           }`}>
 
           {/* ---- Left: Illustration Panel ---- */}
@@ -285,7 +292,7 @@ const SignIn: React.FC = () => {
               <div className="flex flex-wrap gap-2 mb-6">
                 {[
                   { icon: BookOpen, label: '3D Flipbook' },
-                  { icon: Layers, label: '6 Categories' },
+                  { icon: Layers, label: `${categoryCount} Categories` },
                   { icon: Sparkles, label: 'AI Summaries' },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-lime-500/[0.08] border-lime-500/[0.12]">
@@ -315,8 +322,8 @@ const SignIn: React.FC = () => {
             <button
               onClick={() => setDark(!dark)}
               className={`absolute top-5 right-5 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${dark
-                  ? 'bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700'
+                ? 'bg-white/[0.06] hover:bg-white/[0.1] text-zinc-400 hover:text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700'
                 }`}
               title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -351,8 +358,8 @@ const SignIn: React.FC = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@lifewood.com"
                       className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 ${dark
-                          ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
-                          : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
+                        ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
+                        : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
                         }`}
                       required
                     />
@@ -365,8 +372,8 @@ const SignIn: React.FC = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 ${dark
-                          ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
-                          : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
+                        ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
+                        : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
                         }`}
                       required
                     />

@@ -7,12 +7,13 @@ interface HomeProps {
   books: LibraryBook[];
   darkMode: boolean;
   variant?: 1 | 2;
+  categoryCount?: number;
   onUpload: () => void;
   onBrowseLibrary: () => void;
   onSelectBook: (book: LibraryBook) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onBrowseLibrary, onSelectBook }) => {
+const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount = 0, onUpload, onBrowseLibrary, onSelectBook }) => {
   const featuredBooks = books.slice(0, 5);
   const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   const [hoveredBookId, setHoveredBookId] = useState<string | null>(null);
@@ -68,7 +69,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, onUpload, onB
             >
               {[
                 { icon: BookOpen, label: '3D Flipbook' },
-                { icon: Layers, label: '6 Categories' },
+                { icon: Layers, label: `${categoryCount} Categories` },
                 { icon: Sparkles, label: 'AI Summaries' },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border ${darkMode

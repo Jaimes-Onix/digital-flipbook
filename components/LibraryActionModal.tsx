@@ -34,10 +34,11 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
   const [isTransferring, setIsTransferring] = useState(false);
   const [showTransferSuccess, setShowTransferSuccess] = useState(false);
   const [transferredTo, setTransferredTo] = useState('');
+  const [pendingTransferCategory, setPendingTransferCategory] = useState<{ slug: string, name: string } | null>(null);
   const [editedName, setEditedName] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); setIsEditingName(false); setIsTransferring(false); setShowTransferSuccess(false); }, [book?.id]);
+  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); setIsEditingName(false); setIsTransferring(false); setShowTransferSuccess(false); setPendingTransferCategory(null); }, [book?.id]);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -213,57 +214,77 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                       <div className="space-y-4">
                         <div className="flex flex-wrap gap-2.5">
                           {/* Built-in Categories */}
-                          {CATEGORY_OPTIONS.map(({ value, label }) => (
-                            <button
-                              key={value}
-                              onClick={() => {
-                                onUpdateCategory(book.id, book.category === value ? undefined : value);
-                                if (book.category !== value) {
-                                  setTransferredTo(label);
-                                  setShowTransferSuccess(true);
-                                }
-                                setIsTransferring(false);
-                              }}
-                              className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${book.category === value
-                                ? darkMode
-                                  ? 'bg-lime-500/20 text-lime-400 border-lime-500/50 shadow-[0_0_15px_rgba(132,204,22,0.15)]'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : darkMode
-                                  ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white border-transparent'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-transparent'
-                                }`}
-                            >
-                              {label}
-                            </button>
-                          ))}
+                          {CATEGORY_OPTIONS.map(({ value, label }) => {
+                            const isSelected = pendingTransferCategory ? pendingTransferCategory.slug === value : book.category === value;
+                            return (
+                              <button
+                                key={value}
+                                onClick={() => setPendingTransferCategory({ slug: value, name: label })}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${isSelected
+                                  ? darkMode
+                                    ? 'bg-lime-500/20 text-lime-400 border-lime-500/50 shadow-[0_0_15px_rgba(132,204,22,0.15)]'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : darkMode
+                                    ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white border-transparent'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-transparent'
+                                  }`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
                           {/* Custom Categories */}
-                          {customCategories.map((cat) => (
-                            <button
-                              key={cat.slug}
-                              onClick={() => {
-                                onUpdateCategory(book.id, book.category === cat.slug ? undefined : cat.slug);
-                                if (book.category !== cat.slug) {
-                                  setTransferredTo(cat.name);
-                                  setShowTransferSuccess(true);
-                                }
-                                setIsTransferring(false);
-                              }}
-                              className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${book.category === cat.slug
-                                ? darkMode
-                                  ? 'bg-lime-500/20 text-lime-400 border-lime-500/50 shadow-[0_0_15px_rgba(132,204,22,0.15)]'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : darkMode
-                                  ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white border-transparent'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-transparent'
-                                }`}
-                            >
-                              {cat.name}
-                            </button>
-                          ))}
+                          {customCategories.filter(cat =>
+                            !CATEGORY_OPTIONS.some(option => option.value === cat.slug)
+                          ).reduce((unique: typeof customCategories, cat) => {
+                            if (!unique.some(u => u.slug === cat.slug)) {
+                              unique.push(cat);
+                            }
+                            return unique;
+                          }, []).map((cat) => {
+                            const isSelected = pendingTransferCategory ? pendingTransferCategory.slug === cat.slug : book.category === cat.slug;
+                            return (
+                              <button
+                                key={cat.slug}
+                                onClick={() => setPendingTransferCategory({ slug: cat.slug, name: cat.name })}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${isSelected
+                                  ? darkMode
+                                    ? 'bg-lime-500/20 text-lime-400 border-lime-500/50 shadow-[0_0_15px_rgba(132,204,22,0.15)]'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : darkMode
+                                    ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white border-transparent'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-transparent'
+                                  }`}
+                              >
+                                {cat.name}
+                              </button>
+                            );
+                          })}
                         </div>
+
+                        {pendingTransferCategory && pendingTransferCategory.slug !== book.category && (
+                          <div className="pt-2">
+                            <button
+                              onClick={() => {
+                                onUpdateCategory(book.id, pendingTransferCategory.slug);
+                                setTransferredTo(pendingTransferCategory.name);
+                                setShowTransferSuccess(true);
+                                setIsTransferring(false);
+                                setPendingTransferCategory(null);
+                              }}
+                              className={`w-full py-3 rounded-xl font-bold transition-all shadow-md mt-2 ${darkMode ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-300'}`}
+                            >
+                              Confirm Transfer
+                            </button>
+                          </div>
+                        )}
+
                         <button
-                          onClick={() => setIsTransferring(false)}
-                          className={`text-sm tracking-wide ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
+                          onClick={() => {
+                            setIsTransferring(false);
+                            setPendingTransferCategory(null);
+                          }}
+                          className={`text-sm tracking-wide mt-2 ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
                         >
                           Cancel
                         </button>
@@ -299,7 +320,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                         onClick={() => setIsTransferring(!isTransferring)}
                         className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold transition-all active:scale-[0.98] shadow-lg ${isTransferring
                           ? (darkMode ? 'bg-white/[0.15] text-white border border-white/20' : 'bg-gray-200 text-gray-800 border-gray-300')
-                          : (darkMode ? 'bg-orange-500 hover:bg-orange-400 text-zinc-900 border border-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.3)]' : 'bg-orange-500 hover:bg-orange-600 text-white border border-orange-600')
+                          : (darkMode ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-300')
                           }`}
                       >
                         <FolderSync size={20} />

@@ -23,8 +23,6 @@ import {
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 import AddCategoryModal from './AddCategoryModal';
-import EditCategoryModal from './EditCategoryModal';
-import DeleteCategoryModal from './DeleteCategoryModal';
 import { supabase } from '../src/lib/supabase';
 import type { CustomCategory } from '../types';
 
@@ -39,8 +37,6 @@ interface SidebarProps {
   onMobileClose?: () => void;
   customCategories: CustomCategory[];
   onCategoryAdded: (cat: CustomCategory) => void;
-  onCategoryEdited: (updatedCat: CustomCategory, oldSlug: string) => void;
-  onCategoryDeleted: (categoryId: string, oldSlug: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -52,8 +48,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onMobileClose,
   customCategories,
   onCategoryAdded,
-  onCategoryEdited,
-  onCategoryDeleted,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -117,36 +111,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
 
-        {/* Actions for valid categories (Sharing and Modifying) */}
         {categorySlug && (
           <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity lg:hidden lg:group-hover/sidebar:flex shrink-0">
-            {cat?.user_id && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setCategoryToEdit(cat);
-                  }}
-                  className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-                  title="Edit Category"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setCategoryToDelete(cat);
-                  }}
-                  className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-red-400/60 hover:text-red-400 hover:bg-red-500/[0.08]' : 'text-red-400/60 hover:text-red-500 hover:bg-red-50'}`}
-                  title="Delete Category"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </>
-            )}
-
             <button
               onClick={(e) => handleShareClick(e, categorySlug, label)}
               className={`p-1.5 rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.08]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
@@ -331,26 +297,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         onCategoryAdded={(cat) => {
           onCategoryAdded(cat);
           setShowAddCategory(false);
-        }}
-      />
-
-      <EditCategoryModal
-        isOpen={!!categoryToEdit}
-        darkMode={darkMode}
-        category={categoryToEdit}
-        onClose={() => setCategoryToEdit(null)}
-        onCategoryEdited={(updatedCat, oldSlug) => {
-          onCategoryEdited(updatedCat, oldSlug);
-        }}
-      />
-
-      <DeleteCategoryModal
-        isOpen={!!categoryToDelete}
-        darkMode={darkMode}
-        category={categoryToDelete}
-        onClose={() => setCategoryToDelete(null)}
-        onCategoryDeleted={(id, oldSlug) => {
-          onCategoryDeleted(id, oldSlug);
         }}
       />
 
