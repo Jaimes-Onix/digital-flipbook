@@ -58,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
 
   const handleSignOut = async () => {
@@ -160,7 +161,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={onMobileClose}
         />
       )}
-      <aside className={`
+      <aside
+        className={`
         group/sidebar lg:w-[88px] lg:hover:w-[300px] w-[300px]
         h-full flex flex-col shrink-0 z-50 transition-all duration-300
         backdrop-blur-xl border-r
@@ -168,19 +170,40 @@ const Sidebar: React.FC<SidebarProps> = ({
         fixed lg:relative inset-y-0 left-0 transform
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         lg:flex
-      `}>
+      `}
+        onMouseEnter={() => setIsSidebarHovered(true)}
+        onMouseLeave={() => setIsSidebarHovered(false)}
+      >
         {/* Brand */}
-        <div className="flex items-center gap-3.5 px-7 lg:px-[22px] lg:group-hover/sidebar:px-7 pt-6 pb-6 overflow-hidden transition-all duration-300">
-          <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-lime-500/25 to-lime-600/10 border border-lime-500/25' : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20'}`}>
-            <svg viewBox="0 0 512 512" fill="currentColor" className={`w-6 h-6 ${darkMode ? 'text-lime-400' : 'text-emerald-500'}`} xmlns="http://www.w3.org/2000/svg">
-              <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
-              <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
-                stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            </svg>
+        <div className="flex flex-col items-center lg:items-start gap-0 pt-6 pb-4 overflow-hidden transition-all duration-300">
+          <div className="flex items-center gap-3.5 px-7 lg:px-[22px] lg:group-hover/sidebar:px-7 w-full">
+            <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-lime-500/25 to-lime-600/10 border border-lime-500/25' : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20'}`}>
+              <svg viewBox="0 0 512 512" fill="currentColor" className={`w-6 h-6 ${darkMode ? 'text-lime-400' : 'text-emerald-500'}`} xmlns="http://www.w3.org/2000/svg">
+                <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
+                <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
+                  stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+            </div>
+            <div className="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
+              <span className={`text-[15px] font-semibold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
+              <span className={`text-[11px] uppercase tracking-[0.15em] font-medium ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Digital Flipbook</span>
+            </div>
           </div>
-          <div className="flex flex-col whitespace-nowrap overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
-            <span className={`text-[15px] font-semibold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
-            <span className={`text-[11px] uppercase tracking-[0.15em] font-medium ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Digital Flipbook</span>
+          {/* Collapsed-only subtitle pill */}
+          <div
+            style={{
+              overflow: 'hidden',
+              transition: 'max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease',
+              maxHeight: isSidebarHovered ? '0px' : '28px',
+              opacity: isSidebarHovered ? 0 : 1,
+              marginTop: isSidebarHovered ? '0px' : '8px',
+            }}
+            className="w-full flex justify-center"
+          >
+            <span className={`text-[9px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full select-none ${darkMode
+              ? 'text-lime-400/70 bg-lime-500/10 border border-lime-500/20'
+              : 'text-emerald-600/70 bg-emerald-50 border border-emerald-200'
+              }`}>PH</span>
           </div>
         </div>
 
@@ -215,6 +238,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
+        {/* Green glow separator before categories */}
+        <div className="relative mx-4 mb-2">
+          <div className={`h-px w-full ${darkMode ? 'bg-gradient-to-r from-transparent via-lime-500/60 to-transparent' : 'bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent'}`} />
+          <div className={`absolute inset-0 blur-sm ${darkMode ? 'bg-gradient-to-r from-transparent via-lime-500/30 to-transparent' : 'bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent'}`} />
+        </div>
+
         {/* Categories */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative flex flex-col">
           <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 ${darkMode ? 'bg-[#0e0e11]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} transition-all duration-300`}>
@@ -240,88 +269,100 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className={`px-5 pb-5 pt-4 border-t space-y-0.5 ${darkMode ? 'border-white/[0.06]' : 'border-gray-200'}`}>
-          <button
-            onClick={() => setShowSignOutModal(true)}
-            className={`flex items-center gap-3 py-2 rounded-2xl transition-all duration-300 overflow-hidden group
-              w-[calc(100vw-40px)] sm:w-[260px] lg:w-12 lg:group-hover/sidebar:w-[260px]
-              px-4 lg:px-0 lg:group-hover/sidebar:px-4
-              justify-start lg:justify-center lg:group-hover/sidebar:justify-start
-              ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'
-              }`}
-          >
-            <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-100'
-              }`}>
-              <LogOut size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'}`} />
-            </div>
-            <div className="flex-1 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[200px] lg:group-hover/sidebar:opacity-100">
-              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/60 group-hover:text-red-500'
-                }`}>
-                Sign Out
-              </span>
-            </div>
-          </button>
-          <div className="w-[calc(100vw-40px)] sm:w-[260px] lg:w-12 lg:group-hover/sidebar:w-[260px] px-4 lg:px-0 lg:group-hover/sidebar:px-4 flex justify-start lg:justify-center lg:group-hover/sidebar:justify-start items-center py-2 transition-all duration-300">
-            <button
-              onClick={onToggleDarkMode}
-              className={`
-                relative flex items-center h-10 lg:h-8 lg:group-hover/sidebar:h-10 rounded-[20px] transition-all duration-500 overflow-hidden shrink-0 border
-                w-[calc(100vw-40px)] sm:w-[260px] lg:w-8 lg:group-hover/sidebar:w-[260px]
-                ${darkMode ? 'bg-[#313338] border-black/20' : 'bg-gradient-to-r from-[#ffd32a] to-[#ff9f1a] border-white/20'}
-              `}
-              style={{
-                boxShadow: darkMode ? 'inset 0 3px 6px rgba(0,0,0,0.6)' : 'inset 0 2px 5px rgba(200,80,0,0.4)'
-              }}
-            >
-              <div className={`
-                absolute inset-0 flex items-center w-[200%] transition-transform duration-500 ease-in-out
-                ${darkMode ? 'translate-x-[0%]' : '-translate-x-[50%]'}
-                opacity-100 lg:opacity-0 lg:group-hover/sidebar:opacity-100
-              `}>
-                <div className="w-1/2 flex items-center justify-start pl-4">
-                  <span className={`text-[12px] font-black tracking-tighter select-none text-white`} style={{ fontFamily: '"Arial Rounded MT Bold", Arial, sans-serif' }}>
-                    NIGHTMODE
-                  </span>
-                </div>
-                <div className="w-1/2 flex items-center justify-end pr-4">
-                  <span className={`text-[12px] font-black tracking-tighter select-none text-white`} style={{ fontFamily: '"Arial Rounded MT Bold", Arial, sans-serif' }}>
-                    DAYMODE
-                  </span>
-                </div>
-              </div>
+        <div className="flex flex-col">
 
-              <div
-                className={`
-                  absolute top-1/2 -translate-y-1/2 h-[34px] w-[34px] lg:h-7 lg:w-7 lg:group-hover/sidebar:h-[34px] lg:group-hover/sidebar:w-[34px] rounded-full flex items-center justify-center transition-all duration-500 shadow-md border
-                  ${darkMode
-                    ? 'bg-[#0f0f11] border-black/50 translate-x-[calc(100vw-80px)] sm:translate-x-[222px] lg:translate-x-0.5 lg:group-hover/sidebar:translate-x-[222px]'
-                    : 'bg-white border-white/50 translate-x-1 lg:translate-x-0.5 lg:group-hover/sidebar:translate-x-1'}
-                `}
-              >
-                {darkMode ? (
-                  <div className="relative flex items-center justify-center w-full h-full">
-                    <Moon size={16} fill="#FFD700" color="#FFD700" strokeWidth={0} className="transform -scale-x-100" />
-                    <Star size={6} fill="#FFD700" color="#FFD700" strokeWidth={0} className="absolute top-[8px] right-[6px]" />
-                    <Star size={4} fill="#FFD700" color="#FFD700" strokeWidth={0} className="absolute bottom-[6px] left-[6px]" />
-                  </div>
-                ) : (
-                  <Sun size={20} fill="none" stroke="#FFD700" strokeWidth={2.5} />
-                )}
-              </div>
-            </button>
+          {/* Green glow separator */}
+          <div className="relative mx-4 mb-1">
+            <div className={`h-px w-full ${darkMode ? 'bg-gradient-to-r from-transparent via-lime-500/60 to-transparent' : 'bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent'}`} />
+            <div className={`absolute inset-0 blur-sm ${darkMode ? 'bg-gradient-to-r from-transparent via-lime-500/30 to-transparent' : 'bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent'}`} />
           </div>
 
-          {/* Lifewood Branding Footer */}
-          <div className="mt-3 overflow-hidden transition-all duration-300 lg:max-w-0 lg:opacity-0 lg:group-hover/sidebar:max-w-[260px] lg:group-hover/sidebar:opacity-100">
-            <div className="w-[260px]">
-              <div className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center transition-colors ${darkMode ? 'bg-white border border-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
-                <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Exact Logo" className={`h-[24px] w-auto ${darkMode ? 'opacity-90' : ''}`} />
+          <div className="px-4 pb-4 pt-3 space-y-1">
+
+            {/* Sign Out */}
+            <button
+              onClick={() => setShowSignOutModal(true)}
+              style={{ width: isSidebarHovered ? '260px' : '48px', transition: 'width 0.3s ease, padding 0.3s ease', paddingLeft: isSidebarHovered ? '12px' : '0px', paddingRight: isSidebarHovered ? '12px' : '0px', justifyContent: isSidebarHovered ? 'flex-start' : 'center' }}
+              className={`flex items-center gap-3 py-2 rounded-2xl transition-all duration-300 overflow-hidden group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'}`}
+            >
+              <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-50'}`}>
+                <LogOut size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/50 group-hover:text-red-500'}`} />
               </div>
-              <div className="flex justify-center items-center mt-2.5 gap-1 text-[11px] font-medium tracking-wide">
-                <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
-                <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
+              <div style={{ overflow: 'hidden', transition: 'max-width 0.3s ease, opacity 0.3s ease', maxWidth: isSidebarHovered ? '200px' : '0px', opacity: isSidebarHovered ? 1 : 0 }}>
+                <span className={`text-sm font-medium tracking-tight block whitespace-nowrap ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/50 group-hover:text-red-500'}`}>Sign Out</span>
+              </div>
+            </button>
+
+            {/* Dark Mode Toggle */}
+            <div style={{ width: isSidebarHovered ? '260px' : '48px', transition: 'width 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: isSidebarHovered ? 'flex-start' : 'center' }} className="py-1">
+              <button
+                onClick={onToggleDarkMode}
+                style={{
+                  width: isSidebarHovered ? '260px' : '32px',
+                  height: isSidebarHovered ? '40px' : '32px',
+                  transition: 'width 0.3s ease, height 0.3s ease',
+                  boxShadow: darkMode ? 'inset 0 3px 6px rgba(0,0,0,0.6)' : 'inset 0 2px 5px rgba(200,80,0,0.4)',
+                  position: 'relative', overflow: 'hidden', borderRadius: '20px', flexShrink: 0, border: '1px solid',
+                  borderColor: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
+                  background: darkMode ? '#313338' : 'linear-gradient(to right, #ffd32a, #ff9f1a)',
+                  display: 'flex', alignItems: 'center',
+                }}
+              >
+                {/* Label text — only visible expanded */}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', width: '200%', transform: darkMode ? 'translateX(0%)' : 'translateX(-50%)', transition: 'transform 0.5s ease', opacity: isSidebarHovered ? 1 : 0 }}>
+                  <div style={{ width: '50%', display: 'flex', alignItems: 'center', paddingLeft: '16px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '-0.05em', color: 'white', fontFamily: '"Arial Rounded MT Bold", Arial, sans-serif', userSelect: 'none' }}>NIGHTMODE</span>
+                  </div>
+                  <div style={{ width: '50%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '16px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '-0.05em', color: 'white', fontFamily: '"Arial Rounded MT Bold", Arial, sans-serif', userSelect: 'none' }}>DAYMODE</span>
+                  </div>
+                </div>
+                {/* Toggle knob */}
+                <div style={{
+                  position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+                  width: isSidebarHovered ? '34px' : '28px', height: isSidebarHovered ? '34px' : '28px',
+                  borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.5s ease',
+                  background: darkMode ? '#0f0f11' : 'white',
+                  border: darkMode ? '1px solid rgba(0,0,0,0.5)' : '1px solid rgba(255,255,255,0.5)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                  left: darkMode ? (isSidebarHovered ? '222px' : '2px') : '2px',
+                }}>
+                  {darkMode ? (
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                      <Moon size={16} fill="#FFD700" color="#FFD700" strokeWidth={0} style={{ transform: 'scaleX(-1)' }} />
+                      <Star size={6} fill="#FFD700" color="#FFD700" strokeWidth={0} style={{ position: 'absolute', top: '8px', right: '6px' }} />
+                      <Star size={4} fill="#FFD700" color="#FFD700" strokeWidth={0} style={{ position: 'absolute', bottom: '6px', left: '6px' }} />
+                    </div>
+                  ) : (
+                    <Sun size={18} fill="none" stroke="#FFD700" strokeWidth={2.5} />
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {/* Lifewood logo — expanded only */}
+            <div style={{ overflow: 'hidden', transition: 'max-height 0.3s ease, opacity 0.3s ease', maxHeight: isSidebarHovered ? '80px' : '0px', opacity: isSidebarHovered ? 1 : 0 }}>
+              <div className="pt-1">
+                <div className={`w-full py-2.5 px-3 rounded-2xl flex items-center justify-center ${darkMode ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
+                  <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[22px] w-auto" />
+                </div>
+                <div className="flex justify-center items-center mt-2 gap-1 text-[10px] font-medium tracking-wide">
+                  <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
+                  <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
+                </div>
               </div>
             </div>
+
+            {/* Mini logo — collapsed only */}
+            <div style={{ overflow: 'hidden', transition: 'max-height 0.3s ease, opacity 0.3s ease', maxHeight: isSidebarHovered ? '0px' : '72px', opacity: isSidebarHovered ? 0 : 1 }}
+              className="flex flex-col items-center gap-1 w-12 mx-auto">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${darkMode ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
+                <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[18px] w-auto object-contain" />
+              </div>
+              <span className={`text-[7px] font-bold uppercase tracking-[0.25em] select-none ${darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}`}>PH</span>
+            </div>
+
           </div>
         </div>
       </aside>
