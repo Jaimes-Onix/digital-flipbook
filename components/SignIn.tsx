@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
-import { Loader2, AlertCircle, BookOpen, Layers, Sparkles, Moon, Sun, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle, BookOpen, Layers, Sparkles, Moon, Sun, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import Galaxy from './Galaxy';
 
 const DarkGalaxy = React.memo(() => (
@@ -68,6 +68,7 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [dark, setDark] = useState(true);
   const [loginStatus, setLoginStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [showPassword, setShowPassword] = useState(false);
   const [categoryCount, setCategoryCount] = useState(0);
 
   useEffect(() => {
@@ -366,17 +367,28 @@ const SignIn: React.FC = () => {
                   </div>
                   <div>
                     <label className={`block text-[10px] font-semibold uppercase tracking-[0.12em] mb-2 ${dark ? 'text-zinc-500' : 'text-gray-500'}`}>Password</label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      className={`block w-full px-4 py-3 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 ${dark
-                        ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
-                        : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
-                        }`}
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        className={`block w-full px-4 py-3 pr-11 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-lime-500/30 focus:border-lime-500/30 ${dark
+                          ? 'bg-white/[0.04] border border-white/[0.06] text-gray-200 placeholder-zinc-600'
+                          : 'bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400'
+                          }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(v => !v)}
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors ${dark ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
+                        tabIndex={-1}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

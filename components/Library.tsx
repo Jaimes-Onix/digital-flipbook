@@ -7,7 +7,6 @@ import VideoLinksModal from './VideoLinksModal';
 import VideoGalleryModal from './VideoGalleryModal';
 import DeleteHistoryModal from './DeleteHistoryModal';
 import EditCategoryModal from './EditCategoryModal';
-import DeleteCategoryModal from './DeleteCategoryModal';
 
 
 
@@ -33,19 +32,18 @@ interface LibraryProps {
   onRemoveBook: (id: string) => void;
   onRestoreBook?: () => void;
   onCategoryEdited?: (updatedCat: CustomCategory, oldSlug: string) => void;
-  onCategoryDeleted?: (categoryId: string, oldSlug: string) => void;
 }
 
-const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited, onCategoryDeleted }) => {
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited }) => {
   const filteredBooks = useMemo(() => {
     if (filter === 'all') return books;
     if (filter === 'favorites') return books.filter(b => b.isFavorite);
     return books.filter(b => b.category === filter);
   }, [books, filter]);
 
-  // Resolve title: built-in, or from custom categories list, or fallback
+  // Resolve title: priority goes to custom title from DB, then built-in, then fallback
   const customTitle = customCategories.find(c => c.slug === filter)?.name;
-  const sectionTitle = BUILTIN_TITLES[filter] || (customTitle ? `${customTitle} Flipbooks` : `${filter} Flipbooks`);
+  const sectionTitle = customTitle ? `${customTitle} Flipbooks` : (BUILTIN_TITLES[filter] || `${filter} Flipbooks`);
   const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -56,9 +54,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'az' | 'za' | 'most-pages' | 'fewest-pages'>('newest');
   const [sortOpen, setSortOpen] = useState(false);
 
-  // For Edit/Delete Custom Category
+  // For Edit Custom Category
   const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
-  const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
 
   const currentCustomCategory = customCategories.find(c => c.slug === filter);
 
@@ -108,7 +105,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
             </h2>
             <p className={`text-sm mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
           </div>
-          {currentCustomCategory && currentCustomCategory.user_id && (
+          {currentCustomCategory && (
             <div className="flex pl-2 items-center gap-2">
               <button
                 onClick={() => setCategoryToEdit(currentCustomCategory)}
@@ -116,13 +113,6 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
                 title="Edit Category"
               >
                 <Pencil size={16} />
-              </button>
-              <button
-                onClick={() => setCategoryToDelete(currentCustomCategory)}
-                className={`p-2 rounded-full transition-all shadow-sm ${darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-red-500/70 hover:text-red-400 border border-white/10 hover:border-red-500/50 shadow-black/40' : 'bg-red-50 hover:bg-red-100 text-red-500 border border-red-200'}`}
-                title="Delete Category"
-              >
-                <Trash2 size={16} />
               </button>
             </div>
           )}
@@ -403,15 +393,6 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         }}
       />
 
-      <DeleteCategoryModal
-        isOpen={!!categoryToDelete}
-        darkMode={darkMode || false}
-        category={categoryToDelete}
-        onClose={() => setCategoryToDelete(null)}
-        onCategoryDeleted={(id, oldSlug) => {
-          if (onCategoryDeleted) onCategoryDeleted(id, oldSlug);
-        }}
-      />
     </div>
   );
 };

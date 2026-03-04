@@ -747,13 +747,6 @@ const App: React.FC = () => {
                       setBooks(prev => prev.map(b => b.category === oldSlug ? { ...b, category: updatedCat.slug } : b));
                     }
                   }}
-                  onCategoryDeleted={(id, oldSlug) => {
-                    setCustomCategories(prev => prev.filter(c => c.id !== id));
-                    setBooks(prev => prev.map(b => b.category === oldSlug ? { ...b, category: undefined } : b));
-                    if (location.pathname === `/category/${oldSlug}`) {
-                      navigate('/library');
-                    }
-                  }}
                 />
               </div>
             } />
@@ -774,13 +767,6 @@ const App: React.FC = () => {
                   setCustomCategories(prev => prev.map(c => c.id === updatedCat.id ? updatedCat : c));
                   if (updatedCat.slug !== oldSlug) {
                     setBooks(prev => prev.map(b => b.category === oldSlug ? { ...b, category: updatedCat.slug } : b));
-                  }
-                }}
-                onCategoryDeleted={(id, oldSlug) => {
-                  setCustomCategories(prev => prev.filter(c => c.id !== id));
-                  setBooks(prev => prev.map(b => b.category === oldSlug ? { ...b, category: undefined } : b));
-                  if (location.pathname === `/category/${oldSlug}`) {
-                    navigate('/library');
                   }
                 }}
               />

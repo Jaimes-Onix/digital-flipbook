@@ -586,7 +586,6 @@ export async function editCategory(
     .from('book_categories')
     .update({ name: newName, slug: newSlug, color: newColor, icon: newIcon })
     .eq('id', id)
-    .eq('user_id', userId)
     .select()
     .single();
 
@@ -600,7 +599,6 @@ export async function editCategory(
     const { error: cascadeError } = await supabase
       .from('books')
       .update({ category: newSlug })
-      .eq('user_id', userId)
       .eq('category', oldSlug);
 
     if (cascadeError) {
