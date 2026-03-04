@@ -151,9 +151,11 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
     const readerTitle = darkMode ? 'text-white' : 'text-gray-900';
     const readerPageInfoColor = darkMode ? 'text-white/40' : 'text-gray-400';
 
-    const pageInfoText = currentPage + 1 < book.totalPages
-      ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, book.totalPages)} of ${book.totalPages}`
-      : `page ${currentPage + 1} of ${book.totalPages}`;
+    const pageInfoText = book.orientation === 'landscape'
+      ? `page ${currentPage + 1} of ${book.totalPages}`
+      : (currentPage + 1 < book.totalPages
+        ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, book.totalPages)} of ${book.totalPages}`
+        : `page ${currentPage + 1} of ${book.totalPages}`);
 
     return (
       <div ref={readerContainerRef} className="fixed inset-0 z-0 overflow-hidden bg-black">
@@ -177,6 +179,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
             showSearch={showSearch}
             onToggleSearch={() => setShowSearch(!showSearch)}
             fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
+            orientation={book.orientation}
           />
         </div>
       </div>

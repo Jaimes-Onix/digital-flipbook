@@ -669,9 +669,11 @@ const App: React.FC = () => {
           readerBookId={selectedBook?.id}
           readerPageInfo={
             selectedBook
-              ? (currentPage + 1 < selectedBook.totalPages
-                ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
-                : `page ${currentPage + 1} of ${selectedBook.totalPages}`)
+              ? (selectedBook.orientation === 'landscape'
+                ? `page ${currentPage + 1} of ${selectedBook.totalPages}`
+                : (currentPage + 1 < selectedBook.totalPages
+                  ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
+                  : `page ${currentPage + 1} of ${selectedBook.totalPages}`))
               : undefined
           }
         />}

@@ -722,10 +722,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
         <button
           onClick={flipPrev}
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-white/15 hover:text-white/40 transition-all z-20 rounded-full hover:bg-white/[0.04]"
+          className="absolute left-6 top-1/2 -translate-y-1/2 w-16 h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08]"
           title="Previous Page"
         >
-          <ChevronLeft size={32} />
+          <ChevronLeft size={40} />
         </button>
 
         {/* The Book */}
@@ -746,7 +746,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
             maxWidth={pageW}
             minHeight={pageH}
             maxHeight={pageH}
-            showCover={true}
+            showCover={!isSinglePage}
             maxShadowOpacity={0.5}
             mobileScrollSupport={true}
             onFlip={handleFlip}
@@ -768,9 +768,9 @@ const BookViewer: React.FC<BookViewerProps> = ({
             autoSize={false}
             clickEventForward={false}
             useMouseEvents={true}
-            swipeDistance={0}
+            swipeDistance={30}
             showPageCorners={false}
-            disableFlipByClick={true}
+            disableFlipByClick={false}
           >
             {pages.map((num) => (
               <Page key={num} number={num} pdfDocument={pdfDocument} pageW={pageW} pageH={pageH} />
@@ -782,14 +782,14 @@ const BookViewer: React.FC<BookViewerProps> = ({
         <button
           onClick={flipNext}
           onMouseDown={(e) => e.preventDefault()}
-          className={`absolute top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-white/15 hover:text-white/40 transition-all z-20 rounded-full hover:bg-white/[0.04]`}
+          className={`absolute top-1/2 -translate-y-1/2 w-16 h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08]`}
           style={{
-            right: rightPanelOpen ? 284 : 16,
+            right: rightPanelOpen ? 290 : 24,
             transition: 'right 0.3s ease'
           }}
           title="Next Page"
         >
-          <ChevronRight size={32} />
+          <ChevronRight size={40} />
         </button>
 
         {/* Thumbnails Panel - Right Side */}
@@ -953,9 +953,13 @@ const BookViewer: React.FC<BookViewerProps> = ({
                   {searchResults.map((result) => {
                     const pageNum = result.page;
                     let pageLabel: string;
-                    if (pageNum === 1) pageLabel = `p. 1`;
-                    else if (pageNum % 2 === 0) pageLabel = `p. ${pageNum} - ${Math.min(pageNum + 1, totalPages)}`;
-                    else pageLabel = `p. ${pageNum - 1} - ${pageNum}`;
+                    if (isSinglePage) {
+                      pageLabel = `p. ${pageNum}`;
+                    } else {
+                      if (pageNum === 1) pageLabel = `p. 1`;
+                      else if (pageNum % 2 === 0) pageLabel = `p. ${pageNum} - ${Math.min(pageNum + 1, totalPages)}`;
+                      else pageLabel = `p. ${pageNum - 1} - ${pageNum}`;
+                    }
 
                     return (
                       <button
