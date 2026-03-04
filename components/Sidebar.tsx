@@ -168,20 +168,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         lg:flex
       `}
       >
-        {/* Brand */}
-        <div className="flex flex-col items-start gap-0 pt-6 pb-4">
-          <div className="flex items-center gap-3.5 px-7 w-full">
-            <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-lime-500/25 to-lime-600/10 border border-lime-500/25' : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/20'}`}>
-              <svg viewBox="0 0 512 512" fill="currentColor" className={`w-6 h-6 ${darkMode ? 'text-lime-400' : 'text-emerald-500'}`} xmlns="http://www.w3.org/2000/svg">
-                <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
-                <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
-                  stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </svg>
-            </div>
-            <div className="flex flex-col whitespace-nowrap">
-              <span className={`text-[15px] font-semibold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
-              <span className={`text-[11px] uppercase tracking-[0.15em] font-medium ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Digital Flipbook</span>
-            </div>
+        {/* Lifewood logo at top */}
+        <div className="px-5 pt-6 pb-2">
+          <div className={`w-full py-2.5 px-3 rounded-2xl flex items-center justify-center ${darkMode ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
+            <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[22px] w-auto" />
+          </div>
+          <div className="flex justify-center items-center mt-2 gap-1 text-[10px] font-medium tracking-wide">
+            <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
+            <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
           </div>
         </div>
 
@@ -306,17 +300,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </div>
               </button>
-            </div>
-
-            {/* Lifewood logo */}
-            <div className="pt-1">
-              <div className={`w-full py-2.5 px-3 rounded-2xl flex items-center justify-center ${darkMode ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
-                <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[22px] w-auto" />
-              </div>
-              <div className="flex justify-center items-center mt-2 gap-1 text-[10px] font-medium tracking-wide">
-                <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
-                <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
-              </div>
             </div>
 
           </div>

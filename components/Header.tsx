@@ -86,13 +86,28 @@ const Header: React.FC<HeaderProps> = ({
   const toggleInactive = darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600';
 
   return (
-    <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-6 z-50 border-b transition-colors shadow-sm ${headerBg} ${headerBorder}`}>
+    <header className={`fixed top-0 left-0 lg:left-[300px] right-0 h-14 flex items-center justify-between px-6 z-50 border-b transition-colors shadow-sm ${headerBg} ${headerBorder}`}>
       <div className="flex items-center gap-3">
         {onToggleSidebar && (
           <button onClick={onToggleSidebar} className={`lg:hidden p-2 -ml-2 rounded-xl transition-colors ${menuBtnColor}`} aria-label="Toggle menu">
             <Menu size={22} strokeWidth={1.8} />
           </button>
         )}
+
+        {/* Brand Identity on Header */}
+        <div className="flex items-center gap-3 ml-1">
+          <div className={`w-9 h-9 shrink-0 rounded-lg flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-lime-500/20 to-lime-600/5 border border-lime-500/20' : 'bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 border border-emerald-500/15'}`}>
+            <svg viewBox="0 0 512 512" fill="currentColor" className={`w-5 h-5 ${darkMode ? 'text-lime-400' : 'text-emerald-500'}`} xmlns="http://www.w3.org/2000/svg">
+              <path d="M256 160c.3 0 160-48 160-48v288s-159.7 48-160 48c-.3 0-160-48-160-48V112s159.7 48 160 48z" opacity="0.2" />
+              <path d="M256 160v288M416 112v288M96 112v288M256 160c0-.3-80-32-128-48M256 160c0-.3 80-32 128-48"
+                stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </div>
+          <div className="flex flex-col whitespace-nowrap">
+            <span className={`text-[13.5px] font-bold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
+            <span className={`text-[9.5px] uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Digital Flipbook</span>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
