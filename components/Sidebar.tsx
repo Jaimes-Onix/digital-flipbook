@@ -173,16 +173,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className={`w-full py-2.5 px-3 rounded-2xl flex items-center justify-center ${darkMode ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
             <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[22px] w-auto" />
           </div>
-          <div className="flex justify-center items-center mt-2 gap-1 text-[10px] font-medium tracking-wide">
-            <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
-            <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
-          </div>
         </div>
 
         <div className="px-5 space-y-0.5 mb-5 mt-2">
-          <div className="flex items-center mb-2">
-            <p className={`px-4 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Navigate</p>
-          </div>
           <NavItem icon={HomeIcon} label="Home" active={location.pathname === '/' || location.pathname === '/home'} to="/" />
 
           {/* + Add Category button */}
@@ -302,6 +295,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
 
+          </div>
+
+          {/* Powered by text at bottom */}
+          <div className="flex justify-center items-center mt-2 pb-8 gap-1 text-[10px] font-medium tracking-wide">
+            <span className={darkMode ? 'text-zinc-500' : 'text-[#0B543D]'}>Powered by</span>
+            <span className={darkMode ? 'text-[#e5a02e]' : 'text-[#F3A530]'}>Lifewood PH</span>
           </div>
         </div>
       </aside>
