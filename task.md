@@ -13,6 +13,13 @@ The user reported they cannot go "back" a page when reading books in landscape o
 ### 2. `App.tsx` [x]
 - **Refine Page Label:** Update the `readerPageInfo` calculation to detect if the viewer is likely in single-page mode (based on `selectedBook.orientation`) and display "page X" instead of "pages X-Y" for landscape books.
 
+## Modal Actions Refactor [x]
+- **Show Settings Icon:** Add `Settings` icon above the book name. [x]
+- **Spin Animation:** Implement spin animation when clicked. [x]
+- **Revealed Actions:** Show Favorite and Delete buttons upon clicking Settings. [x]
+- **Clean Up:** Remove duplicate icons from top right of modal. [x]
+- **Layout Spacing:** Reduced top whitespace by repositioning the close button. [x]
+
 ## Verification Plan
 
 ### Manual Verification

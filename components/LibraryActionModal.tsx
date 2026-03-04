@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock, FolderSync } from 'lucide-react';
+import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock, FolderSync, Settings } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -35,10 +35,19 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
   const [showTransferSuccess, setShowTransferSuccess] = useState(false);
   const [transferredTo, setTransferredTo] = useState('');
   const [pendingTransferCategory, setPendingTransferCategory] = useState<{ slug: string, name: string } | null>(null);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [editedName, setEditedName] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setShowConfirmDelete(false); setShowShareModal(false); setIsEditingName(false); setIsTransferring(false); setShowTransferSuccess(false); setPendingTransferCategory(null); }, [book?.id]);
+  useEffect(() => {
+    setShowConfirmDelete(false);
+    setShowShareModal(false);
+    setIsEditingName(false);
+    setIsTransferring(false);
+    setShowTransferSuccess(false);
+    setPendingTransferCategory(null);
+    setShowSettingsMenu(false);
+  }, [book?.id]);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -72,9 +81,17 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-300" onClick={onClose}>
         <div
-          className={`backdrop-blur-3xl w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
+          className={`relative backdrop-blur-3xl w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Absolute Close Button */}
+          <button
+            onClick={onClose}
+            className={`absolute top-6 right-6 z-[70] p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-zinc-300' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}
+            title="Close"
+          >
+            <X size={20} />
+          </button>
           {showTransferSuccess ? (
             <div className="p-10 flex flex-col items-center justify-center text-center w-full min-h-[400px]">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-lg ${darkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.15)]' : 'bg-orange-50 text-orange-500 border border-orange-200'}`}>
@@ -101,41 +118,41 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
               </div>
 
               {/* Right side — Details */}
-              <div className="flex-1 p-8 md:p-10 overflow-y-auto max-h-[70vh] no-scrollbar">
+              <div className="flex-1 p-8 md:p-10 pt-6 md:pt-8 overflow-y-auto max-h-[70vh] no-scrollbar">
 
-                {/* Top action buttons */}
-                <div className="flex justify-end gap-2.5 mb-5">
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className={`p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'bg-gray-100 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'}`}
-                    title="Share Book"
-                  >
-                    <Share2 size={18} />
-                  </button>
-                  {onToggleFavorite && (
+                {/* Settings & Actions Reveal */}
+                {!isEditingName && (
+                  <div className="flex items-center gap-3 mb-4">
                     <button
-                      onClick={() => onToggleFavorite(book.id)}
-                      className={`p-2.5 rounded-full transition-colors ${book.isFavorite ? 'bg-red-500/15 text-red-400' : darkMode ? 'bg-white/[0.05] text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'bg-gray-100 text-gray-500 hover:text-red-400 hover:bg-red-50'}`}
-                      title={book.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
+                      onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                      className={`p-2 rounded-xl transition-all duration-500 ${showSettingsMenu ? 'rotate-180 bg-white/10' : 'bg-transparent'} ${darkMode ? 'text-zinc-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}
+                      title="Settings"
                     >
-                      <Heart size={20} fill={book.isFavorite ? 'currentColor' : 'none'} />
+                      <Settings size={22} className={showSettingsMenu ? 'text-lime-400' : ''} />
                     </button>
-                  )}
-                  <button
-                    onClick={() => setShowConfirmDelete(true)}
-                    className="p-2.5 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                    title="Remove"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                  <button
-                    onClick={onClose}
-                    className={`p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-zinc-300' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}
-                    title="Close"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+
+                    {showSettingsMenu && (
+                      <div className="flex items-center gap-2.5 animate-in slide-in-from-left-4 duration-500 fade-in">
+                        {onToggleFavorite && (
+                          <button
+                            onClick={() => onToggleFavorite(book.id)}
+                            className={`p-2.5 rounded-xl transition-all ${book.isFavorite ? 'bg-red-500/15 text-red-500' : darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-red-400 hover:bg-red-500/10' : 'bg-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                            title={book.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
+                          >
+                            <Heart size={20} fill={book.isFavorite ? 'currentColor' : 'none'} className="transition-transform active:scale-125" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowConfirmDelete(true)}
+                          className={`p-2.5 rounded-xl transition-all ${darkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-200/50'}`}
+                          title="Remove Book"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Editable Book Name */}
                 {isEditingName ? (
