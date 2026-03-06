@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
-import { Loader2, AlertCircle, BookOpen, Layers, Sparkles, Moon, Sun, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, AlertCircle, BookOpen, Layers, Sparkles, Moon, Sun, Eye, EyeOff } from 'lucide-react';
 import Galaxy from './Galaxy';
+import FullScreenLoader from './FullScreenLoader';
+import BookLoader from './BookLoader';
 
 const DarkGalaxy = React.memo(() => (
   <Galaxy
@@ -146,21 +148,20 @@ const SignIn: React.FC = () => {
 
             {/* Keyframe animations */}
             <style>{`
-              @keyframes bookOpenClose {
-                0%, 100% { transform: perspective(600px) rotateY(18deg); }
-                50% { transform: perspective(600px) rotateY(35deg); }
+              @keyframes hoverBook {
+                0%, 100% { transform: scale(1.4) perspective(1200px) rotateX(25deg) rotateY(-8deg) rotateZ(-2deg) translateY(-80px); }
+                50% { transform: scale(1.45) perspective(1200px) rotateX(30deg) rotateY(-5deg) rotateZ(0deg) translateY(-100px); }
               }
-              @keyframes bookOpenCloseRight {
-                0%, 100% { transform: perspective(600px) rotateY(-18deg); }
-                50% { transform: perspective(600px) rotateY(-35deg); }
+              @keyframes pageFlip {
+                0% { transform: rotateY(10deg) translateZ(2px); opacity: 0; filter: brightness(1) drop-shadow(-5px 0 10px rgba(0,0,0,0)); }
+                8% { transform: rotateY(10deg) translateZ(2px); opacity: 1; filter: brightness(1) drop-shadow(-5px 0 10px rgba(0,0,0,0.1)); }
+                32% { transform: rotateY(10deg) translateZ(2px); opacity: 1; filter: brightness(1) drop-shadow(-5px 0 10px rgba(0,0,0,0.1)); }
+                42% { opacity: 1; filter: brightness(1.2) drop-shadow(10px 0 20px rgba(0,0,0,0.2)); }
+                56%, 100% { transform: rotateY(-190deg) translateZ(3px); opacity: 0; filter: brightness(1) drop-shadow(0 0 0 rgba(0,0,0,0)); }
               }
               @keyframes spineGlow {
-                0%, 100% { opacity: 0.6; filter: blur(2px); }
-                50% { opacity: 1; filter: blur(4px); }
-              }
-              @keyframes floatPage {
-                0%, 100% { transform: perspective(400px) rotateY(var(--ry)) rotate(var(--rot)) translateY(0px); }
-                50% { transform: perspective(400px) rotateY(var(--ry)) rotate(var(--rot)) translateY(-12px); }
+                0%, 100% { opacity: 0.6; filter: blur(6px); transform: scaleY(0.9) translateZ(1px); box-shadow: 0 0 10px rgba(52,211,153,0.3); }
+                50% { opacity: 1; filter: blur(10px); transform: scaleY(1.05) translateZ(1px); box-shadow: 0 0 30px rgba(52,211,153,0.8); }
               }
               @keyframes particleFloat {
                 0% { transform: translate(0, 0) scale(1); opacity: 0; }
@@ -177,65 +178,165 @@ const SignIn: React.FC = () => {
             `}</style>
 
             {/* Animated open book illustration */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative" style={{ width: '420px', height: '340px' }}>
-                {/* Left page — breathing open/close */}
-                <div className="absolute rounded-l-2xl rounded-r-sm"
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div
+                className="relative"
+                style={{
+                  width: '420px', height: '300px',
+                  transformStyle: 'preserve-3d',
+                  animation: 'hoverBook 8s ease-in-out infinite'
+                }}
+              >
+                {/* Book Shadow / Glow Underneath */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] h-[320px] rounded-[30px]"
                   style={{
-                    width: '200px', height: '280px', right: '50%', top: '50%', marginTop: '-140px',
-                    background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,78,59,0.22) 100%)',
-                    border: '1.5px solid rgba(52,211,153,0.15)',
-                    boxShadow: '-12px 8px 50px rgba(0,0,0,0.4)',
+                    background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.2) 0%, transparent 70%)',
+                    filter: 'blur(30px)',
+                    transform: 'translateZ(-20px) rotateX(20deg)',
+                  }} />
+
+                {/* Left Cover (Base) */}
+                <div className="absolute right-1/2 top-0 bottom-0 w-[200px] rounded-l-2xl rounded-r-md overflow-hidden bg-[#021f15]"
+                  style={{
                     transformOrigin: 'right center',
-                    animation: 'bookOpenClose 4s ease-in-out infinite',
-                  }} />
-                {/* Right page — breathing open/close */}
-                <div className="absolute rounded-r-2xl rounded-l-sm"
-                  style={{
-                    width: '200px', height: '280px', left: '50%', top: '50%', marginTop: '-140px',
-                    background: 'linear-gradient(225deg, rgba(16,185,129,0.08) 0%, rgba(6,78,59,0.18) 100%)',
-                    border: '1.5px solid rgba(52,211,153,0.1)',
-                    boxShadow: '12px 8px 50px rgba(0,0,0,0.4)',
-                    transformOrigin: 'left center',
-                    animation: 'bookOpenCloseRight 4s ease-in-out infinite',
-                  }} />
-                {/* Spine glow — pulses with the open/close */}
-                <div className="absolute left-1/2 -translate-x-1/2"
-                  style={{
-                    width: '3px', height: '280px', top: '50%', marginTop: '-140px',
-                    background: 'linear-gradient(to bottom, transparent, rgba(52,211,153,0.5), transparent)',
-                    animation: 'spineGlow 4s ease-in-out infinite',
-                  }} />
-                {/* Text lines on left page */}
-                <div className="absolute space-y-3" style={{ left: 'calc(50% - 160px)', top: 'calc(50% - 80px)', width: '120px', opacity: 0.25 }}>
-                  {[100, 75, 90, 65, 85, 70].map((w, i) => (
-                    <div key={i} className="h-[2px] rounded-full bg-lime-400" style={{ width: `${w}%`, opacity: 0.4 + (i % 3) * 0.15 }} />
-                  ))}
+                    transform: 'rotateY(-12deg) translateZ(-1px)',
+                    border: '1.5px solid rgba(16,185,129,0.3)',
+                    borderRight: 'none',
+                    boxShadow: '-20px 20px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(16,185,129,0.1)'
+                  }}>
+                  {/* Subtle texture */}
+                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA0Ii8+PHBhdGggZD0iTTAgMGg0djRIMG00IDRoNHY0SDRaIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9Ii4wNCIvPjwvc3ZnPg==')]" />
                 </div>
-                {/* Floating flipped pages — gentle bobbing */}
-                {[
-                  { w: 170, h: 240, l: 30, t: -160, ry: -28, rot: 10, op: 0.35, dur: 5 },
-                  { w: 150, h: 210, l: 60, t: -180, ry: -40, rot: 16, op: 0.18, dur: 6.5 },
-                  { w: 130, h: 180, l: 85, t: -195, ry: -50, rot: 22, op: 0.1, dur: 8 },
-                ].map(({ w, h, l, t, ry, rot, op, dur }, i) => (
-                  <div key={i} className="absolute rounded-lg"
-                    style={{
-                      width: `${w}px`, height: `${h}px`,
-                      left: `calc(50% + ${l}px)`, top: `calc(50% + ${t}px)`,
-                      opacity: op,
-                      background: `linear-gradient(135deg, rgba(16,185,129,${0.06 - i * 0.015}) 0%, rgba(6,78,59,${0.1 - i * 0.03}) 100%)`,
-                      border: `1px solid rgba(52,211,153,${0.07 - i * 0.015})`,
-                      '--ry': `${ry}deg`, '--rot': `${rot}deg`,
-                      animation: `floatPage ${dur}s ease-in-out infinite`,
-                      animationDelay: `${i * 0.8}s`,
-                    } as React.CSSProperties} />
-                ))}
-                {/* Center dot glow */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full"
+
+                {/* Right Cover (Base) */}
+                <div className="absolute left-1/2 top-0 bottom-0 w-[200px] rounded-r-2xl rounded-l-md overflow-hidden bg-[#021f15]"
                   style={{
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(52,211,153,0.3) 50%, transparent 100%)',
-                    filter: 'blur(3px)',
+                    transformOrigin: 'left center',
+                    transform: 'rotateY(12deg) translateZ(-1px)',
+                    border: '1.5px solid rgba(16,185,129,0.3)',
+                    borderLeft: 'none',
+                    boxShadow: '20px 20px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(16,185,129,0.1)'
+                  }}>
+                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA0Ii8+PHBhdGggZD0iTTAgMGg0djRIMG00IDRoNHY0SDRaIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9Ii4wNCIvPjwvc3ZnPg==')]" />
+                </div>
+
+                {/* Spine */}
+                <div className="absolute left-1/2 top-0 bottom-0 w-6 -ml-3 rounded-full"
+                  style={{
+                    transform: 'translateZ(-2px)',
+                    background: 'linear-gradient(to right, rgba(2,31,21,1) 0%, rgba(16,185,129,0.2) 50%, rgba(2,31,21,1) 100%)',
+                    borderLeft: '1px solid rgba(16,185,129,0.1)',
+                    borderRight: '1px solid rgba(16,185,129,0.1)',
                   }} />
+
+                {/* Center Spine Glow */}
+                <div className="absolute left-1/2 top-4 bottom-4 w-1 -ml-[2px] rounded-full"
+                  style={{
+                    animation: 'spineGlow 4s ease-in-out infinite',
+                    background: 'linear-gradient(to bottom, transparent, rgba(52,211,153,0.8), transparent)'
+                  }} />
+
+                {/* Static Left Pages Block */}
+                <div className="absolute right-1/2 top-2 bottom-2 w-[190px] rounded-l-xl rounded-r-sm overflow-hidden"
+                  style={{
+                    transformOrigin: 'right center',
+                    transform: 'rotateY(-10deg) translateZ(1px)',
+                    background: 'linear-gradient(135deg, rgba(6,78,59,0.3) 0%, rgba(2,44,34,0.4) 100%)',
+                    border: '1px solid rgba(16,185,129,0.2)',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: 'inset 0 0 30px rgba(52,211,153,0.05)'
+                  }}>
+                  {/* Left Content */}
+                  <div className="absolute left-6 right-8 top-10 bottom-10 flex flex-col justify-between opacity-30">
+                    <div className="space-y-4">
+                      <div className="flex gap-2 mb-8 items-center">
+                        <div className="w-10 h-10 rounded shadow bg-lime-400/20" />
+                        <div className="flex-1 space-y-2 py-1">
+                          <div className="h-3 w-5/6 rounded-full bg-emerald-500/60" />
+                          <div className="h-2 w-1/2 rounded-full bg-emerald-500/40" />
+                        </div>
+                      </div>
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="space-y-2">
+                          <div className="h-2 w-full rounded-full bg-lime-500/30" />
+                          <div className="h-2 w-[85%] rounded-full bg-lime-500/30" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="self-end text-[8px] font-mono text-lime-400/50 uppercase tracking-widest px-2">Page 1</div>
+                  </div>
+                </div>
+
+                {/* Static Right Pages Block */}
+                <div className="absolute left-1/2 top-2 bottom-2 w-[190px] rounded-r-xl rounded-l-sm overflow-hidden"
+                  style={{
+                    transformOrigin: 'left center',
+                    transform: 'rotateY(10deg) translateZ(1px)',
+                    background: 'linear-gradient(225deg, rgba(6,78,59,0.2) 0%, rgba(2,44,34,0.3) 100%)',
+                    border: '1px solid rgba(16,185,129,0.1)',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: 'inset 0 0 30px rgba(52,211,153,0.02)'
+                  }}>
+                  {/* Subtle right pages depth / stacked appearance */}
+                  <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-black/20 to-transparent pointer-events-none" />
+                  <div className="absolute right-1 top-0 bottom-0 w-[1px] bg-white/5 pointer-events-none" />
+                  <div className="absolute right-2 top-0 bottom-0 w-[1px] bg-white/5 pointer-events-none" />
+
+                  {/* Blurred ghost text to show there are underlying pages */}
+                  <div className="absolute left-8 right-6 top-10 bottom-10 flex flex-col justify-between opacity-10">
+                    <div className="h-4 w-3/4 rounded-full bg-lime-400/80 mb-8" />
+                    <div className="space-y-3 flex-1 pt-2">
+                      <div className="h-2 w-full rounded-full bg-emerald-400/60" />
+                      <div className="h-2 w-full rounded-full bg-emerald-400/60" />
+                      <div className="h-2 w-5/6 rounded-full bg-emerald-400/60" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flipping Pages */}
+                {[0, 1, 2, 3].map(i => (
+                  <div key={`flip-${i}`} className="absolute left-1/2 top-2 bottom-2 w-[190px] rounded-r-xl rounded-l-sm overflow-hidden"
+                    style={{
+                      transformOrigin: 'left center',
+                      background: 'rgba(4,60,40,0.5)',
+                      backgroundImage: 'linear-gradient(225deg, rgba(52,211,153,0.15) 0%, rgba(6,78,59,0.3) 100%)',
+                      border: '1px solid rgba(16,185,129,0.4)',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '-10px 5px 20px rgba(0,0,0,0.4), inset 5px 0 15px rgba(255,255,255,0.05)',
+                      transformStyle: 'preserve-3d',
+                      animation: `pageFlip 14s infinite ease-in-out`,
+                      animationDelay: `${i * 3.5}s`,
+                      zIndex: 10 - i,
+                      // Hide initially so they don't pop brightly on load
+                      opacity: 0,
+                      transform: 'rotateY(10deg) translateZ(2px)'
+                    }}>
+
+                    {/* Front content of flipping page */}
+                    <div className="absolute left-8 right-6 top-10 bottom-10 flex flex-col justify-between">
+                      <div className="space-y-5 opacity-40">
+                        <div className="h-4 w-3/4 rounded-full bg-lime-400/80 mb-8" />
+                        <div className="space-y-3">
+                          <div className="h-2 w-full rounded-full bg-emerald-400/60" />
+                          <div className="h-2 w-full rounded-full bg-emerald-400/60" />
+                          <div className="h-2 w-5/6 rounded-full bg-emerald-400/60" />
+                          <div className="h-2 w-4/6 rounded-full bg-emerald-400/60" />
+                        </div>
+
+                        <div className="flex gap-3 pt-6">
+                          <div className="w-1/2 h-[72px] rounded-lg shadow bg-lime-400/10 border border-lime-400/20" />
+                          <div className="w-1/2 h-[72px] rounded-lg shadow bg-lime-400/10 border border-lime-400/20" />
+                        </div>
+                        <div className="flex justify-center mt-4">
+                          <div className="h-2 w-1/3 rounded-full bg-emerald-400/30" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Edge highlight on the fly page */}
+                    <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-lime-300 to-transparent opacity-60" />
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -269,11 +370,11 @@ const SignIn: React.FC = () => {
 
             {/* Orbiting particles around the book */}
             {[
-              { radius: 160, dur: 12, s: 3, delay: 0, pop: 0.5 },
-              { radius: 180, dur: 15, s: 2.5, delay: 3, pop: 0.4 },
-              { radius: 140, dur: 10, s: 4, delay: 6, pop: 0.35 },
-              { radius: 200, dur: 18, s: 2, delay: 1.5, pop: 0.45 },
-              { radius: 120, dur: 14, s: 3.5, delay: 8, pop: 0.3 },
+              { radius: 240, dur: 12, s: 3, delay: 0, pop: 0.5 },
+              { radius: 280, dur: 15, s: 2.5, delay: 3, pop: 0.4 },
+              { radius: 210, dur: 10, s: 4, delay: 6, pop: 0.35 },
+              { radius: 310, dur: 18, s: 2, delay: 1.5, pop: 0.45 },
+              { radius: 190, dur: 14, s: 3.5, delay: 8, pop: 0.3 },
             ].map(({ radius, dur, s, delay, pop }, i) => (
               <div key={`o-${i}`} className="absolute rounded-full"
                 style={{
@@ -294,7 +395,6 @@ const SignIn: React.FC = () => {
                 {[
                   { icon: BookOpen, label: '3D Flipbook' },
                   { icon: Layers, label: `${categoryCount} Categories` },
-                  { icon: Sparkles, label: 'AI Summaries' },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-lime-500/[0.08] border-lime-500/[0.12]">
                     <Icon size={12} className="text-lime-400" />
@@ -430,33 +530,26 @@ const SignIn: React.FC = () => {
         </div>
       </div>
 
-      {/* ========== LOGIN STATUS MODAL ========== */}
+      {/* ========== FULL SCREEN LOADER ========== */}
       {loginStatus !== 'idle' && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 backdrop-blur-md bg-black/50" />
-          <div className="relative bg-[#111418]/95 backdrop-blur-3xl rounded-[28px] shadow-2xl border border-white/[0.06] shadow-black/60 w-full max-w-xs p-8 animate-in zoom-in-95 fade-in duration-200">
-            <div className="flex flex-col items-center text-center">
-              {loginStatus === 'loading' ? (
-                <>
-                  <div className="w-16 h-16 rounded-full bg-lime-500/10 flex items-center justify-center mb-5">
-                    <Loader2 size={30} className="animate-spin text-lime-400" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-1.5">Signing you in...</h3>
-                  <p className="text-sm text-zinc-500">Please wait a moment</p>
-                </>
-              ) : (
-                <>
-                  <div className="relative mb-5">
-                    <div className="absolute inset-0 bg-lime-500/20 rounded-full blur-xl animate-pulse" />
-                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center shadow-lg shadow-lime-500/20">
-                      <CheckCircle2 size={32} className="text-white" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-1.5">Login Successful!</h3>
-                  <p className="text-sm text-zinc-500">Redirecting to your library...</p>
-                </>
-              )}
-            </div>
+        <div
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center transition-colors duration-300 animate-in fade-in duration-500 gap-6"
+          style={{ background: dark ? '#000000' : '#e8f0ed' }}
+        >
+          {/* Top text-based loader */}
+          <FullScreenLoader dark={dark} />
+
+          {/* Bottom book animation loader */}
+          <div className="scale-75 -mt-6">
+            <BookLoader dark={dark} />
+          </div>
+
+          <div className="mt-2 text-center animate-pulse opacity-50">
+            {loginStatus === 'loading' ? (
+              <p className={`text-xs ${dark ? 'text-lime-200' : 'text-emerald-400'} font-medium tracking-[0.2em] uppercase`}>Authenticating...</p>
+            ) : (
+              <p className={`text-xs ${dark ? 'text-lime-200' : 'text-emerald-400'} font-medium tracking-[0.2em] uppercase`}>Login Successful</p>
+            )}
           </div>
         </div>
       )}

@@ -112,8 +112,19 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 
               {/* Left side — Book Cover */}
               <div className={`flex-shrink-0 flex items-center justify-center p-12 md:p-14 ${darkMode ? 'bg-black/20' : 'bg-gray-50/80'} md:w-[420px]`}>
-                <div className={`relative rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/[0.06] ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'} ${book.orientation === 'landscape' ? 'w-80 aspect-[4/3]' : 'w-72 aspect-[3/4]'}`}>
-                  <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" />
+                <div className={`relative ${book.orientation === 'landscape' ? 'w-80 aspect-[4/3]' : 'w-72 aspect-[3/4]'}`}>
+                  {/* Decorative background layers for "thick book" effect (Portrait Only) */}
+                  {book.orientation === 'portrait' && (
+                    <>
+                      <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-2xl bg-black/30 border border-white/5" />
+                      <div className="absolute inset-0 translate-x-0.5 translate-y-0.5 rounded-2xl bg-black/30 border border-white/5" />
+                    </>
+                  )}
+
+                  {/* Actual Cover */}
+                  <div className={`relative h-full rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/[0.06] ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}>
+                    <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" />
+                  </div>
                 </div>
               </div>
 
