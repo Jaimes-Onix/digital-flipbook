@@ -443,7 +443,10 @@ const SignIn: React.FC = () => {
             </div>
 
             {/* Form */}
-            <div className="w-full max-w-[340px] space-y-7">
+            <div className="w-full max-w-[340px] space-y-8">
+              <div className={`w-fit py-2.5 px-8 rounded-full flex items-center justify-center mx-auto ${dark ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
+                <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[28px] w-auto" />
+              </div>
               <div>
                 <h2 className={`text-[28px] font-extrabold tracking-tight ${dark ? 'text-white' : 'text-gray-900'}`}>Sign In</h2>
                 <p className={`text-[13px] mt-1.5 ${dark ? 'text-zinc-500' : 'text-gray-500'}`}>Enter your credentials to continue</p>
