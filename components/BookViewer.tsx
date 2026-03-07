@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, forwardRef, useCallback, useMemo } 
 import HTMLFlipBook from 'react-pageflip';
 import { Loader2, ChevronLeft, ChevronRight, Maximize, Minimize, Grid3X3, Play, Pause, X, Search, ZoomIn, ZoomOut, BookOpen } from 'lucide-react';
 import Dock, { DockItemConfig } from './Dock';
+import TrifoldViewer from './TrifoldViewer';
 
 interface BookViewerProps {
   pdfDocument: any;
@@ -11,7 +12,7 @@ interface BookViewerProps {
   showSearch?: boolean;
   onToggleSearch?: () => void;
   fullscreenContainerRef?: React.RefObject<HTMLDivElement>;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: 'portrait' | 'landscape' | 'trifold';
 }
 
 // Fixed page dimensions per orientation — these control the SHAPE of each flipbook page.
@@ -85,7 +86,7 @@ const playFlipSound = () => {
     }
 
     const crinkleSource = ctx.createBufferSource();
-    crinkleSource.buffer = crinkleBuffer;
+    crinkleSource.buffer = swooshBuffer; // Fallback to swoosh buffer if memory is tight
 
     const crinkleFilter = ctx.createBiquadFilter();
     crinkleFilter.type = 'highpass';
@@ -138,8 +139,6 @@ const playFlipSound = () => {
 };
 
 // Page Component
-// The container (pageW × pageH) is fixed to the chosen orientation.
-// PDF content is scaled with contain-fit and centered — no stretching, no clipping.
 const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number }>(
   ({ number, pdfDocument, pageW, pageH }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -155,15 +154,12 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           const page = await pdfDocument.getPage(number);
           const natural = page.getViewport({ scale: 1 });
 
-          // Contain-fit: scale so PDF fills as much of the container as possible
-          // without exceeding either dimension
           const fitScale = Math.min(pageW / natural.width, pageH / natural.height);
           const displayW = Math.round(natural.width * fitScale);
           const displayH = Math.round(natural.height * fitScale);
           const offsetX = Math.round((pageW - displayW) / 2);
           const offsetY = Math.round((pageH - displayH) / 2);
 
-          // Render at 2× for crispness
           const renderScale = fitScale * 2;
           const viewport = page.getViewport({ scale: renderScale });
 
@@ -173,12 +169,11 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           canvas.height = viewport.height;
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-          // Text layer: built at renderScale coords, CSS-scaled down to display size
           if (textLayerRef.current) {
             const textContent = await page.getTextContent();
             const div = textLayerRef.current;
             div.innerHTML = '';
-            const sd = displayW / viewport.width; // scale-down factor (0.5)
+            const sd = displayW / viewport.width;
             div.style.width = `${viewport.width}px`;
             div.style.height = `${viewport.height}px`;
             div.style.transform = `scale(${sd})`;
@@ -261,10 +256,8 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
   }
 );
 
-
 Page.displayName = 'Page';
 
-// Thumbnail Component — lazy-rendered small preview
 const Thumbnail: React.FC<{
   number: number;
   pdfDocument: any;
@@ -334,14 +327,12 @@ const Thumbnail: React.FC<{
   );
 };
 
-// Search result type
 interface SearchResult {
   page: number;
   snippets: string[];
   matchCount: number;
 }
 
-// Main BookViewer
 const BookViewer: React.FC<BookViewerProps> = ({
   pdfDocument, onFlip, onBookInit, autoPlay = false,
   showSearch = false, onToggleSearch, fullscreenContainerRef,
@@ -351,11 +342,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(defaultAspectRatio);
   const [isSinglePage, setIsSinglePage] = useState<boolean>(false);
 
-  // Dynamically calculate page dimensions to perfectly match the PDF aspect ratio.
-  // We use 500 as an arbitrary base resolution, HTMLFlipBook auto-scales it anyway.
   const pageW = 500 * Math.max(1, pdfAspectRatio);
   const pageH = pageW / pdfAspectRatio;
-
 
   const [pages, setPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -383,7 +371,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const scale = baseScale * (zoomLevel / 100);
   scaleRef.current = scale;
 
-  // Extract text from all pages when search opens
   useEffect(() => {
     if (!showSearch || !pdfDocument || pageTexts.size > 0) return;
 
@@ -409,7 +396,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     extractText();
   }, [showSearch, pdfDocument, pageTexts.size]);
 
-  // When search opens from top bar, close thumbnails + focus input
   useEffect(() => {
     if (showSearch) {
       setShowThumbnails(false);
@@ -417,7 +403,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     }
   }, [showSearch]);
 
-  // Search results
   const searchResults = useMemo((): SearchResult[] => {
     if (!searchQuery.trim() || pageTexts.size === 0) return [];
 
@@ -435,7 +420,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
       }
 
       if (matches.length > 0) {
-        // Get up to 3 snippets from this page
         const snippets: string[] = [];
         const snippetCount = Math.min(matches.length, 2);
 
@@ -458,7 +442,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
   const totalMatchPages = searchResults.length;
 
-  // Highlight search query in snippet text
   const highlightText = useCallback((text: string, query: string) => {
     if (!query.trim()) return text;
 
@@ -489,7 +472,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     return parts;
   }, [exactMatch]);
 
-  // Fullscreen toggle — use outer reader container if available so Vanta is included
   const toggleFullscreen = useCallback(() => {
     const target = fullscreenContainerRef?.current || containerRef.current;
     if (!target) return;
@@ -515,7 +497,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Calculate base scale to fit screen
   useEffect(() => {
     let resizeTimeout: NodeJS.Timeout | null = null;
     let observer: ResizeObserver | null = null;
@@ -524,9 +505,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
       const bookContainer = containerRef.current?.querySelector('.book-area-container');
       if (!bookContainer) return;
 
-      const singlePage = pdfAspectRatio > 1.2 || window.innerWidth < 768;
+      const singlePage = orientation === 'portrait' || pdfAspectRatio > 1.2 || window.innerWidth < 768;
 
-      // Consider standard safe padding: 40px width padding, 40px height padding
       const w = Math.max(0, bookContainer.clientWidth - 40);
       const h = Math.max(0, bookContainer.clientHeight - 40);
 
@@ -539,7 +519,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
       setIsSinglePage(singlePage);
       setBaseScale(newScale);
 
-      // Force HTMLFlipBook to recalculate its internal canvas offset after scale applied
       setTimeout(() => {
         bookRef.current?.pageFlip()?.update();
       }, 50);
@@ -558,22 +537,18 @@ const BookViewer: React.FC<BookViewerProps> = ({
       observer.observe(bookArea);
     }
 
-    // Fallbacks
     window.addEventListener('resize', handleResize);
-
-    // Initial calls carefully staggered so DOM and React settle
     updateScale();
     setTimeout(updateScale, 100);
-    setTimeout(updateScale, 500); // Failsafe for slow layout repaints
+    setTimeout(updateScale, 500);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       if (observer) observer.disconnect();
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
-  }, [pageW, pageH, pdfAspectRatio]);
+  }, [pageW, pageH, pdfAspectRatio, orientation]);
 
-  // Initialize pages
   useEffect(() => {
     const initBook = async () => {
       if (!pdfDocument) {
@@ -590,7 +565,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
         }
 
         try {
-          // Get the exact aspect ratio from the first page of the PDF
           const page1 = await pdfDocument.getPage(1);
           const vp = page1.getViewport({ scale: 1 });
           setPdfAspectRatio(vp.width / vp.height);
@@ -605,7 +579,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
         await new Promise(resolve => setTimeout(resolve, 300));
 
         setLoading(false);
-        console.log(`BookViewer ready: ${pdfDocument.numPages} pages`);
         setTimeout(() => {
           bookRef.current?.pageFlip()?.update();
         }, 100);
@@ -619,7 +592,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     initBook();
   }, [pdfDocument]);
 
-  // Auto-play mode
   useEffect(() => {
     if (isAutoPlaying && !loading && pages.length > 0) {
       autoPlayRef.current = setInterval(() => {
@@ -645,6 +617,27 @@ const BookViewer: React.FC<BookViewerProps> = ({
     };
   }, [isAutoPlaying, loading, pages.length]);
 
+  // Handle transitions and sounds
+  const handleChangeState = useCallback((e: any) => {
+    if (e.data === 'flipping') {
+      playFlipSound();
+    }
+  }, []);
+
+  const handleFlip = useCallback((e: any) => {
+    const pageIdx = (e && typeof e === 'object' && 'data' in e) ? e.data : e;
+    if (typeof pageIdx === 'number' && !isNaN(pageIdx)) {
+      setCurrentPage(pageIdx);
+      onFlip(pageIdx);
+    }
+  }, [onFlip]);
+
+  const handleBookInit = useCallback((el: any) => {
+    if (!el) return;
+    bookRef.current = el;
+    onBookInit(el);
+  }, [onBookInit]);
+
   const flipPrev = useCallback(() => {
     const pageFlip = bookRef.current?.pageFlip();
     if (pageFlip) pageFlip.flipPrev();
@@ -655,27 +648,29 @@ const BookViewer: React.FC<BookViewerProps> = ({
     if (pageFlip) pageFlip.flipNext();
   }, []);
 
-  // Play sound when flip STARTS
-  const handleChangeState = useCallback((e: any) => {
-    if (e.data === 'flipping') {
-      playFlipSound();
-    }
-  }, []);
-
-  const handleFlip = useCallback((e: any) => {
-    setCurrentPage(e.data);
-    onFlip(e.data);
-  }, [onFlip]);
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const key = e.key;
+      if (key === 'ArrowRight' || key === 'Right' || key === 'ArrowDown' || key === ' ') {
+        if (key === ' ') e.preventDefault();
+        flipNext();
+      } else if (key === 'ArrowLeft' || key === 'Left' || key === 'ArrowUp') {
+        flipPrev();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [flipNext, flipPrev]);
 
   const goToPage = useCallback((pageNum: number) => {
     const pageFlip = bookRef.current?.pageFlip();
     if (pageFlip) pageFlip.turnToPage(pageNum - 1);
   }, []);
 
-  // Determine if the right panel is open (thumbnails or search)
   const rightPanelOpen = showThumbnails || showSearch;
 
-  // Error state
   if (error) {
     return (
       <div className="df-container w-full h-full flex items-center justify-center" style={{ background: '#0c0c0e' }}>
@@ -692,7 +687,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     );
   }
 
-  // Loading state
   if (!pdfDocument || pages.length === 0 || loading) {
     return (
       <div className="df-container w-full h-full flex items-center justify-center" style={{ background: '#0c0c0e' }}>
@@ -704,7 +698,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
     );
   }
 
-  const totalPages = pages.length;
+  const totalPages = orientation === 'trifold' ? 5 : pages.length;
 
   return (
     <div
@@ -716,9 +710,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
       }}
       onWheel={(e) => { if (e.ctrlKey) e.preventDefault(); }}
     >
-      {/* Main Book Area */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden book-area-container">
-        {/* Left Navigation */}
         <button
           onClick={flipPrev}
           onMouseDown={(e) => e.preventDefault()}
@@ -728,61 +720,73 @@ const BookViewer: React.FC<BookViewerProps> = ({
           <ChevronLeft size={40} />
         </button>
 
-        {/* The Book */}
-        <div
-          className="absolute top-1/2 left-1/2 book-3d-container"
-          style={{
-            width: isSinglePage ? pageW : pageW * 2,
-            height: pageH,
-            transform: `translate(-50%, -50%) scale(${scale})`,
-          }}
-        >
-          <HTMLFlipBook
-            key={`${pageW}-${pageH}-${isSinglePage}`}
-            width={pageW}
-            height={pageH}
-            size="fixed"
-            minWidth={pageW}
-            maxWidth={pageW}
-            minHeight={pageH}
-            maxHeight={pageH}
-            showCover={!isSinglePage}
-            maxShadowOpacity={0.5}
-            mobileScrollSupport={true}
-            onFlip={handleFlip}
-            onChangeState={handleChangeState}
-            onInit={() => {
-              setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
+        {orientation === 'trifold' ? (
+          <div
+            className="absolute top-1/2 left-1/2"
+            style={{
+              width: '100%',
+              height: '100%',
+              transform: 'translate(-50%, -50%)',
             }}
-            ref={(el: any) => {
-              bookRef.current = el;
-              if (el) onBookInit(el);
-            }}
-            className="book-3d-flip"
-            style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
-            startPage={0}
-            flippingTime={800}
-            usePortrait={isSinglePage}
-            drawShadow={true}
-            startZIndex={0}
-            autoSize={false}
-            clickEventForward={false}
-            useMouseEvents={true}
-            swipeDistance={30}
-            showPageCorners={false}
-            disableFlipByClick={false}
           >
-            {pages.map((num) => (
-              <Page key={num} number={num} pdfDocument={pdfDocument} pageW={pageW} pageH={pageH} />
-            ))}
-          </HTMLFlipBook>
-        </div>
+            <TrifoldViewer
+              pdfDocument={pdfDocument}
+              onFlip={handleFlip}
+              onBookInit={handleBookInit}
+            />
+          </div>
+        ) : (
+          <div
+            className="absolute top-1/2 left-1/2 book-3d-container"
+            style={{
+              width: isSinglePage ? pageW : pageW * 2,
+              height: pageH,
+              transform: `translate(-50%, -50%) scale(${scale})`,
+            }}
+          >
+            <HTMLFlipBook
+              key={`${pageW}-${pageH}-${isSinglePage}`}
+              width={pageW}
+              height={pageH}
+              size="fixed"
+              minWidth={pageW}
+              maxWidth={pageW}
+              minHeight={pageH}
+              maxHeight={pageH}
+              showCover={!isSinglePage}
+              maxShadowOpacity={0.5}
+              mobileScrollSupport={true}
+              onFlip={handleFlip}
+              onChangeState={handleChangeState}
+              onInit={() => {
+                setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
+              }}
+              ref={handleBookInit}
+              className="book-3d-flip"
+              style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
+              startPage={0}
+              flippingTime={800}
+              usePortrait={isSinglePage}
+              drawShadow={true}
+              startZIndex={0}
+              autoSize={false}
+              clickEventForward={false}
+              useMouseEvents={true}
+              swipeDistance={30}
+              showPageCorners={false}
+              disableFlipByClick={false}
+            >
+              {pages.map((num) => (
+                <Page key={num} number={num} pdfDocument={pdfDocument} pageW={pageW} pageH={pageH} />
+              ))}
+            </HTMLFlipBook>
+          </div>
+        )}
 
-        {/* Right Navigation */}
         <button
           onClick={flipNext}
           onMouseDown={(e) => e.preventDefault()}
-          className={`absolute top-1/2 -translate-y-1/2 w-16 h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08]`}
+          className="absolute top-1/2 -translate-y-1/2 w-16 h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08]"
           style={{
             right: rightPanelOpen ? 290 : 24,
             transition: 'right 0.3s ease'
@@ -792,7 +796,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
           <ChevronRight size={40} />
         </button>
 
-        {/* Thumbnails Panel - Right Side */}
         <div
           className="absolute top-0 right-0 h-full z-30 flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
           style={{
@@ -801,7 +804,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
             transition: 'transform 0.3s ease',
           }}
         >
-          {/* Panel Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04] bg-[#0c0c0e]">
             <div className="flex items-center gap-2">
               <Grid3X3 size={16} className="text-zinc-500" />
@@ -815,10 +817,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
             </button>
           </div>
 
-          {/* Thumbnails - Spread Layout (cover alone, then pairs) */}
           <div className="flex-1 overflow-y-auto px-4 py-3 no-scrollbar">
             <div className="flex flex-col gap-4">
-              {/* Page 1 - Cover (centered, alone) */}
               {pages.length > 0 && (
                 <div>
                   <div className="flex justify-center">
@@ -835,7 +835,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
                 </div>
               )}
 
-              {/* Remaining pages as spreads (2-3, 4-5, 6-7, ...) */}
               {(() => {
                 const spreads: { left: number; right: number | null }[] = [];
                 for (let i = 2; i <= pages.length; i += 2) {
@@ -879,7 +878,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
           </div>
         </div>
 
-        {/* Search Panel - Right Side */}
         <div
           className="absolute top-0 right-0 h-full z-30 flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
           style={{
@@ -888,7 +886,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
             transition: 'transform 0.3s ease',
           }}
         >
-          {/* Search Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04] bg-[#0c0c0e]">
             <div className="flex items-center gap-2">
               <Search size={16} className="text-zinc-500" />
@@ -902,7 +899,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
             </button>
           </div>
 
-          {/* Search Input */}
           <div className="px-4 py-3 border-b border-white/[0.04]">
             <div className="relative">
               <input
@@ -933,7 +929,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
             </label>
           </div>
 
-          {/* Search Results */}
           <div className="flex-1 overflow-y-auto px-4 py-3">
             {isExtractingText ? (
               <div className="flex items-center justify-center py-8">
@@ -994,7 +989,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
         </div>
       </div>
 
-      {/* Bottom Controls - macOS Dock */}
       <div className="relative w-full flex justify-center z-10" style={{ height: '80px', position: 'relative' }}>
         <Dock
           items={[

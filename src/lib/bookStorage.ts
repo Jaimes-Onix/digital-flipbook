@@ -128,7 +128,7 @@ export interface StoredBook {
   is_favorite: boolean;
   summary: string | null;
   created_at: string;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: 'portrait' | 'landscape' | 'trifold';
 }
 
 export async function uploadPDF(file: File): Promise<string> {
@@ -207,7 +207,7 @@ export async function saveBookMetadata(book: {
   category?: BookCategory;
   is_favorite?: boolean;
   summary?: string;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: 'portrait' | 'landscape' | 'trifold';
 }): Promise<StoredBook> {
   // Get current user (try getUser first, then fall back to getSession)
   let userId = (await supabase.auth.getUser()).data.user?.id;

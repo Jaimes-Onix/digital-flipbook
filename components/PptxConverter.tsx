@@ -4,13 +4,13 @@ import { UploadCloud, FileText, Loader2, ChevronLeft, Presentation, AlertCircle,
 interface PptxConverterProps {
   onBack?: () => void;
   darkMode?: boolean;
-  onConvertSuccess?: (pdfFile: File, orientation: 'portrait' | 'landscape') => void;
+  onConvertSuccess?: (pdfFile: File, orientation: 'portrait' | 'landscape' | 'trifold') => void;
 }
 
 interface ConverterActionModalProps {
   file: File | null;
   darkMode: boolean;
-  onConfirm: (action: 'import' | 'download', orientation: 'portrait' | 'landscape') => void;
+  onConfirm: (action: 'import' | 'download', orientation: 'portrait' | 'landscape' | 'trifold') => void;
   onCancel: () => void;
 }
 
@@ -246,7 +246,7 @@ const PptxConverter: React.FC<PptxConverterProps> = ({ onBack, darkMode = false,
     e.target.value = '';
   }, [pendingConvertedFile]);
 
-  const handleConfirmAction = async (action: 'import' | 'download', orientation: 'portrait' | 'landscape') => {
+  const handleConfirmAction = async (action: 'import' | 'download', orientation: 'portrait' | 'landscape' | 'trifold') => {
     if (!pendingConvertedFile) return;
 
     if (action === 'download') {

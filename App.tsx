@@ -99,40 +99,7 @@ const App: React.FC = () => {
 
   // Disable right-click and developer tools shortcuts
   useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent F12
-      if (e.key === 'F12') {
-        e.preventDefault();
-      }
-      // Prevent Ctrl+Shift+I / Cmd+Option+I (Inspect)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-      }
-      // Prevent Ctrl+Shift+J / Cmd+Option+J (Console)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'j') {
-        e.preventDefault();
-      }
-      // Prevent Ctrl+Shift+C / Cmd+Option+C (Inspect Element)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
-        e.preventDefault();
-      }
-      // Prevent Ctrl+U / Cmd+U (View Source)
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    // Disabled for debugging
   }, []);
 
   const [homeVariant, setHomeVariant] = useState<1 | 2>(1);
@@ -270,7 +237,7 @@ const App: React.FC = () => {
     return canvas.toDataURL('image/jpeg', 0.8);
   };
 
-  const handleFilesSelect = async (selectedFiles: File[], orientation: 'landscape' | 'portrait' = 'portrait') => {
+  const handleFilesSelect = async (selectedFiles: File[], orientation: 'landscape' | 'portrait' | 'trifold' = 'portrait') => {
     const total = selectedFiles.length;
     if (total === 0) return;
 
@@ -615,13 +582,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (view !== 'reader') return;
-      if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext();
-      if (e.key === 'ArrowLeft') bookRef.current?.pageFlip()?.flipPrev();
       if (e.key === 'Escape') { navigate('/library'); setSelectedBook(null); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [view, navigate]);
+
 
   const isLandingPage = false; // Sidebar always visible
 
@@ -669,11 +635,13 @@ const App: React.FC = () => {
           readerBookId={selectedBook?.id}
           readerPageInfo={
             selectedBook
-              ? (selectedBook.orientation === 'landscape'
-                ? `page ${currentPage + 1} of ${selectedBook.totalPages}`
-                : (currentPage + 1 < selectedBook.totalPages
-                  ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
-                  : `page ${currentPage + 1} of ${selectedBook.totalPages}`))
+              ? (selectedBook.orientation === 'trifold'
+                ? `page ${currentPage + 1} of 4`
+                : (selectedBook.orientation === 'landscape'
+                  ? `page ${currentPage + 1} of ${selectedBook.totalPages}`
+                  : (currentPage + 1 < selectedBook.totalPages
+                    ? `pages ${currentPage + 1} - ${Math.min(currentPage + 2, selectedBook.totalPages)} of ${selectedBook.totalPages}`
+                    : `page ${currentPage + 1} of ${selectedBook.totalPages}`)))
               : undefined
           }
         />}

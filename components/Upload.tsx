@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { UploadCloud, FileText, Loader2, ChevronLeft, X } from 'lucide-react';
 
-type Orientation = 'landscape' | 'portrait';
+type Orientation = 'landscape' | 'portrait' | 'trifold';
 
 interface UploadProps {
   onFilesSelect: (files: File[], orientation: Orientation) => void;
@@ -52,7 +52,7 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
         </div>
 
         {/* Orientation Options */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-3 mb-8">
           {/* Portrait */}
           <button
             onClick={() => setSelected('portrait')}
@@ -135,6 +135,62 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
             </div>
 
             {selected === 'landscape' && (
+              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
+                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
+                  <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            )}
+          </button>
+
+          {/* Trifold */}
+          <button
+            onClick={() => setSelected('trifold')}
+            className={`group relative flex flex-col items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-200 ${selected === 'trifold'
+              ? darkMode
+                ? 'border-lime-500 bg-lime-500/[0.08]'
+                : 'border-lime-500 bg-lime-50'
+              : darkMode
+                ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
+                : 'border-gray-200 hover:border-gray-300 bg-gray-50'
+              }`}
+          >
+            {/* Trifold book illustration */}
+            <div className={`relative flex items-center justify-center transition-colors duration-200 ${selected === 'trifold'
+              ? 'text-lime-500'
+              : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
+              }`}>
+              {/* Three panels for trifold */}
+              <div className={`flex items-center justify-center h-16 w-16 perspective-[80px]`}>
+                <div className="flex gap-0.5 transform-style-3d rotate-x-[5deg] group-hover:rotate-x-[10deg] transition-all">
+                  {/* Left Panel */}
+                  <div className={`w-4 h-14 rounded-l-sm border-2 border-r flex flex-col overflow-hidden transition-all duration-300 origin-right ${selected === 'trifold'
+                    ? 'border-lime-500 bg-lime-500/20 rotate-y-[20deg]'
+                    : darkMode ? 'border-zinc-600 bg-zinc-800 rotate-y-[35deg]' : 'border-gray-300 bg-gray-100 rotate-y-[35deg]'
+                    }`}>
+                  </div>
+                  {/* Middle Panel */}
+                  <div className={`w-4 h-14 border-y-2 flex flex-col overflow-hidden transition-all duration-300 ${selected === 'trifold'
+                    ? 'border-lime-500 bg-lime-500/10'
+                    : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
+                    }`}>
+                  </div>
+                  {/* Right Panel */}
+                  <div className={`w-4 h-14 rounded-r-sm border-2 border-l flex flex-col overflow-hidden transition-all duration-300 origin-left ${selected === 'trifold'
+                    ? 'border-lime-500 bg-lime-500/20 -rotate-y-[20deg]'
+                    : darkMode ? 'border-zinc-600 bg-zinc-800 -rotate-y-[35deg]' : 'border-gray-300 bg-gray-100 -rotate-y-[35deg]'
+                    }`}>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <p className={`font-semibold text-sm ${selected === 'trifold' ? 'text-lime-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Trifold</p>
+              <p className={`text-[11px] mt-0.5 leading-tight ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>3-panel<br />brochure</p>
+            </div>
+
+            {selected === 'trifold' && (
               <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
                 <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
                   <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />

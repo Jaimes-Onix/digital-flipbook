@@ -42,7 +42,7 @@ export interface LibraryBook {
   summary?: string;
   category?: BookCategory;
   isFavorite?: boolean;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: 'portrait' | 'landscape' | 'trifold';
   createdAt?: string;
 }
 

@@ -1,6 +1,12 @@
 # Fix Navigation and Labeling in Reader
 
-The user reported they cannot go "back" a page when reading books in landscape orientation. This appears to be caused by a combination of misleading page labels and potentially buggy interaction settings in the flipbook viewer.
+The user reported they cannot go "back" a page when reading books in landscape orientation. This appears to be caused by a combination of misleading page labels and potentially buggy interaction settings- [x] Re-create `TrifoldViewer.tsx`- [x] Fix `format` detection to handle 2-page PDFs as spreads <!-- id: 18 -->
+- [x] Reconfigure 3D panels: Front Cover on Left Flap <!-- id: 19 -->
+- [x] Ensure first opening swings to the LEFT <!-- id: 20 -->
+- [x] Update state transitions for the new left-hinge logic <!-- id: 21 -->
+- [x] Verify full PDF content is visible (Page 1 and 2) <!-- id: 22 -->
+- [x] Sync trifold navigation with BookViewer controls <!-- id: 17 -->
+- [x] Verify full-page fit and left-opening <!-- id: 15 -->
 
 ## Proposed Changes
 

@@ -125,17 +125,16 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
     }
   }, []);
 
-  // Keyboard navigation for reader
+  // Keyboard navigation for reader (Escape to close)
   useEffect(() => {
     if (!selectedBook) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext();
-      if (e.key === 'ArrowLeft') bookRef.current?.pageFlip()?.flipPrev();
       if (e.key === 'Escape') { setSelectedBook(null); setShowSearch(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selectedBook]);
+
 
   // --- Missing/invalid category slug ---
   if (!category) {
@@ -191,6 +190,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
             showSearch={showSearch}
             onToggleSearch={() => setShowSearch(!showSearch)}
             fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
+            orientation={selectedBook.orientation}
           />
         </div>
       </div>

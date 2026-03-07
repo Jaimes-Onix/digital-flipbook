@@ -30,7 +30,7 @@ import type { CustomCategory } from '../types';
 export type LibraryFilter = string;
 
 interface SidebarProps {
-  currentView: 'home' | 'library' | 'upload' | 'convert-pptx' | 'reader';
+  currentView: 'home' | 'library' | 'upload' | 'convert-pptx' | 'create-trifold' | 'reader';
   currentFilter: LibraryFilter;
   darkMode: boolean;
   onToggleDarkMode: () => void;

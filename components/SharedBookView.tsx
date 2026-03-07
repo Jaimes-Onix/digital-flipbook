@@ -107,13 +107,12 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   useEffect(() => {
     if (!readerOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext();
-      if (e.key === 'ArrowLeft') bookRef.current?.pageFlip()?.flipPrev();
       if (e.key === 'Escape') { setReaderOpen(false); setShowSearch(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [readerOpen]);
+
 
   const toggleBtn = darkMode ? 'text-zinc-400 hover:bg-white/[0.08]' : 'text-gray-500 hover:bg-gray-100';
 
