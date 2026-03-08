@@ -10,15 +10,13 @@ interface TrifoldViewerProps {
 // -----------------------------------------------------------------------------
 // Type Definitions
 // -----------------------------------------------------------------------------
-type FoldState = 'closed' | 'opened_front_flap' | 'fully_opened' | 'back_cover' | 'back_opened';
+type FoldState = 'closed' | 'opened_front_flap' | 'fully_opened' | 'back_cover_closed' | 'back_cover_opened';
 
 // PDF trifold format types
 type TrifoldFormat =
     | 'single_spread'    // 1 wide page: all 3 outside panels
     | 'two_spread'       // 2 wide pages: outside + inside (landscape trifold)
     | 'six_individual';  // 6 pages: one per panel
-
-const THICKNESS = 1.5; // px of 3D thickness
 
 // -----------------------------------------------------------------------------
 // Component: Single Panel Renderer
@@ -245,8 +243,8 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
         setFoldState(current => {
             if (current === 'closed') return 'opened_front_flap';
             if (current === 'opened_front_flap') return 'fully_opened';
-            if (current === 'fully_opened') return 'back_cover';
-            if (current === 'back_cover') return 'back_opened';
+            if (current === 'fully_opened') return 'back_cover_closed';
+            if (current === 'back_cover_closed') return 'back_cover_opened';
             return current;
         });
         setTimeout(() => setIsAnimating(false), 800);
@@ -256,8 +254,8 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
         if (isAnimating) return;
         setIsAnimating(true);
         setFoldState(current => {
-            if (current === 'back_opened') return 'back_cover';
-            if (current === 'back_cover') return 'fully_opened';
+            if (current === 'back_cover_opened') return 'back_cover_closed';
+            if (current === 'back_cover_closed') return 'fully_opened';
             if (current === 'fully_opened') return 'opened_front_flap';
             if (current === 'opened_front_flap') return 'closed';
             return current;
@@ -286,15 +284,15 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
                     if (page === 0) setFoldState('closed');
                     else if (page === 1) setFoldState('opened_front_flap');
                     else if (page === 2) setFoldState('fully_opened');
-                    else if (page === 3) setFoldState('back_cover');
-                    else if (page >= 4) setFoldState('back_opened');
+                    else if (page === 3) setFoldState('back_cover_closed');
+                    else if (page >= 4) setFoldState('back_cover_opened');
                 },
                 getCurrentPageIndex: () => {
                     const current = foldStateRef.current;
                     if (current === 'closed') return 0;
                     if (current === 'opened_front_flap') return 1;
                     if (current === 'fully_opened') return 2;
-                    if (current === 'back_cover') return 3;
+                    if (current === 'back_cover_closed') return 3;
                     return 4;
                 },
                 getPageCount: () => 5
@@ -308,8 +306,8 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
         if (foldState === 'closed') pageIdx = 0;
         else if (foldState === 'opened_front_flap') pageIdx = 1;
         else if (foldState === 'fully_opened') pageIdx = 2;
-        else if (foldState === 'back_cover') pageIdx = 3;
-        else if (foldState === 'back_opened') pageIdx = 4;
+        else if (foldState === 'back_cover_closed') pageIdx = 3;
+        else if (foldState === 'back_cover_opened') pageIdx = 4;
         onFlip(pageIdx);
     }, [foldState, onFlip]);
 
@@ -367,8 +365,8 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
         case 'closed': rotLeft = 179; rotRight = -179; rotEntire = 0; break;
         case 'opened_front_flap': rotLeft = 0; rotRight = -179; rotEntire = 0; break;
         case 'fully_opened': rotLeft = 0; rotRight = 0; rotEntire = 0; break;
-        case 'back_cover': rotLeft = 179; rotRight = -179; rotEntire = 180; break;
-        case 'back_opened': rotLeft = 0; rotRight = 0; rotEntire = 180; break;
+        case 'back_cover_closed': rotLeft = 179; rotRight = -179; rotEntire = 180; break;
+        case 'back_cover_opened': rotLeft = 0; rotRight = 0; rotEntire = 180; break;
     }
 
     let centerTranslateX = (foldState === 'opened_front_flap') ? panelWidth : 0;
@@ -385,31 +383,31 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
 
                     {/* CENTER */}
                     <div className="absolute top-0 left-0 w-full h-full" style={{ transformStyle: 'preserve-3d', zIndex: 10 }}>
-                        <PDFPanel pageNumber={layers.insideCenter.page} clipThirds={layers.insideCenter.clipThirds} clipIndex={layers.insideCenter.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: `translateZ(${THICKNESS / 2}px)`, border: '0.5px solid rgba(0,0,0,0.05)' }} />
-                        <PDFPanel pageNumber={layers.backCover.page} clipThirds={layers.backCover.clipThirds} clipIndex={layers.backCover.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: `rotateY(180deg) translateZ(${THICKNESS / 2}px)`, border: '0.5px solid rgba(0,0,0,0.05)' }} />
+                        <PDFPanel pageNumber={layers.insideCenter.page} clipThirds={layers.insideCenter.clipThirds} clipIndex={layers.insideCenter.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} />
+                        <PDFPanel pageNumber={layers.backCover.page} clipThirds={layers.backCover.clipThirds} clipIndex={layers.backCover.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: 'rotateY(180deg)' }} />
                     </div>
 
                     {/* LEFT (Front Cover) */}
                     <div className="absolute top-0 right-full w-full h-full" style={{
                         transformStyle: 'preserve-3d', transformOrigin: 'right center',
-                        transform: `rotateY(${rotLeft}deg) ${foldState === 'closed' ? `translateZ(${THICKNESS + 1}px)` : ''}`,
-                        transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)', zIndex: foldState === 'closed' ? 100 : 15
+                        transform: `rotateY(${rotLeft}deg) ${foldState === 'closed' || foldState === 'back_cover_closed' ? 'translateZ(-1px)' : ''}`,
+                        transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)', zIndex: foldState === 'closed' || foldState === 'back_cover_closed' ? 100 : 15
                     }}>
-                        <PDFPanel pageNumber={layers.insideLeft.page} clipThirds={layers.insideLeft.clipThirds} clipIndex={layers.insideLeft.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: `translateZ(${THICKNESS / 2}px)`, border: '0.5px solid rgba(0,0,0,0.05)' }} />
-                        <PDFPanel pageNumber={layers.frontCover.page} clipThirds={layers.frontCover.clipThirds} clipIndex={layers.frontCover.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={false} style={{ transform: `rotateY(180deg) translateZ(${THICKNESS / 2}px)`, border: '0.5px solid rgba(0,0,0,0.05)' }} />
+                        <PDFPanel pageNumber={layers.insideLeft.page} clipThirds={layers.insideLeft.clipThirds} clipIndex={layers.insideLeft.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} />
+                        <PDFPanel pageNumber={layers.frontCover.page} clipThirds={layers.frontCover.clipThirds} clipIndex={layers.frontCover.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={false} style={{ transform: 'rotateY(180deg)' }} />
                     </div>
 
                     {/* RIGHT (Inside Flap) */}
                     <div className="absolute top-0 left-full w-full h-full" style={{
                         transformStyle: 'preserve-3d', transformOrigin: 'left center',
-                        transform: `rotateY(${rotRight}deg) translateZ(${-THICKNESS}px)`,
+                        transform: `rotateY(${rotRight}deg)`,
                         transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)',
                         zIndex: foldState === 'closed' ? 0 : 20,
                         opacity: foldState === 'closed' ? 0 : 1,
                         display: foldState === 'closed' ? 'none' : 'block'
                     }}>
-                        <PDFPanel pageNumber={layers.insideRight.page} clipThirds={layers.insideRight.clipThirds} clipIndex={layers.insideRight.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: `translateZ(${THICKNESS / 2}px)`, border: '0.5px solid rgba(0,0,0,0.05)' }} />
-                        <PDFPanel pageNumber={layers.backFlap.page} clipThirds={layers.backFlap.clipThirds} clipIndex={layers.backFlap.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: `rotateY(180deg) translateZ(${THICKNESS / 2}px)`, border: '0.5px solid rgba(0,0,0,0.05)' }} />
+                        <PDFPanel pageNumber={layers.insideRight.page} clipThirds={layers.insideRight.clipThirds} clipIndex={layers.insideRight.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} />
+                        <PDFPanel pageNumber={layers.backFlap.page} clipThirds={layers.backFlap.clipThirds} clipIndex={layers.backFlap.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: 'rotateY(180deg)' }} />
                     </div>
                 </div>
 

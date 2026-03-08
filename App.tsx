@@ -582,12 +582,13 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (view !== 'reader') return;
+      if (e.key === 'ArrowRight') bookRef.current?.pageFlip()?.flipNext();
+      if (e.key === 'ArrowLeft') bookRef.current?.pageFlip()?.flipPrev();
       if (e.key === 'Escape') { navigate('/library'); setSelectedBook(null); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [view, navigate]);
-
 
   const isLandingPage = false; // Sidebar always visible
 
