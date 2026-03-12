@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, forwardRef, useCallback, useMemo } from 'react';
 import HTMLFlipBook from 'react-pageflip';
-import { Loader2, ChevronLeft, ChevronRight, Maximize, Minimize, Grid3X3, Play, Pause, X, Search, ZoomIn, ZoomOut, BookOpen } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, X, Search, Grid3X3, Play, Pause, ZoomOut, ZoomIn, Minimize, Maximize } from 'lucide-react';
 import Dock, { DockItemConfig } from './Dock';
 import TrifoldViewer from './TrifoldViewer';
 
@@ -9,7 +9,16 @@ interface BookViewerProps {
   pdfDocument: any;
   onFlip: (pageIndex: number) => void;
   onBookInit: (book: any) => void;
-  autoPlay?: boolean;
+  // Toolbar state — controlled by parent so Header can mirror these
+  zoomLevel?: number;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  isAutoPlaying?: boolean;
+  onToggleAutoPlay?: () => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
+  showThumbnails?: boolean;
+  onToggleThumbnails?: () => void;
   showSearch?: boolean;
   onToggleSearch?: () => void;
   fullscreenContainerRef?: React.RefObject<HTMLDivElement>;
@@ -345,8 +354,13 @@ interface SearchResult {
 
 // Main BookViewer
 const BookViewer: React.FC<BookViewerProps> = ({
-  pdfDocument, onFlip, onBookInit, autoPlay = false,
-  showSearch = false, onToggleSearch, fullscreenContainerRef,
+  pdfDocument, onFlip, onBookInit,
+  zoomLevel = 100, onZoomIn, onZoomOut,
+  isAutoPlaying = false, onToggleAutoPlay,
+  isFullscreen = false, onToggleFullscreen,
+  showThumbnails = false, onToggleThumbnails,
+  showSearch = false, onToggleSearch,
+  fullscreenContainerRef,
   orientation = 'portrait'
 }) => {
   const defaultAspectRatio = orientation === 'landscape' ? LANDSCAPE_W / LANDSCAPE_H : PORTRAIT_W / PORTRAIT_H;
@@ -362,13 +376,9 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [pages, setPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [baseScale, setBaseScale] = useState(1);
-  const [zoomLevel, setZoomLevel] = useState(100);
   const [loading, setLoading] = useState(true);
   const [loadingText, setLoadingText] = useState('Initializing...');
   const [error, setError] = useState<string | null>(null);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(autoPlay);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showThumbnails, setShowThumbnails] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -411,10 +421,9 @@ const BookViewer: React.FC<BookViewerProps> = ({
     extractText();
   }, [showSearch, pdfDocument, pageTexts.size]);
 
-  // When search opens from top bar, close thumbnails + focus input
+  // When search opens, focus the search input
   useEffect(() => {
     if (showSearch) {
-      setShowThumbnails(false);
       setTimeout(() => searchInputRef.current?.focus(), 300);
     }
   }, [showSearch]);
@@ -491,31 +500,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
     return parts;
   }, [exactMatch]);
 
-  // Fullscreen toggle — use outer reader container if available so Vanta is included
-  const toggleFullscreen = useCallback(() => {
-    const target = fullscreenContainerRef?.current || containerRef.current;
-    if (!target) return;
 
-    if (!document.fullscreenElement) {
-      target.requestFullscreen().then(() => {
-        setIsFullscreen(true);
-      }).catch((err) => {
-        console.error('Fullscreen error:', err);
-      });
-    } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
-      });
-    }
-  }, [fullscreenContainerRef]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   // Calculate base scale to fit screen
   useEffect(() => {
@@ -621,7 +606,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
     initBook();
   }, [pdfDocument]);
 
-  // Auto-play mode
+  // Auto-play mode — controlled by parent prop
   useEffect(() => {
     if (isAutoPlaying && !loading && pages.length > 0) {
       autoPlayRef.current = setInterval(() => {
@@ -629,21 +614,13 @@ const BookViewer: React.FC<BookViewerProps> = ({
         if (pageFlip) {
           const current = pageFlip.getCurrentPageIndex();
           const total = pageFlip.getPageCount();
-
-          if (current < total - 1) {
-            pageFlip.flipNext();
-          } else {
-            pageFlip.turnToPage(0);
-          }
+          if (current < total - 1) pageFlip.flipNext();
+          else pageFlip.turnToPage(0);
         }
       }, 3500);
     }
-
     return () => {
-      if (autoPlayRef.current) {
-        clearInterval(autoPlayRef.current);
-        autoPlayRef.current = null;
-      }
+      if (autoPlayRef.current) { clearInterval(autoPlayRef.current); autoPlayRef.current = null; }
     };
   }, [isAutoPlaying, loading, pages.length]);
 
@@ -746,7 +723,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
   return (
     <div
       ref={containerRef}
-      className="df-container w-full h-full flex flex-col relative pt-14"
+      className="df-container w-full h-full flex flex-col relative"
       style={{
         background: 'transparent',
         touchAction: 'pan-x pan-y'
@@ -859,7 +836,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
               <h3 className="text-sm font-semibold text-zinc-200">Thumbnails</h3>
             </div>
             <button
-              onClick={() => setShowThumbnails(false)}
+              onClick={onToggleThumbnails}
               className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/[0.06] text-zinc-500 hover:text-zinc-300 transition-colors"
             >
               <X size={16} />
@@ -1045,57 +1022,59 @@ const BookViewer: React.FC<BookViewerProps> = ({
         </div>
       </div>
 
-      {/* Bottom Controls - macOS Dock */}
-      <div className="relative w-full flex justify-center z-10" style={{ height: '80px', position: 'relative' }}>
-        <Dock
-          items={[
-            {
-              icon: <span style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>{currentPage + 1}/{totalPages}</span>,
-              label: `Page ${currentPage + 1} of ${totalPages}`,
-              onClick: () => { },
-              className: 'pointer-events-none',
-            },
-            {
-              icon: <Grid3X3 size={18} />,
-              label: showThumbnails ? 'Hide Thumbnails' : 'Thumbnails',
-              onClick: () => { setShowThumbnails(!showThumbnails); if (!showThumbnails && showSearch && onToggleSearch) onToggleSearch(); },
-              className: showThumbnails ? 'active' : '',
-            },
-            {
-              icon: <Search size={18} />,
-              label: showSearch ? 'Hide Search' : 'Search',
-              onClick: () => { if (onToggleSearch) onToggleSearch(); if (showThumbnails) setShowThumbnails(false); },
-              className: showSearch ? 'active' : '',
-            },
-            {
-              icon: isAutoPlaying ? <Pause size={18} /> : <Play size={18} />,
-              label: isAutoPlaying ? 'Pause Auto-flip' : 'Auto-flip',
-              onClick: () => setIsAutoPlaying(!isAutoPlaying),
-              className: isAutoPlaying ? 'active' : '',
-            },
-            {
-              icon: <ZoomOut size={18} />,
-              label: 'Zoom Out',
-              onClick: () => setZoomLevel(prev => Math.max(50, prev - 10)),
-            },
-            {
-              icon: <ZoomIn size={18} />,
-              label: 'Zoom In',
-              onClick: () => setZoomLevel(prev => Math.min(150, prev + 10)),
-            },
-            {
-              icon: isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />,
-              label: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
-              onClick: toggleFullscreen,
-              className: isFullscreen ? 'active' : '',
-            },
-          ] as DockItemConfig[]}
-          panelHeight={64}
-          baseItemSize={46}
-          magnification={65}
-          distance={180}
-        />
-      </div>
+      {isFullscreen && (
+        <div className="relative w-full flex justify-center z-10 animate-in slide-in-from-bottom-10 fade-in duration-300" style={{ height: '80px', position: 'relative' }}>
+          <Dock
+            items={[
+              {
+                icon: <span style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>{currentPage + 1}/{totalPages}</span>,
+                label: `Page ${currentPage + 1} of ${totalPages}`,
+                onClick: () => { },
+                className: 'pointer-events-none',
+              },
+              {
+                icon: <Grid3X3 size={18} />,
+                label: showThumbnails ? 'Hide Thumbnails' : 'Thumbnails',
+                onClick: () => { if (onToggleThumbnails) onToggleThumbnails(); },
+                className: showThumbnails ? 'active' : '',
+              },
+              {
+                icon: <Search size={18} />,
+                label: showSearch ? 'Hide Search' : 'Search',
+                onClick: () => { if (onToggleSearch) onToggleSearch(); },
+                className: showSearch ? 'active' : '',
+              },
+              {
+                icon: isAutoPlaying ? <Pause size={18} /> : <Play size={18} />,
+                label: isAutoPlaying ? 'Pause Auto-flip' : 'Auto-flip',
+                onClick: () => { if (onToggleAutoPlay) onToggleAutoPlay(); },
+                className: isAutoPlaying ? 'active' : '',
+              },
+              {
+                icon: <ZoomOut size={18} />,
+                label: 'Zoom Out',
+                onClick: () => { if (onZoomOut) onZoomOut(); },
+              },
+              {
+                icon: <ZoomIn size={18} />,
+                label: 'Zoom In',
+                onClick: () => { if (onZoomIn) onZoomIn(); },
+              },
+              {
+                icon: isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />,
+                label: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
+                onClick: () => { if (onToggleFullscreen) onToggleFullscreen(); },
+                className: isFullscreen ? 'active' : '',
+              },
+            ] as DockItemConfig[]}
+            panelHeight={64}
+            baseItemSize={46}
+            magnification={65}
+            distance={180}
+          />
+        </div>
+      )}
+
     </div>
   );
 };

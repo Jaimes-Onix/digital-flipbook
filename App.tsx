@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle2, AlertCircle, X, BookOpen, Search } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, BookOpen } from 'lucide-react';
 import { supabase } from './src/lib/supabase';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -126,6 +126,25 @@ const App: React.FC = () => {
   const bookRef = useRef<BookRef | null>(null);
   const previousRouteRef = useRef<string>('/library');
   const readerContainerRef = useRef<HTMLDivElement>(null);
+
+  // Toolbar state — lifted so Header can render the same controls
+  const [readerZoom, setReaderZoom] = useState(100);
+  const [readerAutoPlay, setReaderAutoPlay] = useState(false);
+  const [readerFullscreen, setReaderFullscreen] = useState(false);
+  const [readerShowThumbnails, setReaderShowThumbnails] = useState(false);
+
+  const toggleReaderFullscreen = useCallback(() => {
+    const target = readerContainerRef.current;
+    if (!target) return;
+    if (!document.fullscreenElement) target.requestFullscreen().catch(console.error);
+    else document.exitFullscreen();
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => setReaderFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
 
   // Derive current view and filter from route
   const getCurrentView = (): 'home' | 'upload' | 'convert-pptx' | 'library' | 'reader' | 'signin' | 'shared' => {
@@ -631,7 +650,14 @@ const App: React.FC = () => {
           onToggleHomeVariant={() => setHomeVariant(prev => prev === 1 ? 2 : 1)}
           onToggleSidebar={() => setSidebarOpen(prev => !prev)}
           fileName={selectedBook?.name}
-          onCloseReader={() => { navigate(previousRouteRef.current); setSelectedBook(null); setShowSearch(false); }}
+          onCloseReader={() => {
+            navigate(previousRouteRef.current);
+            setSelectedBook(null);
+            setShowSearch(false);
+            setReaderShowThumbnails(false);
+            setReaderAutoPlay(false);
+            setReaderZoom(100);
+          }}
           readerBookName={selectedBook?.name.replace('.pdf', '')}
           readerBookId={selectedBook?.id}
           readerPageInfo={
@@ -645,6 +671,23 @@ const App: React.FC = () => {
                     : `page ${currentPage + 1} of ${selectedBook.totalPages}`)))
               : undefined
           }
+          readerZoom={readerZoom}
+          onReaderZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
+          onReaderZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
+          readerAutoPlay={readerAutoPlay}
+          onToggleReaderAutoPlay={() => setReaderAutoPlay(p => !p)}
+          readerFullscreen={readerFullscreen}
+          onToggleReaderFullscreen={toggleReaderFullscreen}
+          readerShowThumbnails={readerShowThumbnails}
+          onToggleReaderThumbnails={() => {
+            setReaderShowThumbnails(p => !p);
+            if (!readerShowThumbnails && showSearch) setShowSearch(false);
+          }}
+          readerShowSearch={showSearch}
+          onToggleReaderSearch={() => {
+            setShowSearch(p => !p);
+            if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
+          }}
         />}
 
         <main className={`flex-1 relative w-full h-full ${isLandingPage || view === 'reader' || view === 'shared' ? '' : 'pt-14'} overflow-y-auto no-scrollbar`}>
@@ -749,7 +792,7 @@ const App: React.FC = () => {
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
               selectedBook && (
-                <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative">
+                <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative pt-14">
 
                   {/* BookViewer */}
                   <div className="flex-1 w-full h-full min-h-0 relative z-10">
@@ -757,9 +800,23 @@ const App: React.FC = () => {
                       pdfDocument={selectedBook.doc}
                       onFlip={setCurrentPage}
                       onBookInit={(book) => { bookRef.current = book; }}
-                      autoPlay={readerMode === 'preview'}
+                      zoomLevel={readerZoom}
+                      onZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
+                      onZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
+                      isAutoPlaying={readerAutoPlay}
+                      onToggleAutoPlay={() => setReaderAutoPlay(p => !p)}
+                      isFullscreen={readerFullscreen}
+                      onToggleFullscreen={toggleReaderFullscreen}
+                      showThumbnails={readerShowThumbnails}
+                      onToggleThumbnails={() => {
+                        setReaderShowThumbnails(p => !p);
+                        if (!readerShowThumbnails && showSearch) setShowSearch(false);
+                      }}
                       showSearch={showSearch}
-                      onToggleSearch={() => setShowSearch(!showSearch)}
+                      onToggleSearch={() => {
+                        setShowSearch(p => !p);
+                        if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
+                      }}
                       fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
                       orientation={selectedBook.orientation || 'portrait'}
                     />
