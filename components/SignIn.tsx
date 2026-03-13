@@ -2,45 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
 import { Loader2, AlertCircle, BookOpen, Layers, Sparkles, Moon, Sun, Eye, EyeOff } from 'lucide-react';
-import Galaxy from './Galaxy';
 import FullScreenLoader from './FullScreenLoader';
 import BookLoader from './BookLoader';
-
-const DarkGalaxy = React.memo(() => (
-  <Galaxy
-    mouseRepulsion
-    mouseInteraction
-    density={1}
-    glowIntensity={0.3}
-    saturation={0}
-    hueShift={140}
-    twinkleIntensity={0.3}
-    rotationSpeed={0.1}
-    repulsionStrength={2}
-    autoCenterRepulsion={0}
-    starSpeed={0.5}
-    speed={1}
-    transparent={false}
-  />
-));
-
-const LightGalaxy = React.memo(() => (
-  <Galaxy
-    mouseRepulsion
-    mouseInteraction
-    density={0.8}
-    glowIntensity={0.15}
-    saturation={0.3}
-    hueShift={140}
-    twinkleIntensity={0.2}
-    rotationSpeed={0.05}
-    repulsionStrength={2}
-    autoCenterRepulsion={0}
-    starSpeed={0.3}
-    speed={0.7}
-    transparent={true}
-  />
-));
 
 const SignInBackground: React.FC<{ dark: boolean }> = React.memo(({ dark }) => (
   <div
@@ -51,10 +14,23 @@ const SignInBackground: React.FC<{ dark: boolean }> = React.memo(({ dark }) => (
       width: '100vw',
       height: '100vh',
       zIndex: 0,
-      background: dark ? '#000000' : '#e8f0ed',
+      backgroundColor: dark ? '#000000' : '#e8f0ed',
     }}
   >
-    {dark ? <DarkGalaxy /> : <LightGalaxy />}
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      src="https://www.pexels.com/download/video/10922866/"
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        opacity: dark ? 0.3 : 1,
+        pointerEvents: 'none',
+      }}
+    />
   </div>
 ));
 
@@ -444,6 +420,9 @@ const SignIn: React.FC = () => {
 
             {/* Form */}
             <div className="w-full max-w-[340px] space-y-8">
+              <div className="flex justify-center -mb-4">
+                <img src="/Digital Logo.png" alt="Digital Logo" className="h-[80px] w-auto drop-shadow-xl" />
+              </div>
               <div className={`w-fit py-2.5 px-8 rounded-full flex items-center justify-center mx-auto ${dark ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
                 <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[28px] w-auto" />
               </div>

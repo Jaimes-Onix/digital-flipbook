@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { UploadCloud, FileText, Loader2, ChevronLeft, X } from 'lucide-react';
+import { UploadCloud, FileText, Loader2, ChevronLeft, X, RectangleVertical, RectangleHorizontal, Columns3, Info, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Orientation = 'landscape' | 'portrait' | 'trifold';
 
@@ -18,212 +19,316 @@ interface OrientationModalProps {
   onCancel: () => void;
 }
 
+const ORIENTATION_DETAILS = {
+  portrait: {
+    title: 'Portrait Format',
+    description: 'The standard vertical orientation for documents. Ideal for books, reports, and traditional reading experiences.',
+    features: ['Standard 1:1.4 aspect ratio', 'Best for single-column text', 'Classic vertical flipping'],
+    color: '#84cc16' // lime-500
+  },
+  landscape: {
+    title: 'Landscape Format',
+    description: 'Horizontal wide-screen format. Perfect for presentations, image-heavy albums, and dual-page spreads.',
+    features: ['Wide viewing area', 'Optimized for modern monitors', 'Side-by-side page display'],
+    color: '#06b6d4' // cyan-500
+  },
+  trifold: {
+    title: 'Trifold Brochure',
+    description: 'A specialized 3-panel folding design. Perfect for marketing brochures and innovative digital artifacts.',
+    features: ['Realistic 3-way fold', 'Continuous 3-panel spread', 'Immersive brochure behavior'],
+    color: '#10b981' // emerald-500
+  }
+};
+
 const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, onConfirm, onCancel }) => {
   const [selected, setSelected] = useState<Orientation>('portrait');
+  const [rotationOffset, setRotationOffset] = useState(0);
+  const [pulseTrigger, setPulseTrigger] = useState(0);
+
+  // Portrait starts at top (−90°), Landscape at bottom-right (30°), Trifold at bottom-left (150°)
+  const ORBIT_ITEMS: { type: Orientation; icon: React.ElementType; label: string; baseAngle: number }[] = [
+    { type: 'portrait',  icon: RectangleVertical,   label: 'Portrait',  baseAngle: -90 },
+    { type: 'landscape', icon: RectangleHorizontal, label: 'Landscape', baseAngle:  30 },
+    { type: 'trifold',   icon: Columns3,           label: 'Trifold',   baseAngle: 150 },
+  ];
+
+  const RADIUS = 155;
+
+  const handleSelect = (type: Orientation, baseAngle: number) => {
+    setSelected(type);
+    setPulseTrigger(prev => prev + 1);
+    setRotationOffset(prev => {
+      // Calculate delta to bring this item to −90° (top)
+      let delta = (-90 - baseAngle) - prev;
+      // Normalize to shortest path
+      delta = ((delta % 360) + 360) % 360;
+      if (delta > 180) delta -= 360;
+      return prev + delta;
+    });
+  };
+
+  const getItemPos = (baseAngle: number) => {
+    const a = ((baseAngle + rotationOffset) * Math.PI) / 180;
+    return { x: Math.cos(a) * RADIUS, y: Math.sin(a) * RADIUS };
+  };
+
+  const details = ORIENTATION_DETAILS[selected];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(0,0,0,0.6)' }}>
-      <div
-        className={`relative w-full max-w-md rounded-3xl p-8 shadow-2xl animate-scale-in ${darkMode
-          ? 'bg-zinc-900 border border-white/[0.08]'
-          : 'bg-white border border-gray-200'
-          }`}
-        style={{ animation: 'scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      style={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(0,0,0,0.75)' }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className={`relative w-full max-w-5xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col lg:flex-row h-auto lg:h-[620px] ${
+          darkMode ? 'bg-[#0c0c10]/95 border border-white/[0.08]' : 'bg-white/95 border border-gray-200'
+        }`}
       >
-        {/* Close */}
+        {/* Close Button */}
         <button
           onClick={onCancel}
-          className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
-            }`}
+          className={`absolute top-6 right-6 z-20 p-2.5 rounded-full transition-all duration-200 ${
+            darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
+          }`}
         >
-          <X size={18} />
+          <X size={20} />
         </button>
 
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className={`text-2xl font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Book Orientation
-          </h2>
-          <p className={`text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
-            {files.length === 1
-              ? `Choose the orientation for "${files[0].name.replace('.pdf', '')}"`
-              : `Choose the orientation for ${files.length} books`}
-          </p>
+        {/* ── Left Side: Radial Orbital Selector ── */}
+        <div className="flex-1 relative flex flex-col items-center justify-center p-8 lg:p-12 min-h-[400px] lg:min-h-0 overflow-hidden">
+          {/* Title */}
+          <div className="absolute top-8 left-8 text-left z-10">
+            <h2 className={`text-2xl lg:text-3xl font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Book Orientation
+            </h2>
+            <p className={`text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+              Select the structure for your digital asset
+            </p>
+          </div>
+
+          {/* Orbital Stage */}
+          <div className="relative flex items-center justify-center" style={{ width: 420, height: 420 }}>
+
+            {/* Click-Activated Pulsing Rings — vibrant lime green */}
+            {[0, 1, 2].map(i => (
+              <div
+                key={`${pulseTrigger}-${i}`}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  width:  150 + i * 75,
+                  height: 150 + i * 75,
+                  left: '50%', top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  border: '3.5px solid rgba(132, 204, 22, 0.9)',
+                  boxShadow: '0 0 35px rgba(132, 204, 22, 0.5), inset 0 0 15px rgba(132, 204, 22, 0.3)',
+                  animation: `orb-pulse 3.0s ease-in ${i * 0.4}s 1 forwards`,
+                }}
+              />
+            ))}
+
+            {/* Static faint orbit path */}
+            <div
+              className="absolute rounded-full pointer-events-none"
+              style={{
+                width: 330, height: 330,
+                left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)',
+                border: '1px solid rgba(255,255,255,0.06)',
+              }}
+            />
+
+            {/* Central Book Icon */}
+            <div
+              className="absolute z-10 w-[96px] h-[96px] rounded-full flex items-center justify-center"
+              style={{
+                left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'radial-gradient(circle at 40% 35%, rgba(132,204,22,0.25) 0%, rgba(8,8,12,0.96) 70%)',
+                border: '2px solid rgba(132,204,22,0.32)',
+                boxShadow: '0 0 50px rgba(132,204,22,0.18), 0 0 100px rgba(132,204,22,0.06), inset 0 0 24px rgba(0,0,0,0.7)',
+              }}
+            >
+              <BookOpen size={42} className="text-lime-400" strokeWidth={1.6} />
+            </div>
+
+            {/* Orbit Buttons */}
+            {ORBIT_ITEMS.map(item => {
+              const { x, y } = getItemPos(item.baseAngle);
+              const isActive = selected === item.type;
+              const Ic = item.icon as React.FC<{ size?: number; className?: string; strokeWidth?: number }>;
+
+              return (
+                <motion.button
+                  key={item.type}
+                  onClick={() => handleSelect(item.type, item.baseAngle)}
+                  className="absolute z-20 flex flex-col items-center"
+                  style={{ left: '50%', top: '50%', marginLeft: -40, marginTop: -40 }}
+                  animate={{ x, y }}
+                  transition={{ type: 'spring', stiffness: 190, damping: 24 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.90 }}
+                >
+                  {/* Icon box */}
+                  <div
+                    className={`w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-300 ${
+                      isActive
+                        ? 'bg-lime-500 text-white ring-4 ring-lime-500/30'
+                        : darkMode
+                          ? 'bg-zinc-800/90 text-zinc-400 border border-white/[0.10] hover:border-lime-500/40 hover:text-lime-400'
+                          : 'bg-white text-gray-500 border border-gray-200 shadow hover:border-lime-400 hover:text-lime-600'
+                    }`}
+                    style={isActive ? { boxShadow: '0 0 36px rgba(132,204,22,0.6), 0 0 12px rgba(132,204,22,0.35)' } : {}}
+                  >
+                    <Ic size={32} />
+                  </div>
+                  {/* Label */}
+                  <span
+                    className={`mt-2.5 text-[11px] font-bold tracking-widest uppercase whitespace-nowrap ${
+                      isActive ? 'text-lime-400' : 'text-zinc-400'
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Orientation Options */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {/* Portrait */}
-          <button
-            onClick={() => setSelected('portrait')}
-            className={`group relative flex flex-col items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-200 ${selected === 'portrait'
-              ? darkMode
-                ? 'border-lime-500 bg-lime-500/[0.08]'
-                : 'border-lime-500 bg-lime-50'
-              : darkMode
-                ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
-                : 'border-gray-200 hover:border-gray-300 bg-gray-50'
-              }`}
-          >
-            {/* Portrait book illustration */}
-            <div className={`relative flex items-center justify-center rounded-lg transition-colors duration-200 ${selected === 'portrait'
-              ? 'text-lime-500'
-              : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
-              }`}>
-              {/* Tall rectangle for portrait */}
-              <div className={`w-12 h-16 rounded-sm border-2 flex flex-col overflow-hidden transition-colors duration-200 ${selected === 'portrait'
-                ? 'border-lime-500 bg-lime-500/10'
-                : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
+        {/* ── Right Side: Info Panel ── */}
+        <div className={`w-full lg:w-[380px] flex flex-col transition-colors duration-300 lg:border-l ${
+          darkMode ? 'bg-zinc-900/60 border-white/[0.1]' : 'bg-gray-50 border-gray-200'
+        }`}>
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto p-8 lg:p-10 custom-scrollbar">
+            <div className="space-y-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selected}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                {/* New Format Illustration */}
+                <div className={`relative h-48 rounded-2xl flex items-center justify-center overflow-hidden mb-4 ${
+                  darkMode ? 'bg-white/[0.03] border border-white/[0.08]' : 'bg-gray-100 border border-gray-200'
                 }`}>
-                <div className={`h-[30%] border-b transition-colors ${selected === 'portrait' ? 'border-lime-500/40 bg-lime-500/20' : darkMode ? 'border-zinc-700 bg-zinc-700' : 'border-gray-200 bg-gray-200'}`} />
-                <div className="flex-1 flex flex-col gap-[3px] p-1 pt-1.5">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className={`h-[2px] rounded-full ${selected === 'portrait' ? 'bg-emerald-500/40' : darkMode ? 'bg-zinc-600' : 'bg-gray-300'}`} />
-                  ))}
+                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA0Ii8+PHBhdGggZD0iTTAgMGg0djRIMG00IDRoNHY0SDRaIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9Ii4wNCIvPjwvc3ZnPg==')]" />
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    key={selected}
+                    className="relative z-10"
+                  >
+                    {selected === 'portrait' && (
+                      <div className="w-24 h-32 rounded-lg border-2 border-lime-500/50 bg-lime-500/10 flex flex-col p-2 gap-1.5 shadow-2xl shadow-lime-500/10">
+                        <div className="h-1.5 w-full bg-lime-500/30 rounded-full" />
+                        <div className="h-1.5 w-5/6 bg-lime-500/30 rounded-full" />
+                        <div className="flex-1" />
+                        <div className="h-1 w-1/3 bg-lime-500/20 rounded-full self-center" />
+                      </div>
+                    )}
+                    {selected === 'landscape' && (
+                      <div className="w-40 h-28 rounded-lg border-2 border-cyan-500/50 bg-cyan-500/10 flex p-2 shadow-2xl shadow-cyan-500/10 relative">
+                        <div className="flex-1 bg-cyan-500/20 rounded-l h-full" />
+                        <div className="w-[2px] h-full bg-cyan-500/40 mx-0.5" /> {/* The Divider */}
+                        <div className="flex-1 bg-cyan-500/20 rounded-r h-full" />
+                      </div>
+                    )}
+                    {selected === 'trifold' && (
+                      <div className="w-44 h-32 flex shadow-2xl shadow-emerald-500/10">
+                        <div className="w-14 h-full rounded-l-lg border-2 border-emerald-500/50 bg-emerald-500/10 transform -skew-y-3" />
+                        <div className="w-[2px] h-full bg-emerald-500/40 z-20" /> {/* Divider 1 */}
+                        <div className="w-14 h-full border-2 border-emerald-500/50 bg-emerald-500/20 z-10" />
+                        <div className="w-[2px] h-full bg-emerald-500/40 z-20" /> {/* Divider 2 */}
+                        <div className="w-14 h-full rounded-r-lg border-2 border-emerald-500/50 bg-emerald-500/10 transform skew-y-3" />
+                      </div>
+                    )}
+                  </motion.div>
                 </div>
-              </div>
-            </div>
 
-            <div className="text-center">
-              <p className={`font-semibold text-sm ${selected === 'portrait' ? 'text-lime-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Portrait</p>
-              <p className={`text-xs mt-0.5 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Tall format</p>
-            </div>
-
-            {selected === 'portrait' && (
-              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
-                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
-                  <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            )}
-          </button>
-
-          {/* Landscape */}
-          <button
-            onClick={() => setSelected('landscape')}
-            className={`group relative flex flex-col items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-200 ${selected === 'landscape'
-              ? darkMode
-                ? 'border-lime-500 bg-lime-500/[0.08]'
-                : 'border-lime-500 bg-lime-50'
-              : darkMode
-                ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
-                : 'border-gray-200 hover:border-gray-300 bg-gray-50'
-              }`}
-          >
-            {/* Landscape book illustration */}
-            <div className={`relative flex items-center justify-center transition-colors duration-200 ${selected === 'landscape'
-              ? 'text-lime-500'
-              : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
-              }`}>
-              {/* Wide rectangle for landscape */}
-              <div className={`w-16 h-12 rounded-sm border-2 flex flex-col overflow-hidden transition-colors duration-200 ${selected === 'landscape'
-                ? 'border-lime-500 bg-lime-500/10'
-                : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
-                }`}>
-                <div className={`h-[28%] border-b transition-colors ${selected === 'landscape' ? 'border-lime-500/40 bg-lime-500/20' : darkMode ? 'border-zinc-700 bg-zinc-700' : 'border-gray-200 bg-gray-200'}`} />
-                <div className="flex-1 flex flex-col gap-[3px] p-1 pt-1.5">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`h-[2px] rounded-full ${selected === 'landscape' ? 'bg-emerald-500/40' : darkMode ? 'bg-zinc-600' : 'bg-gray-300'}`} />
-                  ))}
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-lime-500/10 text-lime-400' : 'bg-lime-50 text-lime-600'}`}>
+                    <Info size={24} />
+                  </div>
+                  <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {details.title}
+                  </h3>
                 </div>
-              </div>
-            </div>
 
-            <div className="text-center">
-              <p className={`font-semibold text-sm ${selected === 'landscape' ? 'text-lime-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Landscape</p>
-              <p className={`text-xs mt-0.5 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Wide format</p>
-            </div>
+                <p className={`text-lg leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-gray-600'}`}>
+                  {details.description}
+                </p>
 
-            {selected === 'landscape' && (
-              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
-                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
-                  <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            )}
-          </button>
-
-          {/* Trifold */}
-          <button
-            onClick={() => setSelected('trifold')}
-            className={`group relative flex flex-col items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-200 ${selected === 'trifold'
-              ? darkMode
-                ? 'border-lime-500 bg-lime-500/[0.08]'
-                : 'border-lime-500 bg-lime-50'
-              : darkMode
-                ? 'border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]'
-                : 'border-gray-200 hover:border-gray-300 bg-gray-50'
-              }`}
-          >
-            {/* Trifold book illustration */}
-            <div className={`relative flex items-center justify-center transition-colors duration-200 ${selected === 'trifold'
-              ? 'text-lime-500'
-              : darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-gray-600'
-              }`}>
-              {/* Three panels for trifold */}
-              <div className={`flex items-center justify-center h-16 w-16 perspective-[80px]`}>
-                <div className="flex gap-0.5 transform-style-3d rotate-x-[5deg] group-hover:rotate-x-[10deg] transition-all">
-                  {/* Left Panel */}
-                  <div className={`w-4 h-14 rounded-l-sm border-2 border-r flex flex-col overflow-hidden transition-all duration-300 origin-right ${selected === 'trifold'
-                    ? 'border-lime-500 bg-lime-500/20 rotate-y-[20deg]'
-                    : darkMode ? 'border-zinc-600 bg-zinc-800 rotate-y-[35deg]' : 'border-gray-300 bg-gray-100 rotate-y-[35deg]'
-                    }`}>
-                  </div>
-                  {/* Middle Panel */}
-                  <div className={`w-4 h-14 border-y-2 flex flex-col overflow-hidden transition-all duration-300 ${selected === 'trifold'
-                    ? 'border-lime-500 bg-lime-500/10'
-                    : darkMode ? 'border-zinc-600 bg-zinc-800' : 'border-gray-300 bg-gray-100'
-                    }`}>
-                  </div>
-                  {/* Right Panel */}
-                  <div className={`w-4 h-14 rounded-r-sm border-2 border-l flex flex-col overflow-hidden transition-all duration-300 origin-left ${selected === 'trifold'
-                    ? 'border-lime-500 bg-lime-500/20 -rotate-y-[20deg]'
-                    : darkMode ? 'border-zinc-600 bg-zinc-800 -rotate-y-[35deg]' : 'border-gray-300 bg-gray-100 -rotate-y-[35deg]'
-                    }`}>
-                  </div>
+                <div className="space-y-4 pt-2">
+                  <p className={`text-xs font-bold uppercase tracking-[0.2em] ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
+                    Key Features
+                  </p>
+                  <ul className="grid grid-cols-1 gap-3">
+                    {details.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-3.5 text-sm font-semibold">
+                        <div className="w-2 h-2 rounded-full bg-lime-500 shadow-lg shadow-lime-500/40" />
+                        <span className={darkMode ? 'text-zinc-200' : 'text-gray-800'}>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              </motion.div>
+            </AnimatePresence>
             </div>
+          </div>
 
-            <div className="text-center">
-              <p className={`font-semibold text-sm ${selected === 'trifold' ? 'text-lime-500' : darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Trifold</p>
-              <p className={`text-[11px] mt-0.5 leading-tight ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>3-panel<br />brochure</p>
+          <div className={`p-8 pt-4 lg:p-10 lg:pt-4 border-t ${darkMode ? 'border-white/[0.05]' : 'border-gray-200'} bg-opacity-50`}>
+            <div className="space-y-4">
+            <p className={`text-xs text-center mb-2 px-6 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+              Applying format to{' '}
+              <span className="font-semibold text-lime-500">{files.length}</span>{' '}
+              {files.length === 1 ? 'document' : 'documents'}
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => onConfirm(selected)}
+                className="w-full py-4 rounded-2xl font-bold text-sm text-white bg-lime-500 hover:bg-lime-400 shadow-lg shadow-lime-500/20 active:scale-[0.98] transition-all"
+              >
+                Import Book
+              </button>
+              <button
+                onClick={onCancel}
+                className={`w-full py-4 rounded-2xl font-medium text-sm transition-all ${
+                  darkMode
+                    ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white'
+                    : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                Cancel
+              </button>
             </div>
-
-            {selected === 'trifold' && (
-              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center">
-                <svg viewBox="0 0 12 12" className="w-3 h-3 text-white fill-current">
-                  <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            )}
-          </button>
+            </div>
+          </div>
         </div>
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className={`flex-1 py-3 rounded-xl font-medium text-sm transition-colors ${darkMode
-              ? 'bg-white/[0.06] text-zinc-300 hover:bg-white/[0.1]'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onConfirm(selected)}
-            className="flex-1 py-3 rounded-xl font-semibold text-sm text-white bg-lime-500 hover:bg-lime-400 transition-colors"
-          >
-            Import Book
-          </button>
-        </div>
-      </div>
+      </motion.div>
 
       <style>{`
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.94); }
-          to   { opacity: 1; transform: scale(1); }
+        @keyframes orb-pulse {
+          0%   { opacity: 1.0; transform: translate(-50%, -50%) scale(1);    }
+          100% { opacity: 0;   transform: translate(-50%, -50%) scale(1.75); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(132, 204, 22, 0.2);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(132, 204, 22, 0.4);
         }
       `}</style>
     </div>
