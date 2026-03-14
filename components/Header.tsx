@@ -48,13 +48,13 @@ const Header: React.FC<HeaderProps> = ({
     const bg = darkMode ? 'bg-[#0a0a0a]/50 backdrop-blur-2xl border-white/[0.08]' : 'bg-white/60 backdrop-blur-2xl border-black/[0.05]';
     const closeBtn = darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.12]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50';
     const title = darkMode ? 'text-white' : 'text-gray-900';
-    const pageInfoColor = darkMode ? 'text-zinc-500' : 'text-gray-400';
+    const pageInfoColor = darkMode ? 'text-zinc-500' : 'text-black';
     const divider = <div className={`w-px h-5 mx-0.5 shrink-0 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />;
 
     const btn = (active?: boolean) =>
       `flex items-center justify-center w-8 h-8 rounded-lg transition-all shrink-0 ${active
         ? (darkMode ? 'bg-white/[0.14] text-white border border-white/20' : 'bg-gray-200 text-gray-900')
-        : (darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100')
+        : (darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-black hover:text-gray-900 hover:bg-gray-100')
       }`;
 
     return (
@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* Zoom */}
             <button onClick={onReaderZoomOut} className={btn()} title="Zoom Out" disabled={readerZoom <= 50}><ZoomOut size={16} /></button>
-            <span className={`text-[11px] font-semibold tabular-nums w-9 text-center shrink-0 ${darkMode ? 'text-zinc-400' : 'text-gray-500'}`}>{readerZoom}%</span>
+            <span className={`text-[11px] font-semibold tabular-nums w-9 text-center shrink-0 ${darkMode ? 'text-zinc-400' : 'text-black'}`}>{readerZoom}%</span>
             <button onClick={onReaderZoomIn} className={btn()} title="Zoom In" disabled={readerZoom >= 150}><ZoomIn size={16} /></button>
 
             {divider}
@@ -110,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({
                 {divider}
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-black hover:text-gray-900 hover:bg-gray-100'}`}
                   title="Share"
                 >
                   <Share2 size={14} /><span className="hidden sm:inline">Share</span>
@@ -138,12 +138,12 @@ const Header: React.FC<HeaderProps> = ({
   // ── Normal header ─────────────────────────────────────────────────────────
   const headerBg = darkMode ? 'bg-[#0a0a0a]/50 backdrop-blur-2xl' : 'bg-white/60 backdrop-blur-2xl';
   const headerBorder = darkMode ? 'border-white/[0.08] shadow-black/20' : 'border-black/[0.05] shadow-gray-200/50';
-  const menuBtnColor = darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50';
-  const navInactive = darkMode ? 'text-zinc-400 hover:text-lime-400 hover:bg-lime-500/[0.08]' : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50';
+  const menuBtnColor = darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-black hover:text-gray-900 hover:bg-gray-200/50';
+  const navInactive = darkMode ? 'text-zinc-400 hover:text-lime-400 hover:bg-lime-500/[0.08]' : 'text-black hover:text-emerald-600 hover:bg-emerald-50';
   const navActive = darkMode ? 'bg-lime-500/[0.12] text-lime-400 shadow-sm border border-lime-500/20' : 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-200/60';
   const toggleBg = darkMode ? 'bg-black/40 border-white/[0.08]' : 'bg-gray-100/50 border-black/[0.04] p-0.5';
   const toggleActive = darkMode ? 'bg-white/15 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm border border-black/[0.04]';
-  const toggleInactive = darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600';
+  const toggleInactive = darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-black hover:text-gray-600';
 
   return (
     <header className={`fixed top-0 left-0 lg:left-[300px] right-0 h-14 flex items-center justify-between px-6 z-50 border-b transition-colors shadow-sm ${headerBg} ${headerBorder}`}>
@@ -163,7 +163,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
           <div className="flex flex-col whitespace-nowrap">
             <span className={`text-[13.5px] font-bold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
-            <span className={`text-[9.5px] uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>Digital Flipbook</span>
+            <span className={`text-[9.5px] uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-zinc-500' : 'text-black'}`}>Digital Flipbook</span>
           </div>
         </div>
       </div>

@@ -61,13 +61,9 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
 
       <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl shadow-black/50 border w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 fade-in duration-300 ${darkMode ? 'bg-[#141418]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}`}>
-        {/* Close */}
-        <button onClick={onClose} className={`absolute top-4 right-4 z-10 p-2 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] hover:bg-white/[0.1] text-zinc-500 hover:text-zinc-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700'}`}>
-          <X size={20} />
-        </button>
 
         {/* Progress */}
         {totalBooks > 1 && (
@@ -106,6 +102,9 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
             <p className={`text-sm mt-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{book.totalPages} pages</p>
           </div>
 
+          {/* Center Vertical Divider */}
+          <div className={`hidden sm:block w-px shrink-0 ${darkMode ? 'bg-white/[0.06]' : 'bg-black'}`} />
+
           {/* Right - Categories */}
           <div className="flex-1 p-6 sm:p-8 flex flex-col min-h-0 overflow-y-auto">
             <div className="mb-6">
@@ -141,34 +140,19 @@ const UploadCategoryModal: React.FC<UploadCategoryModalProps> = ({ book, current
               })}
             </div>
 
-            {/* Favorite */}
-            <button
-              onClick={() => setIsFavorite(!isFavorite)}
-              className={`mt-4 w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${isFavorite
-                ? 'border-red-500/20 bg-red-500/[0.06] text-red-400'
-                : darkMode
-                  ? 'border-white/[0.04] hover:border-white/[0.1] hover:bg-white/[0.03] text-zinc-500'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-500'
-                }`}
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isFavorite ? 'bg-red-500/15' : darkMode ? 'bg-white/[0.04]' : 'bg-gray-100'}`}>
-                <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
-              </div>
-              <span className="font-medium flex-1 text-left">{isFavorite ? 'Added to Favorites' : 'Add to Favorites'}</span>
-              {isFavorite && <Check size={20} />}
-            </button>
+            {/* Layout Divider */}
+            <div className={`h-px w-full my-6 shrink-0 ${darkMode ? 'bg-white/[0.06]' : 'bg-black'}`} />
 
             {/* Confirm */}
             <button onClick={handleConfirm}
-              className={`mt-6 w-full py-4 font-semibold rounded-2xl transition-colors active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 ${darkMode ? 'bg-lime-500 text-lime-950 hover:bg-lime-400 shadow-[0_0_20px_rgba(132,204,22,0.2)]' : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-300/30'
+              disabled={!selectedCategory}
+              className={`w-full py-4 font-semibold rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all duration-200
+                ${!selectedCategory
+                  ? darkMode ? 'bg-white/[0.05] text-white/30 cursor-not-allowed border border-white/[0.05]' : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                  : darkMode ? 'bg-lime-500 text-lime-950 hover:bg-lime-400 active:scale-[0.98] shadow-[0_0_20px_rgba(132,204,22,0.2)]' : 'bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] shadow-gray-300/30'
                 }`}>
               {isLastBook ? 'Add to Library' : 'Next Book'}
               {!isLastBook && <ChevronRight size={20} />}
-            </button>
-
-            <button onClick={() => onConfirm(book.id, undefined, false)}
-              className={`mt-2 w-full py-2 text-sm font-medium transition-colors ${darkMode ? 'text-zinc-600 hover:text-zinc-400' : 'text-gray-400 hover:text-gray-600'}`}>
-              Skip {isLastBook ? 'for now' : 'this book'}
             </button>
           </div>
         </div>

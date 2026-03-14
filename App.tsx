@@ -46,9 +46,6 @@ const ConversionSuccessModal: React.FC<{
 
       <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300 border ${darkMode ? 'bg-[#141418]/95 shadow-black/50 border-white/[0.06]' : 'bg-white/95 shadow-gray-300/40 border-gray-200'
         }`}>
-        <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${darkMode ? 'text-zinc-600 hover:text-zinc-400' : 'text-gray-400 hover:text-gray-600'}`}>
-          <X size={20} />
-        </button>
 
         <div className="flex justify-center mb-6">
           <div className="relative">
@@ -72,13 +69,8 @@ const ConversionSuccessModal: React.FC<{
             className={`w-full py-3.5 font-semibold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${darkMode ? 'bg-white text-zinc-900 shadow-white/5 hover:bg-zinc-100' : 'bg-gray-900 text-white shadow-gray-400/20 hover:bg-gray-800'
               }`}>
             <span className="flex items-center justify-center gap-2">
-              <BookOpen size={18} /> View in Library
+              <BookOpen size={18} /> Add to Category
             </span>
-          </button>
-          <button onClick={onClose}
-            className={`w-full py-3.5 font-medium rounded-2xl transition-all active:scale-[0.98] ${darkMode ? 'bg-white/[0.05] text-zinc-400 hover:bg-white/[0.08]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}>
-            Close
           </button>
         </div>
       </div>

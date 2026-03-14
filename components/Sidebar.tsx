@@ -100,13 +100,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               className="transition-all duration-200"
             />
           ) : (
-            <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-lime-400' : 'text-gray-900') : (darkMode ? 'text-zinc-400 group-hover:text-zinc-200' : 'text-gray-500')} />
+            <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-lime-400' : 'text-gray-900') : (darkMode ? 'text-zinc-400 group-hover:text-zinc-200' : 'text-black group-hover:text-black')} />
           )}
         </div>
         <div className="flex-1 overflow-hidden">
           <span className={`text-sm font-medium tracking-tight text-left block w-[150px] truncate ${active
             ? darkMode ? 'text-white' : 'text-gray-900'
-            : darkMode ? 'text-zinc-400 group-hover:text-white' : 'text-gray-500 group-hover:text-gray-900'
+            : darkMode ? 'text-zinc-400 group-hover:text-white' : 'text-black group-hover:text-black'
             }`}>
             {label}
           </span>
@@ -188,10 +188,10 @@ const Sidebar: React.FC<SidebarProps> = ({
               }`}
           >
             <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-lime-500/[0.06]' : 'group-hover:bg-gray-100'}`}>
-              <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-zinc-500 group-hover:text-lime-400' : 'text-gray-400 group-hover:text-emerald-500'}`} />
+              <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-zinc-500 group-hover:text-lime-400' : 'text-black group-hover:text-emerald-500'}`} />
             </div>
             <div className="flex-1">
-              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-zinc-600 group-hover:text-zinc-300' : 'text-gray-400 group-hover:text-emerald-500'}`}>
+              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-zinc-600 group-hover:text-zinc-300' : 'text-black group-hover:text-emerald-500'}`}>
                 Add Category
               </span>
             </div>
@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Categories */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative flex flex-col">
           <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 ${darkMode ? 'bg-[#0e0e11]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'}`}>
-            <p className={`px-9 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Categories</p>
+            <p className={`px-9 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-black'}`}>Categories</p>
           </div>
           <div className="px-5 space-y-0.5 pb-4">
             {/* All categories are now dynamic and come from the database */}
