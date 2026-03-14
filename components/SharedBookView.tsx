@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2, Moon, Sun, ArrowLeft, BookOpen } from 'lucide-react';
+import Header from './Header';
 import BookViewer from './BookViewer';
 import { getDocument } from '../utils/pdfUtils';
 import { loadBookById } from '../src/lib/bookStorage';
@@ -24,8 +25,26 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   const [readerOpen, setReaderOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
+  const [readerZoom, setReaderZoom] = useState(100);
+  const [readerAutoPlay, setReaderAutoPlay] = useState(false);
+  const [readerFullscreen, setReaderFullscreen] = useState(false);
+  const [readerShowThumbnails, setReaderShowThumbnails] = useState(false);
+  
   const bookRef = useRef<BookRef | null>(null);
   const readerContainerRef = useRef<HTMLDivElement>(null);
+
+  const toggleReaderFullscreen = useCallback(() => {
+    const target = readerContainerRef.current;
+    if (!target) return;
+    if (!document.fullscreenElement) target.requestFullscreen().catch(console.error);
+    else document.exitFullscreen();
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => setReaderFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
 
   // Sync theme
   useEffect(() => {
@@ -94,6 +113,9 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
       setReaderOpen(true);
       setCurrentPage(0);
       setShowSearch(false);
+      setReaderShowThumbnails(false);
+      setReaderAutoPlay(false);
+      setReaderZoom(100);
     } catch (err: any) {
       console.error('Failed to load PDF:', err);
       setError('Failed to load the PDF. Please try again.');
@@ -146,11 +168,6 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
 
   // --- Reader mode ---
   if (readerOpen && book.doc) {
-    const readerHeaderBg = darkMode ? 'bg-black/30 border-white/[0.06]' : 'bg-white/80 border-gray-200';
-    const readerCloseBtn = darkMode ? 'text-white hover:bg-white/[0.12]' : 'text-gray-700 hover:bg-gray-200';
-    const readerTitle = darkMode ? 'text-white' : 'text-gray-900';
-    const readerPageInfoColor = darkMode ? 'text-white/40' : 'text-gray-400';
-
     const pageInfoText = book.orientation === 'landscape'
       ? `page ${currentPage + 1} of ${book.totalPages}`
       : (currentPage + 1 < book.totalPages
@@ -158,26 +175,62 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
         : `page ${currentPage + 1} of ${book.totalPages}`);
 
     return (
-      <div ref={readerContainerRef} className="fixed inset-0 z-0 overflow-hidden bg-black">
-        <header className={`absolute top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-5 backdrop-blur-xl border-b transition-colors ${readerHeaderBg}`}>
-          <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => { setReaderOpen(false); setShowSearch(false); }} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${readerCloseBtn}`} title="Back">
-              <ArrowLeft size={18} />
-            </button>
-            <span className={`text-sm font-semibold truncate ${readerTitle}`}>{book.name.replace('.pdf', '').replace(/_/g, ' ')}</span>
-            <span className={`text-sm shrink-0 ${readerPageInfoColor}`}>{pageInfoText}</span>
-          </div>
-          <button onClick={() => setDarkMode(d => !d)} className={`p-2 rounded-full transition-colors ${toggleBtn}`}>
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </header>
-        <div className="absolute inset-0 w-full h-full z-10">
+      <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative pt-14 bg-[#09090b]">
+        {/* We use the standard app Header here but hide navigation/sidebar logic as we are in shared view */}
+        <Header
+          view="reader"
+          darkMode={darkMode}
+          onCloseReader={() => {
+            setReaderOpen(false);
+            setShowSearch(false);
+            setReaderShowThumbnails(false);
+            setReaderAutoPlay(false);
+            setReaderZoom(100);
+          }}
+          fileName={book.name}
+          readerBookName={book.name.replace('.pdf', '')}
+          readerBookId={book.id}
+          readerPageInfo={pageInfoText}
+          readerZoom={readerZoom}
+          onReaderZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
+          onReaderZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
+          readerAutoPlay={readerAutoPlay}
+          onToggleReaderAutoPlay={() => setReaderAutoPlay(p => !p)}
+          readerFullscreen={readerFullscreen}
+          onToggleReaderFullscreen={toggleReaderFullscreen}
+          readerShowThumbnails={readerShowThumbnails}
+          onToggleReaderThumbnails={() => {
+            setReaderShowThumbnails(p => !p);
+            if (!readerShowThumbnails && showSearch) setShowSearch(false);
+          }}
+          readerShowSearch={showSearch}
+          onToggleReaderSearch={() => {
+            setShowSearch(p => !p);
+            if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
+          }}
+        />
+        <div className="flex-1 w-full h-full min-h-0 relative z-10">
           <BookViewer
             pdfDocument={book.doc}
             onFlip={setCurrentPage}
             onBookInit={(b) => { bookRef.current = b; }}
+            zoomLevel={readerZoom}
+            onZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
+            onZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
+            isAutoPlaying={readerAutoPlay}
+            onToggleAutoPlay={() => setReaderAutoPlay(p => !p)}
+            isFullscreen={readerFullscreen}
+            onToggleFullscreen={toggleReaderFullscreen}
+            showThumbnails={readerShowThumbnails}
+            onToggleThumbnails={() => {
+              setReaderShowThumbnails(p => !p);
+              if (!readerShowThumbnails && showSearch) setShowSearch(false);
+            }}
             showSearch={showSearch}
-            onToggleSearch={() => setShowSearch(!showSearch)}
+            onToggleSearch={() => {
+              setShowSearch(p => !p);
+              if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
+            }}
             fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
             orientation={book.orientation}
           />

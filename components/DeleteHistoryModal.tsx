@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Trash2, Loader2, Clock, BookX, Undo2 } from 'lucide-react';
+import { X, Trash2, Loader2, Clock, BookX, Undo2, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { loadDeletedBooks, clearDeletedBookLog, clearAllDeletedBookLogs, restoreBook, type DeletedBookLog } from '../src/lib/bookStorage';
 
 interface DeleteHistoryModalProps {
@@ -40,6 +40,12 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
 }) => {
     const [logs, setLogs] = useState<DeletedBookLog[]>([]);
     const [loading, setLoading] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        type: 'single' | 'all';
+        id?: string;
+        title?: string;
+    }>({ isOpen: false, type: 'single' });
 
     useEffect(() => {
         if (isOpen) {
@@ -65,6 +71,7 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
         try {
             await clearDeletedBookLog(logId);
             setLogs(prev => prev.filter(l => l.id !== logId));
+            setConfirmModal({ isOpen: false, type: 'single' });
         } catch (err) {
             console.error('Failed to remove log entry:', err);
         }
@@ -74,6 +81,7 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
         try {
             await clearAllDeletedBookLogs(category);
             setLogs([]);
+            setConfirmModal({ isOpen: false, type: 'single' });
         } catch (err) {
             console.error('Failed to clear all logs:', err);
         }
@@ -116,8 +124,12 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
                     <div className="flex items-center gap-2">
                         {logs.length > 0 && (
                             <button
-                                onClick={handleClearAll}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${darkMode
+                                onClick={() => setConfirmModal({
+                                    isOpen: true,
+                                    type: 'all',
+                                    title: categoryName || 'All categories'
+                                })}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${darkMode
                                     ? 'text-red-400 hover:bg-red-500/10'
                                     : 'text-red-500 hover:bg-red-50'
                                     }`}
@@ -206,7 +218,12 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
                                             <Undo2 size={18} />
                                         </button>
                                         <button
-                                            onClick={() => handleRemoveLog(log.id)}
+                                            onClick={() => setConfirmModal({
+                                                isOpen: true,
+                                                type: 'single',
+                                                id: log.id,
+                                                title: log.book_title
+                                            })}
                                             className={`p-2.5 rounded-xl transition-colors ${darkMode
                                                 ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10'
                                                 : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
@@ -233,6 +250,117 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
                     >
                         Close
                     </button>
+                </div>
+            </div>
+
+            {/* Confirmation Modal overlay */}
+            <ConfirmDeleteModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={() => {
+                    if (confirmModal.type === 'single' && confirmModal.id) {
+                        handleRemoveLog(confirmModal.id);
+                    } else {
+                        handleClearAll();
+                    }
+                }}
+                title={confirmModal.type === 'single' ? 'Permanently Delete Book?' : 'Clear All History?'}
+                description={confirmModal.type === 'single'
+                    ? `You are about to permanently delete "${confirmModal.title}". This action cannot be undone.`
+                    : `You are about to clear all deleted book records for "${confirmModal.title}". This action cannot be undone.`
+                }
+                darkMode={darkMode}
+            />
+        </div>,
+        document.body
+    );
+};
+
+const ConfirmDeleteModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    description: string;
+    darkMode: boolean;
+}> = ({ isOpen, onClose, onConfirm, title, description, darkMode }) => {
+    const [timeLeft, setTimeLeft] = React.useState(5);
+    const [isForceLoading, setIsForceLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setTimeLeft(5);
+            setIsForceLoading(true);
+            const timer = setInterval(() => {
+                setTimeLeft((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        setIsForceLoading(false);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    const progress = ((5 - timeLeft) / 5) * 100;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+            <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
+                onClick={onClose}
+            />
+            <div className={`relative w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 fade-in duration-200 ${darkMode ? 'bg-[#1c1c20] border border-white/10' : 'bg-white border border-gray-100'}`}>
+                <div className="relative p-8">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto ${darkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-500'}`}>
+                        <ShieldAlert size={32} />
+                    </div>
+
+                    <h4 className={`text-xl font-bold text-center mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {title}
+                    </h4>
+                    <p className={`text-center text-sm leading-relaxed mb-8 px-4 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+                        {description}
+                    </p>
+
+                    <div className="space-y-3">
+                        <button
+                            disabled={isForceLoading}
+                            onClick={onConfirm}
+                            className={`relative w-full py-4 rounded-2xl font-bold transition-all overflow-hidden group ${isForceLoading
+                                ? (darkMode ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
+                                : 'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20 active:scale-95'
+                                }`}
+                        >
+                            {/* Progress bar background */}
+                            {isForceLoading && (
+                                <div
+                                    className="absolute inset-0 bg-red-500/10 transition-all duration-1000 ease-linear"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            )}
+
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                {isForceLoading ? `Wait ${timeLeft}s...` : 'Permanently Delete'}
+                                {!isForceLoading && <Trash2 size={18} />}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={onClose}
+                            className={`w-full py-3.5 rounded-2xl font-semibold transition-colors ${darkMode
+                                ? 'bg-white/5 hover:bg-white/10 text-white'
+                                : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                                }`}
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>,
