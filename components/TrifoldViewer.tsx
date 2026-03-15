@@ -59,12 +59,18 @@ const PDFPanel: React.FC<PanelProps> = ({
                 if (!active) return;
 
                 // Adaptive Scaling: calculate exactly what we need for the current width/height
-                // We add a tiny buffer (1.5x) for sharpness without excessive memory
+                // We add a moderate buffer (1.5x) since the base DOM size is already very large
                 const viewport1 = page.getViewport({ scale: 1 });
                 const baseWidth = clipThirds ? (viewport1.width / 3) : viewport1.width;
-                const fitScale = Math.max(width / baseWidth, height / viewport1.height) * 1.5;
+                let fitScale = Math.max(width / baseWidth, height / viewport1.height) * 1.5;
 
-                const viewport = page.getViewport({ scale: fitScale });
+                let viewport = page.getViewport({ scale: fitScale });
+                // Cap to prevent mobile crashes
+                if (viewport.width > 3500 || viewport.height > 3500) {
+                    const maxScale = 3500 / Math.max(viewport1.width, viewport1.height);
+                    fitScale = Math.min(fitScale, maxScale);
+                    viewport = page.getViewport({ scale: fitScale });
+                }
 
                 const canvas = canvasRef.current!;
                 const ctx = canvas.getContext('2d', { alpha: false })!;
@@ -200,8 +206,9 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
                 const pH = vp.height;
                 const displayRatio = pH / pW;
 
-                // Aim for a generous base height that fills most of the screen
-                const baseH = 850;
+                // Aim for a high base height (1600) that yields crisp 3D rasterization textures
+                // while staying safely below the typical browser hardware texture limit of 2048px
+                const baseH = 1600;
                 setPanelSize({
                     height: baseH,
                     width: baseH / displayRatio

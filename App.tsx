@@ -635,7 +635,7 @@ const App: React.FC = () => {
       )}
 
       <div className="flex-1 flex flex-col relative overflow-hidden z-10">
-        {!isLandingPage && view !== 'signin' && view !== 'shared' && <Header
+        {!isLandingPage && view !== 'signin' && view !== 'shared' && !readerFullscreen && <Header
           view={view}
           darkMode={darkMode}
           homeVariant={homeVariant}
@@ -784,7 +784,7 @@ const App: React.FC = () => {
             {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
               selectedBook && (
-                <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative pt-14">
+                <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative ${readerFullscreen ? '' : 'pt-14'}`}>
 
                   {/* BookViewer */}
                   <div className="flex-1 w-full h-full min-h-0 relative z-10">

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, forwardRef, useCallback, useMemo } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Loader2, ChevronLeft, ChevronRight, X, Search, Grid3X3, Play, Pause, ZoomOut, ZoomIn, Minimize, Maximize } from 'lucide-react';
-import Dock, { DockItemConfig } from './Dock';
 import TrifoldViewer from './TrifoldViewer';
 
 
@@ -174,9 +173,16 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           const offsetX = Math.round((pageW - displayW) / 2);
           const offsetY = Math.round((pageH - displayH) / 2);
 
-          // Render at 2× for crispness
-          const renderScale = fitScale * 2;
-          const viewport = page.getViewport({ scale: renderScale });
+          // Render at 2.0× for crispness (since pageW is 1600, this guarantees retina quality)
+          let renderScale = fitScale * 2.0;
+          let viewport = page.getViewport({ scale: renderScale });
+
+          // Cap to prevent canvas memory crashes on mobile (max dimension ~ 3500px)
+          if (viewport.width > 3500 || viewport.height > 3500) {
+            const maxScale = 3500 / Math.max(natural.width, natural.height);
+            renderScale = Math.min(renderScale, maxScale);
+            viewport = page.getViewport({ scale: renderScale });
+          }
 
           const canvas = canvasRef.current!;
           const ctx = canvas.getContext('2d')!;
@@ -306,7 +312,7 @@ const Thumbnail: React.FC<{
     const renderThumb = async () => {
       try {
         const page = await pdfDocument.getPage(number);
-        const viewport = page.getViewport({ scale: 0.5 });
+        const viewport = page.getViewport({ scale: 1.0 });
         const canvas = canvasRef.current!;
         const ctx = canvas.getContext('2d')!;
 
@@ -368,9 +374,12 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [isSinglePage, setIsSinglePage] = useState<boolean>(false);
 
   // Dynamically calculate page dimensions to perfectly match the PDF aspect ratio.
-  // We use 500 as an arbitrary base resolution, HTMLFlipBook auto-scales it anyway.
-  const pageW = 500 * Math.max(1, pdfAspectRatio);
-  const pageH = pageW / pdfAspectRatio;
+  // We use a high base resolution because CSS 3D transforms rasterize DOM layers
+  // based on their intrinsic dimensions. To prevent browser hardware texture caps
+  // (usually 2048px) from auto-downsampling the layer, we ensure the max dimension is 1600.
+  const baseSize = 1600;
+  const pageW = pdfAspectRatio > 1 ? baseSize : baseSize * pdfAspectRatio;
+  const pageH = pdfAspectRatio > 1 ? baseSize / pdfAspectRatio : baseSize;
 
 
   const [pages, setPages] = useState<number[]>([]);
@@ -1022,58 +1031,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
         </div>
       </div>
 
-      {isFullscreen && (
-        <div className="relative w-full flex justify-center z-10 animate-in slide-in-from-bottom-10 fade-in duration-300" style={{ height: '80px', position: 'relative' }}>
-          <Dock
-            items={[
-              {
-                icon: <span style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>{currentPage + 1}/{totalPages}</span>,
-                label: `Page ${currentPage + 1} of ${totalPages}`,
-                onClick: () => { },
-                className: 'pointer-events-none',
-              },
-              {
-                icon: <Grid3X3 size={18} />,
-                label: showThumbnails ? 'Hide Thumbnails' : 'Thumbnails',
-                onClick: () => { if (onToggleThumbnails) onToggleThumbnails(); },
-                className: showThumbnails ? 'active' : '',
-              },
-              {
-                icon: <Search size={18} />,
-                label: showSearch ? 'Hide Search' : 'Search',
-                onClick: () => { if (onToggleSearch) onToggleSearch(); },
-                className: showSearch ? 'active' : '',
-              },
-              {
-                icon: isAutoPlaying ? <Pause size={18} /> : <Play size={18} />,
-                label: isAutoPlaying ? 'Pause Auto-flip' : 'Auto-flip',
-                onClick: () => { if (onToggleAutoPlay) onToggleAutoPlay(); },
-                className: isAutoPlaying ? 'active' : '',
-              },
-              {
-                icon: <ZoomOut size={18} />,
-                label: 'Zoom Out',
-                onClick: () => { if (onZoomOut) onZoomOut(); },
-              },
-              {
-                icon: <ZoomIn size={18} />,
-                label: 'Zoom In',
-                onClick: () => { if (onZoomIn) onZoomIn(); },
-              },
-              {
-                icon: isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />,
-                label: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
-                onClick: () => { if (onToggleFullscreen) onToggleFullscreen(); },
-                className: isFullscreen ? 'active' : '',
-              },
-            ] as DockItemConfig[]}
-            panelHeight={64}
-            baseItemSize={46}
-            magnification={65}
-            distance={180}
-          />
-        </div>
-      )}
+
 
     </div>
   );

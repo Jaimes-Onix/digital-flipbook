@@ -181,8 +181,9 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
       : `page ${currentPage + 1} of ${selectedBook.totalPages}`;
 
     return (
-      <div ref={readerContainerRef} className="w-full h-full min-h-0 flex flex-col overflow-hidden relative pt-14 bg-[#09090b]">
+      <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative ${readerFullscreen ? '' : 'pt-14'} bg-[#09090b]`}>
         {/* We use the standard app Header here but hide navigation/sidebar logic as we are in shared view */}
+        {!readerFullscreen && (
         <Header
           view="reader"
           darkMode={darkMode}
@@ -215,6 +216,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
             if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
           }}
         />
+        )}
 
         <div className="flex-1 w-full h-full min-h-0 relative z-10">
           <BookViewer
