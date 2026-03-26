@@ -5,6 +5,7 @@ interface TrifoldViewerProps {
     pdfDocument: any;
     onFlip: (pageIndex: number) => void;
     onBookInit: (book: any) => void;
+    pageImages?: Map<number, string>;
 }
 
 // -----------------------------------------------------------------------------
@@ -31,10 +32,11 @@ interface PanelProps {
     lazy?: boolean;      // If true, delay rendering slightly
     className?: string;
     style?: React.CSSProperties;
+    imageUrl?: string;
 }
 
 const PDFPanel: React.FC<PanelProps> = ({
-    pdfDocument, pageNumber, width, height, clipThirds, clipIndex, lazy, className = '', style = {}
+    pdfDocument, pageNumber, width, height, clipThirds, clipIndex, lazy, className = '', style = {}, imageUrl
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [rendered, setRendered] = useState(false);
@@ -59,15 +61,15 @@ const PDFPanel: React.FC<PanelProps> = ({
                 if (!active) return;
 
                 // Adaptive Scaling: calculate exactly what we need for the current width/height
-                // We add a moderate buffer (1.5x) since the base DOM size is already very large
+                // We add a huge buffer (2.5x) to guarantee perfect crispness when zoomed/scaled by CSS
                 const viewport1 = page.getViewport({ scale: 1 });
                 const baseWidth = clipThirds ? (viewport1.width / 3) : viewport1.width;
-                let fitScale = Math.max(width / baseWidth, height / viewport1.height) * 1.5;
+                let fitScale = Math.max(width / baseWidth, height / viewport1.height) * 2.5;
 
                 let viewport = page.getViewport({ scale: fitScale });
-                // Cap to prevent mobile crashes
-                if (viewport.width > 3500 || viewport.height > 3500) {
-                    const maxScale = 3500 / Math.max(viewport1.width, viewport1.height);
+                // Cap to prevent mobile crashes (increased cap for better quality limit)
+                if (viewport.width > 4500 || viewport.height > 4500) {
+                    const maxScale = 4500 / Math.max(viewport1.width, viewport1.height);
                     fitScale = Math.min(fitScale, maxScale);
                     viewport = page.getViewport({ scale: fitScale });
                 }
@@ -120,7 +122,7 @@ const PDFPanel: React.FC<PanelProps> = ({
                 WebkitBackfaceVisibility: 'hidden'
             }}
         >
-            {!rendered && pageNumber >= 1 && pageNumber <= pdfDocument.numPages && (
+            {!rendered && !imageUrl && pageNumber >= 1 && pageNumber <= pdfDocument.numPages && (
                 <Loader2 className="animate-spin text-gray-300" size={24} />
             )}
             {(pageNumber < 1 || pageNumber > pdfDocument.numPages) && (
@@ -128,15 +130,30 @@ const PDFPanel: React.FC<PanelProps> = ({
                     <div className="w-16 h-16 border-2 border-dashed border-gray-200 rounded animate-pulse" />
                 </div>
             )}
-            <canvas
-                ref={canvasRef}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    display: rendered ? 'block' : 'none',
-                }}
-            />
+            {imageUrl ? (
+                <img 
+                    src={imageUrl} 
+                    alt={`Panel ${pageNumber}`}
+                    style={{
+                        width: clipThirds ? '300%' : '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        transform: clipThirds ? `translateX(${-clipIndex * 33.33}%)` : 'none',
+                        imageRendering: 'crisp-edges',
+                        ['WebkitImageRendering' as any]: '-webkit-optimize-contrast',
+                    } as React.CSSProperties}
+                />
+            ) : (
+                <canvas
+                    ref={canvasRef}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        display: rendered ? 'block' : 'none',
+                    }}
+                />
+            )}
             {/* Decorative inner fold shadow */}
             <div className="absolute inset-0 pointer-events-none" style={{
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,0.03)'
@@ -150,7 +167,7 @@ const PDFPanel: React.FC<PanelProps> = ({
 // Component: Trifold Viewer Main
 // -----------------------------------------------------------------------------
 const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
-    pdfDocument, onFlip, onBookInit
+    pdfDocument, onFlip, onBookInit, pageImages
 }) => {
     const [foldState, setFoldState] = useState<FoldState>('closed');
     const [isAnimating, setIsAnimating] = useState(false);
@@ -390,8 +407,27 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
 
                     {/* CENTER */}
                     <div className="absolute top-0 left-0 w-full h-full" style={{ transformStyle: 'preserve-3d', zIndex: 10 }}>
-                        <PDFPanel pageNumber={layers.insideCenter.page} clipThirds={layers.insideCenter.clipThirds} clipIndex={layers.insideCenter.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} />
-                        <PDFPanel pageNumber={layers.backCover.page} clipThirds={layers.backCover.clipThirds} clipIndex={layers.backCover.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: 'rotateY(180deg)' }} />
+                        <PDFPanel 
+                            pageNumber={layers.insideCenter.page} 
+                            clipThirds={layers.insideCenter.clipThirds} 
+                            clipIndex={layers.insideCenter.clipIndex} 
+                            pdfDocument={pdfDocument} 
+                            width={panelWidth} 
+                            height={panelHeight} 
+                            lazy={true} 
+                            imageUrl={pageImages?.get(layers.insideCenter.page)}
+                        />
+                        <PDFPanel 
+                            pageNumber={layers.backCover.page} 
+                            clipThirds={layers.backCover.clipThirds} 
+                            clipIndex={layers.backCover.clipIndex} 
+                            pdfDocument={pdfDocument} 
+                            width={panelWidth} 
+                            height={panelHeight} 
+                            lazy={true} 
+                            style={{ transform: 'rotateY(180deg)' }} 
+                            imageUrl={pageImages?.get(layers.backCover.page)}
+                        />
                     </div>
 
                     {/* LEFT (Front Cover) */}
@@ -400,8 +436,27 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
                         transform: `rotateY(${rotLeft}deg) ${foldState === 'closed' || foldState === 'back_cover_closed' ? 'translateZ(-1px)' : ''}`,
                         transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)', zIndex: foldState === 'closed' || foldState === 'back_cover_closed' ? 100 : 15
                     }}>
-                        <PDFPanel pageNumber={layers.insideLeft.page} clipThirds={layers.insideLeft.clipThirds} clipIndex={layers.insideLeft.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} />
-                        <PDFPanel pageNumber={layers.frontCover.page} clipThirds={layers.frontCover.clipThirds} clipIndex={layers.frontCover.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={false} style={{ transform: 'rotateY(180deg)' }} />
+                        <PDFPanel 
+                            pageNumber={layers.insideLeft.page} 
+                            clipThirds={layers.insideLeft.clipThirds} 
+                            clipIndex={layers.insideLeft.clipIndex} 
+                            pdfDocument={pdfDocument} 
+                            width={panelWidth} 
+                            height={panelHeight} 
+                            lazy={true} 
+                            imageUrl={pageImages?.get(layers.insideLeft.page)}
+                        />
+                        <PDFPanel 
+                            pageNumber={layers.frontCover.page} 
+                            clipThirds={layers.frontCover.clipThirds} 
+                            clipIndex={layers.frontCover.clipIndex} 
+                            pdfDocument={pdfDocument} 
+                            width={panelWidth} 
+                            height={panelHeight} 
+                            lazy={false} 
+                            style={{ transform: 'rotateY(180deg)' }} 
+                            imageUrl={pageImages?.get(layers.frontCover.page)}
+                        />
                     </div>
 
                     {/* RIGHT (Inside Flap) */}
@@ -413,8 +468,27 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
                         opacity: foldState === 'closed' ? 0 : 1,
                         display: foldState === 'closed' ? 'none' : 'block'
                     }}>
-                        <PDFPanel pageNumber={layers.insideRight.page} clipThirds={layers.insideRight.clipThirds} clipIndex={layers.insideRight.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} />
-                        <PDFPanel pageNumber={layers.backFlap.page} clipThirds={layers.backFlap.clipThirds} clipIndex={layers.backFlap.clipIndex} pdfDocument={pdfDocument} width={panelWidth} height={panelHeight} lazy={true} style={{ transform: 'rotateY(180deg)' }} />
+                        <PDFPanel 
+                            pageNumber={layers.insideRight.page} 
+                            clipThirds={layers.insideRight.clipThirds} 
+                            clipIndex={layers.insideRight.clipIndex} 
+                            pdfDocument={pdfDocument} 
+                            width={panelWidth} 
+                            height={panelHeight} 
+                            lazy={true} 
+                            imageUrl={pageImages?.get(layers.insideRight.page)}
+                        />
+                        <PDFPanel 
+                            pageNumber={layers.backFlap.page} 
+                            clipThirds={layers.backFlap.clipThirds} 
+                            clipIndex={layers.backFlap.clipIndex} 
+                            pdfDocument={pdfDocument} 
+                            width={panelWidth} 
+                            height={panelHeight} 
+                            lazy={true} 
+                            style={{ transform: 'rotateY(180deg)' }} 
+                            imageUrl={pageImages?.get(layers.backFlap.page)}
+                        />
                     </div>
                 </div>
 

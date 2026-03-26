@@ -360,6 +360,24 @@ export async function updateBook(
 }
 
 /**
+ * Update multiple books category in bulk
+ */
+export async function updateBooksCategory(
+  bookIds: string[],
+  category: string | null
+): Promise<void> {
+  const { error } = await supabase
+    .from('books')
+    .update({ category })
+    .in('id', bookIds);
+
+  if (error) {
+    console.error('Bulk update books category error:', error);
+    throw new Error(`Failed to update books: ${error.message}`);
+  }
+}
+
+/**
  * Soft-delete a book (mark as deleted, preserve files for undo).
  */
 export async function deleteBook(bookId: string): Promise<void> {

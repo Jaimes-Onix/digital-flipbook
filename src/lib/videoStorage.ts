@@ -1,28 +1,61 @@
 import { supabase } from './supabase';
 import { VideoEntry } from '../../components/VideoLinksModal';
+import * as tus from 'tus-js-client';
 
-export async function uploadVideoFile(file: File): Promise<string> {
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const projectId = supabaseUrl?.match(/https:\/\/(.*?)\.supabase\.co/)?.[1];
+
+export async function uploadVideoFile(
+    file: File, 
+    onProgress?: (progress: number) => void
+): Promise<string> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Authentication session not found");
+
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-    const filePath = `videos/${fileName}`;
+    const filePath = `${fileName}`; // TUS expects just the object name if using the direct storage endpoint with bucketName in metadata
 
-    const { error } = await supabase.storage
-        .from('videos')
-        .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true
+    return new Promise((resolve, reject) => {
+        const upload = new tus.Upload(file, {
+            endpoint: `https://${projectId}.storage.supabase.co/storage/v1/upload/resumable`,
+            retryDelays: [0, 3000, 5000, 10000, 20000],
+            headers: {
+                authorization: `Bearer ${session.access_token}`,
+                'x-upsert': 'true',
+            },
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            metadata: {
+                bucketName: 'videos',
+                objectName: `videos/${fileName}`,
+                contentType: file.type || 'video/mp4',
+                cacheControl: '3600',
+            },
+            chunkSize: 6 * 1024 * 1024, // 6MB chunk size as per Supabase docs
+            onError: (error) => {
+                console.error('TUS Upload error:', error);
+                reject(error);
+            },
+            onProgress: (bytesUploaded, bytesTotal) => {
+                const percentage = (bytesUploaded / bytesTotal) * 100;
+                if (onProgress) onProgress(percentage);
+            },
+            onSuccess: () => {
+                const { data: urlData } = supabase.storage
+                    .from('videos')
+                    .getPublicUrl(`videos/${fileName}`);
+                resolve(urlData.publicUrl);
+            },
         });
 
-    if (error) {
-        console.error('Video upload error:', error);
-        throw new Error(`Failed to upload video: ${error.message}`);
-    }
-
-    const { data: urlData } = supabase.storage
-        .from('videos')
-        .getPublicUrl(filePath);
-
-    return urlData.publicUrl;
+        upload.findPreviousUploads().then((previousUploads) => {
+            if (previousUploads.length) {
+                upload.resumeFromPreviousUpload(previousUploads[0]);
+            }
+            upload.start();
+        });
+    });
 }
 
 export async function uploadVideoThumbnail(base64Data: string, videoId: string): Promise<string> {

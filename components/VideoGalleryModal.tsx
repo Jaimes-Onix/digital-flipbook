@@ -170,8 +170,8 @@ const VideoGalleryModal: React.FC<Props> = ({
 
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full">
-                            <Loader2 size={36} className={`animate-spin mb-4 ${dm ? 'text-zinc-500' : 'text-gray-400'}`} />
-                            <p className={`text-sm ${dm ? 'text-zinc-400' : 'text-gray-500'}`}>Loading videos...</p>
+                            <Loader2 size={40} className={`animate-spin mb-4 ${dm ? 'text-lime-500' : 'text-emerald-500'}`} />
+                            <p className={`text-base font-medium ${dm ? 'text-zinc-400' : 'text-gray-500'}`}>Loading videos...</p>
                         </div>
                     ) : (
                         <>
@@ -238,69 +238,69 @@ const VideoGalleryModal: React.FC<Props> = ({
                                 ) : (
                                     <div className="space-y-1">
                                         {/* Table header */}
-                                        <div className={`grid grid-cols-[48px_1fr_1.2fr_180px_72px] text-[10px] font-semibold uppercase tracking-widest pb-2 px-3 ${colHdr}`}>
+                                        <div className={`grid grid-cols-[64px_1fr_1.2fr_180px_80px] text-[11px] font-bold uppercase tracking-[0.1em] pb-3 px-4 ${colHdr}`}>
                                             <span />
                                             <span>Name</span>
-                                            <span>Link</span>
+                                            <span>Link / Source</span>
                                             <span>Date Added</span>
-                                            <span />
+                                            <span className="text-right">Actions</span>
                                         </div>
 
                                         {entries.map(e => (
                                             <div key={e.id}>
                                                 {editingId === e.id ? (
-                                                    <div className={`p-4 rounded-2xl border space-y-3 ${dm ? 'border-lime-500/30 bg-lime-500/10' : 'border-emerald-200 bg-lime-50'}`}>
-                                                        <div className="grid grid-cols-2 gap-3">
+                                                    <div className={`p-5 rounded-2xl border space-y-4 ${dm ? 'border-lime-500/30 bg-lime-500/10' : 'border-emerald-200 bg-lime-50'}`}>
+                                                        <div className="grid grid-cols-2 gap-4">
                                                             <div>
-                                                                <label className={`text-[10px] font-semibold uppercase tracking-widest block mb-1 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Name</label>
+                                                                <label className={`text-[11px] font-bold uppercase tracking-widest block mb-1.5 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Display Name</label>
                                                                 <input value={editName} onChange={ev => setEditName(ev.target.value)} className={inputCls} />
                                                             </div>
                                                             <div>
-                                                                <label className={`text-[10px] font-semibold uppercase tracking-widest block mb-1 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>URL</label>
+                                                                <label className={`text-[11px] font-bold uppercase tracking-widest block mb-1.5 ${dm ? 'text-zinc-500' : 'text-gray-400'}`}>Video URL</label>
                                                                 <input value={editUrl} onChange={ev => setEditUrl(ev.target.value)} className={inputCls} disabled={e.isFile} />
                                                             </div>
                                                         </div>
-                                                        <div className="flex justify-end gap-2">
+                                                        <div className="flex justify-end gap-3">
                                                             <button onClick={() => setEditingId(null)} disabled={isEditingSaving}
-                                                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-white'}`}>
+                                                                className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-white'}`}>
                                                                 Cancel
                                                             </button>
                                                             <button onClick={() => saveEdit(e.id)} disabled={isEditingSaving}
-                                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-lime-500 hover:bg-emerald-600 text-white transition-all active:scale-95 disabled:opacity-50">
-                                                                {isEditingSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
+                                                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-lime-500 hover:bg-emerald-600 text-white transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-emerald-500/20">
+                                                                {isEditingSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Save Changes
                                                             </button>
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className={`group grid grid-cols-[48px_1fr_1.2fr_180px_72px] items-center gap-3 px-3 py-3 rounded-xl transition-colors ${rowHov}`}>
-                                                        <div className={`w-10 h-7 rounded-lg overflow-hidden flex items-center justify-center shrink-0 ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
+                                                    <div className={`group grid grid-cols-[64px_1fr_1.2fr_180px_80px] items-center gap-4 px-4 py-4 rounded-2xl transition-all ${rowHov} border border-transparent hover:border-white/5`}>
+                                                        <div className={`w-14 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border ${dm ? 'bg-black border-white/10' : 'bg-gray-100 border-gray-200'}`}>
                                                             {e.thumbnailUrl
                                                                 ? <img src={e.thumbnailUrl} className="w-full h-full object-cover" alt="" />
-                                                                : <Play size={10} className={dm ? 'text-zinc-600' : 'text-gray-400'} />}
+                                                                : <Play size={14} className={dm ? 'text-zinc-700' : 'text-gray-300'} />}
                                                         </div>
 
                                                         {/* Name */}
-                                                        <p className={`text-sm font-semibold truncate pr-2 ${colName}`}>{e.name}</p>
+                                                        <p className={`text-[15px] font-bold truncate pr-3 ${colName}`}>{e.name}</p>
 
                                                         {/* Link */}
                                                         <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
                                                             onClick={ev => ev.stopPropagation()}
-                                                            className={`text-xs truncate hover:underline ${dm ? 'text-lime-400' : 'text-emerald-600'}`}>
+                                                            className={`text-sm font-medium truncate hover:underline ${dm ? 'text-lime-400/80 hover:text-lime-400' : 'text-emerald-600 hover:text-emerald-700'}`}>
                                                             {e.sourceUrl}
                                                         </a>
 
                                                         {/* Date */}
-                                                        <span className={`text-xs shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
+                                                        <span className={`text-[13px] font-medium shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
 
                                                         {/* Actions */}
-                                                        <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                                        <div className={`flex items-center justify-end gap-2 pr-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
                                                             <button onClick={() => startEdit(e)}
-                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-lime-400 hover:bg-emerald-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
-                                                                <Pencil size={13} />
+                                                                className={`p-2 rounded-xl transition-all ${dm ? 'text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                <Pencil size={15} />
                                                             </button>
                                                             <button onClick={() => setDeletingItem(e)}
-                                                                className={`p-1.5 rounded-lg transition-colors ${dm ? 'text-zinc-600 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
-                                                                <Trash2 size={13} />
+                                                                className={`p-2 rounded-xl transition-all ${dm ? 'text-zinc-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
+                                                                <Trash2 size={15} />
                                                             </button>
                                                         </div>
                                                     </div>

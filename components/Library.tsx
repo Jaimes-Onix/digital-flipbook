@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown, Pencil } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown, Pencil, FolderSync } from 'lucide-react';
 import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
@@ -7,6 +7,8 @@ import VideoLinksModal from './VideoLinksModal';
 import VideoGalleryModal from './VideoGalleryModal';
 import DeleteHistoryModal from './DeleteHistoryModal';
 import EditCategoryModal from './EditCategoryModal';
+import BulkTransferModal from './BulkTransferModal';
+import { BookCategory } from '../types';
 
 
 
@@ -32,9 +34,10 @@ interface LibraryProps {
   onRemoveBook: (id: string) => void;
   onRestoreBook?: () => void;
   onCategoryEdited?: (updatedCat: CustomCategory, oldSlug: string) => void;
+  onBulkUpdateCategory?: (bookIds: string[], category?: BookCategory) => Promise<void>;
 }
 
-const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited }) => {
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited, onBulkUpdateCategory }) => {
   const filteredBooks = useMemo(() => {
     if (filter === 'all') return books;
     if (filter === 'favorites') return books.filter(b => b.isFavorite);
@@ -56,6 +59,11 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
 
   // For Edit Custom Category
   const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
+
+  // Multi-selection state
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(new Set());
+  const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
 
   const currentCustomCategory = customCategories.find(c => c.slug === filter);
 
@@ -87,8 +95,35 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
 
   const handleBookClick = (book: LibraryBook) => {
     if (openingBookId || confirmingDeleteId) return;
+
+    if (isSelectionMode) {
+      const newSelected = new Set(selectedBookIds);
+      if (newSelected.has(book.id)) {
+        newSelected.delete(book.id);
+      } else {
+        newSelected.add(book.id);
+      }
+      setSelectedBookIds(newSelected);
+      return;
+    }
+
     setOpeningBookId(book.id);
     setTimeout(() => { onSelectBook(book); setOpeningBookId(null); }, 600);
+  };
+
+  const toggleSelectionMode = () => {
+    if (isSelectionMode) {
+      setSelectedBookIds(new Set());
+    }
+    setIsSelectionMode(!isSelectionMode);
+  };
+
+  const handleBulkTransfer = async (targetCategory: string) => {
+    if (onBulkUpdateCategory && selectedBookIds.size > 0) {
+      await onBulkUpdateCategory(Array.from(selectedBookIds), targetCategory);
+      setSelectedBookIds(new Set());
+      setIsSelectionMode(false);
+    }
   };
 
   const initiateDelete = (e: React.MouseEvent, id: string) => { e.stopPropagation(); setConfirmingDeleteId(id); };
@@ -162,6 +197,30 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
             <Plus size={16} />
             Add PDF
           </button>
+          
+          <button
+            onClick={toggleSelectionMode}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
+              isSelectionMode
+                ? darkMode ? 'bg-lime-500/20 text-lime-400 border border-lime-500/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 border border-white/10 shadow-black/40' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+            }`}
+          >
+            <Check size={16} className={isSelectionMode ? 'opacity-100' : 'opacity-40'} />
+            {isSelectionMode ? 'Cancel Selection' : 'Select'}
+          </button>
+
+          {selectedBookIds.size > 0 && (
+            <button
+              onClick={() => setShowBulkTransferModal(true)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
+                darkMode ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
+              }`}
+            >
+              <FolderSync size={16} />
+              Transfer ({selectedBookIds.size})
+            </button>
+          )}
         </div>
       </div>
 
@@ -252,6 +311,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         {sortedBooks.map((book) => {
           const isOpening = openingBookId === book.id;
           const isConfirming = confirmingDeleteId === book.id;
+          const isSelected = selectedBookIds.has(book.id);
 
           return (
             <div
@@ -262,9 +322,20 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               <div className={`relative mb-3 transition-all duration-500 ${isOpening ? 'animate-zoom-forward' : ''} aspect-[3/4]`}>
                 <div className={`w-full h-full relative transition-all duration-500 ease-out rounded-2xl overflow-hidden
                   ${!isOpening && !isConfirming ? 'group-hover:-translate-y-2 group-hover:scale-[1.02]' : ''}
-                  ${darkMode ? 'border border-white/[0.06] group-hover:border-white/[0.12] bg-zinc-900/50' : 'border border-gray-200 group-hover:border-gray-300 bg-gray-100'}
-                  ${darkMode ? 'shadow-lg shadow-black/30 group-hover:shadow-xl group-hover:shadow-black/40' : 'shadow-lg shadow-gray-200/60 group-hover:shadow-xl group-hover:shadow-gray-200/80'}
+                  ${isSelected ? (darkMode ? 'border-2 border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.3)]' : 'border-2 border-emerald-500 shadow-lg') : (darkMode ? 'border border-white/[0.06] group-hover:border-white/[0.12] bg-zinc-900/50' : 'border border-gray-200 group-hover:border-gray-300 bg-gray-100')}
+                  ${darkMode && !isSelected ? 'shadow-lg shadow-black/30 group-hover:shadow-xl group-hover:shadow-black/40' : !darkMode && !isSelected ? 'shadow-lg shadow-gray-200/60 group-hover:shadow-xl group-hover:shadow-gray-200/80' : ''}
                 `}>
+                  {/* Selection Overlay */}
+                  {isSelectionMode && (
+                    <div className={`absolute top-2.5 left-2.5 w-6 h-6 rounded-full border-2 z-30 flex items-center justify-center transition-all ${
+                      isSelected 
+                        ? 'bg-lime-500 border-lime-500 text-white scale-110' 
+                        : darkMode ? 'bg-black/20 border-white/30' : 'bg-white/50 border-gray-300'
+                    }`}>
+                      {isSelected && <Check size={14} strokeWidth={4} />}
+                    </div>
+                  )}
+
                   {/* Cover Image */}
                   <img src={book.coverUrl} alt={book.name} className="w-full h-full object-contain bg-black/5" loading="lazy" />
 
@@ -272,14 +343,14 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                   {/* Favorite */}
-                  {book.isFavorite && (
+                  {book.isFavorite && !isSelectionMode && (
                     <div className="absolute top-2.5 left-2.5 p-1.5 bg-black/40 backdrop-blur-md text-red-400 rounded-full z-20">
                       <Heart size={12} fill="currentColor" />
                     </div>
                   )}
 
                   {/* Remove Button */}
-                  {!isConfirming && !isOpening && (
+                  {!isConfirming && !isOpening && !isSelectionMode && (
                     <button
                       onClick={(e) => initiateDelete(e, book.id)}
                       className="absolute top-2.5 right-2.5 p-2 bg-black/40 hover:bg-red-500/80 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 z-30"
@@ -391,6 +462,16 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         onCategoryEdited={(updatedCat, oldSlug) => {
           if (onCategoryEdited) onCategoryEdited(updatedCat, oldSlug);
         }}
+      />
+
+      <BulkTransferModal
+        isOpen={showBulkTransferModal}
+        onClose={() => setShowBulkTransferModal(false)}
+        selectedCount={selectedBookIds.size}
+        onConfirm={handleBulkTransfer}
+        darkMode={darkMode || false}
+        customCategories={customCategories}
+        currentCategory={filter}
       />
 
     </div>

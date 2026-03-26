@@ -25,6 +25,7 @@ import {
   saveBookMetadata,
   loadBooks as loadBooksFromSupabase,
   updateBook as updateBookInSupabase,
+  updateBooksCategory as updateBooksCategoryInSupabase,
   deleteBook as deleteBookFromSupabase,
   loadCategories as loadCategoriesFromSupabase,
   type StoredBook
@@ -512,6 +513,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleBulkUpdateBookCategory = async (bookIds: string[], category?: import('./types').BookCategory) => {
+    // Update local state
+    setBooks(prev => prev.map(b => 
+      bookIds.includes(b.id) ? { ...b, category } : b
+    ));
+    
+    // Save to Supabase
+    try {
+      await updateBooksCategoryInSupabase(bookIds, category || null);
+    } catch (e) {
+      console.error('Failed to bulk update categories in Supabase:', e);
+    }
+  };
+
   const handleToggleFavorite = async (bookId: string) => {
     const book = books.find(b => b.id === bookId);
     const newFavoriteState = !book?.isFavorite;
@@ -747,6 +762,7 @@ const App: React.FC = () => {
                   onAddNew={() => navigate('/upload', { state: { returnTo: location.pathname } })}
                   onRemoveBook={handleRemoveBook}
                   onRestoreBook={handleRestoreBook}
+                  onBulkUpdateCategory={handleBulkUpdateBookCategory}
                   onCategoryEdited={(updatedCat, oldSlug) => {
                     setCustomCategories(prev => prev.map(c => c.id === updatedCat.id ? updatedCat : c));
                     if (updatedCat.slug !== oldSlug) {
@@ -769,6 +785,7 @@ const App: React.FC = () => {
                 onAddNew={() => navigate('/upload', { state: { returnTo: location.pathname } })}
                 onRemoveBook={handleRemoveBook}
                 onRestoreBook={handleRestoreBook}
+                onBulkUpdateCategory={handleBulkUpdateBookCategory}
                 onCategoryEdited={(updatedCat, oldSlug) => {
                   setCustomCategories(prev => prev.map(c => c.id === updatedCat.id ? updatedCat : c));
                   if (updatedCat.slug !== oldSlug) {

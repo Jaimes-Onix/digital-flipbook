@@ -150,76 +150,67 @@ const playFlipSound = () => {
 // Page Component
 // The container (pageW × pageH) is fixed to the chosen orientation.
 // PDF content is scaled with contain-fit and centered — no stretching, no clipping.
-const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number }>(
-  ({ number, pdfDocument, pageW, pageH }, ref) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number; imageUrl?: string; searchQuery?: string }>(
+  ({ number, pdfDocument, pageW, pageH, imageUrl, searchQuery }, ref) => {
     const textLayerRef = useRef<HTMLDivElement>(null);
     const [rendered, setRendered] = useState(false);
     const [fit, setFit] = useState<{ displayW: number; displayH: number; offsetX: number; offsetY: number } | null>(null);
 
-    useEffect(() => {
-      if (!pdfDocument || !canvasRef.current || rendered) return;
+    const lastSearchRef = useRef('');
 
-      const render = async () => {
+    useEffect(() => {
+      if (!pdfDocument) return;
+      if (rendered && lastSearchRef.current === searchQuery) return;
+      
+      lastSearchRef.current = searchQuery || '';
+
+      const setupLayer = async () => {
         try {
           const page = await pdfDocument.getPage(number);
           const natural = page.getViewport({ scale: 1 });
 
-          // Contain-fit: scale so PDF fills as much of the container as possible
-          // without exceeding either dimension
           const fitScale = Math.min(pageW / natural.width, pageH / natural.height);
           const displayW = Math.round(natural.width * fitScale);
           const displayH = Math.round(natural.height * fitScale);
           const offsetX = Math.round((pageW - displayW) / 2);
           const offsetY = Math.round((pageH - displayH) / 2);
 
-          // Render at 2.0× for crispness (since pageW is 1600, this guarantees retina quality)
-          let renderScale = fitScale * 2.0;
-          let viewport = page.getViewport({ scale: renderScale });
-
-          // Cap to prevent canvas memory crashes on mobile (max dimension ~ 3500px)
-          if (viewport.width > 3500 || viewport.height > 3500) {
-            const maxScale = 3500 / Math.max(natural.width, natural.height);
-            renderScale = Math.min(renderScale, maxScale);
-            viewport = page.getViewport({ scale: renderScale });
-          }
-
-          const canvas = canvasRef.current!;
-          const ctx = canvas.getContext('2d')!;
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          await page.render({ canvasContext: ctx, viewport }).promise;
-
-          // Text layer: built at renderScale coords, CSS-scaled down to display size
+          // We still need text layer but skip canvas rendering (handled by pre-rendered imageUrl)
           if (textLayerRef.current) {
             const textContent = await page.getTextContent();
             const div = textLayerRef.current;
             div.innerHTML = '';
-            const sd = displayW / viewport.width; // scale-down factor (0.5)
-            div.style.width = `${viewport.width}px`;
-            div.style.height = `${viewport.height}px`;
-            div.style.transform = `scale(${sd})`;
+            
+            // Text layer scaling (match display size)
+            div.style.width = `${displayW}px`;
+            div.style.height = `${displayH}px`;
 
             textContent.items.forEach((item: any) => {
               if (!item.str) return;
               const [a, b, , d, tx, ty] = item.transform;
-              const fontSize = Math.sqrt(d * d + item.transform[2] * item.transform[2]) * renderScale;
+              // fontSize relative to display scale
+              const fontSize = Math.sqrt(d * d + item.transform[2] * item.transform[2]) * fitScale;
               const span = document.createElement('span');
               span.textContent = item.str;
+
+              const isMatch = searchQuery && searchQuery.trim().length > 1 && 
+                             item.str.toLowerCase().includes(searchQuery.toLowerCase());
+
               span.style.cssText = `
                 position: absolute;
-                left: ${tx * renderScale}px;
-                top: ${viewport.height - ty * renderScale - fontSize}px;
+                left: ${tx * fitScale}px;
+                top: ${displayH - ty * fitScale - fontSize}px;
                 font-size: ${fontSize}px;
                 font-family: sans-serif;
                 white-space: pre;
                 color: transparent;
                 transform-origin: 0% 0%;
                 line-height: 1;
+                ${isMatch ? 'background-color: rgba(255, 255, 0, 0.4); border-radius: 2px;' : ''}
               `;
               const angle = Math.atan2(b, a);
               if (Math.abs(angle) > 0.001) span.style.transform = `rotate(${angle}rad)`;
-              if (item.width) span.style.width = `${item.width * renderScale}px`;
+              if (item.width) span.style.width = `${item.width * fitScale}px`;
               div.appendChild(span);
             });
           }
@@ -227,12 +218,12 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           setFit({ displayW, displayH, offsetX, offsetY });
           setRendered(true);
         } catch (e) {
-          console.error('Page render error:', e);
+          console.error('Text layer init error:', e);
         }
       };
 
-      render();
-    }, [pdfDocument, number, rendered, pageW, pageH]);
+      setupLayer();
+    }, [pdfDocument, number, rendered, pageW, pageH, searchQuery]);
 
     return (
       <div
@@ -251,17 +242,28 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
             <Loader2 className="animate-spin text-gray-300" size={24} />
           </div>
         )}
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: 'absolute',
-            left: fit?.offsetX ?? 0,
-            top: fit?.offsetY ?? 0,
-            width: fit?.displayW ?? '100%',
-            height: fit?.displayH ?? '100%',
-            display: rendered ? 'block' : 'none',
-          }}
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={`Page ${number}`}
+            className="flipbook-page-image"
+            style={{
+              position: 'absolute',
+              left: fit?.offsetX ?? 0,
+              top: fit?.offsetY ?? 0,
+              width: fit?.displayW ?? '100%',
+              height: fit?.displayH ?? '100%',
+              objectFit: 'contain',
+              imageRendering: 'crisp-edges',
+              ['WebkitImageRendering' as any]: '-webkit-optimize-contrast',
+              msInterpolationMode: 'nearest-neighbor'
+            } as React.CSSProperties}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-white/50">
+            <Loader2 className="animate-spin text-zinc-300" size={24} />
+          </div>
+        )}
         <div
           ref={textLayerRef}
           className="pdf-text-layer"
@@ -392,6 +394,11 @@ const BookViewer: React.FC<BookViewerProps> = ({
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [exactMatch, setExactMatch] = useState(false);
+  // Pre-rendering engine state
+  const [pageImages, setPageImages] = useState<Map<number, string>>(new Map());
+  const [parsingProgress, setParsingProgress] = useState(0);
+  const [isParsing, setIsParsing] = useState(false);
+
   const [pageTexts, setPageTexts] = useState<Map<number, string>>(new Map());
   const [isExtractingText, setIsExtractingText] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -569,6 +576,65 @@ const BookViewer: React.FC<BookViewerProps> = ({
     };
   }, [pageW, pageH, pdfAspectRatio]);
 
+  // High-Resolution Image Pre-rendering Engine
+  useEffect(() => {
+    if (!pdfDocument || pages.length === 0 || isParsing || pageImages.size === pages.length) return;
+
+    const renderImages = async () => {
+      setIsParsing(true);
+      const total = pages.length;
+
+      // QUALITY_SCALE (Maximized for Perfect Clarity, ignoring limits)
+      const QUALITY_SCALE = Math.max((window.devicePixelRatio || 1) * 3.0, 4.0);
+
+      for (let i = 0; i < total; i++) {
+        const pageNum = pages[i];
+        try {
+          if (pageImages.has(pageNum)) continue;
+
+          const page = await pdfDocument.getPage(pageNum);
+          const viewport = page.getViewport({ scale: QUALITY_SCALE });
+
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d', { alpha: false })!;
+          
+          // CRITICAL: Force high smoothing quality
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+
+          await page.render({ canvasContext: ctx, viewport }).promise;
+
+          // Increase quality to 0.98 to avoid any JPEG artifacts / blurriness
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.98);
+          
+          setPageImages(prev => {
+            const next = new Map(prev);
+            next.set(pageNum, dataUrl);
+            return next;
+          });
+          
+          setParsingProgress(Math.round(((i + 1) / total) * 100));
+          
+          // Small yield to keep UI responsive
+          await new Promise(r => setTimeout(r, 20));
+
+          // Cleanup canvas to help GC
+          canvas.width = 0;
+          canvas.height = 0;
+        } catch (e) {
+          console.error(`❌ Render Error Page ${pageNum}:`, e);
+        }
+      }
+
+      setIsParsing(false);
+    };
+
+    renderImages();
+  }, [pdfDocument, pages, isParsing, pageImages.size]);
+
   // Initialize pages
   useEffect(() => {
     const initBook = async () => {
@@ -597,11 +663,11 @@ const BookViewer: React.FC<BookViewerProps> = ({
         const nums = Array.from({ length: pdfDocument.numPages }, (_, i) => i + 1);
         setPages(nums);
 
-        setLoadingText('Preparing viewer...');
+        setLoadingText('Preparing High-Quality Image Engine...');
         await new Promise(resolve => setTimeout(resolve, 300));
 
         setLoading(false);
-        console.log(`BookViewer ready: ${pdfDocument.numPages} pages`);
+        console.log(`BookViewer ready (Optimization phase start): ${pdfDocument.numPages} pages`);
         setTimeout(() => {
           bookRef.current?.pageFlip()?.update();
         }, 100);
@@ -761,10 +827,22 @@ const BookViewer: React.FC<BookViewerProps> = ({
               transform: 'translate(-50%, -50%)',
             }}
           >
+            {isParsing && (
+              <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl transition-opacity duration-300">
+                <Loader2 className="animate-spin text-lime-500" size={16} />
+                <div className="flex flex-col">
+                   <span className="text-[10px] uppercase font-bold text-white/50 leading-none mb-0.5">Optimizing Quality</span>
+                   <span className="text-xs font-semibold text-white whitespace-nowrap tracking-wide leading-none">
+                    Page {Math.min(pages.length, Math.floor((parsingProgress / 100) * pages.length) + 1)} of {pages.length} ({parsingProgress}%)
+                   </span>
+                </div>
+              </div>
+            )}
             <TrifoldViewer
               pdfDocument={pdfDocument}
               onFlip={handleFlip}
               onBookInit={handleBookInit}
+              pageImages={pageImages}
             />
           </div>
         ) : (
@@ -809,7 +887,15 @@ const BookViewer: React.FC<BookViewerProps> = ({
               disableFlipByClick={false}
             >
               {pages.map((num) => (
-                <Page key={num} number={num} pdfDocument={pdfDocument} pageW={pageW} pageH={pageH} />
+                <Page 
+                  key={num} 
+                  number={num} 
+                  pdfDocument={pdfDocument} 
+                  pageW={pageW} 
+                  pageH={pageH} 
+                  imageUrl={pageImages.get(num)}
+                  searchQuery={searchQuery} 
+                />
               ))}
             </HTMLFlipBook>
           </div>
