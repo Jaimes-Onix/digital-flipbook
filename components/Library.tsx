@@ -8,6 +8,7 @@ import VideoGalleryModal from './VideoGalleryModal';
 import DeleteHistoryModal from './DeleteHistoryModal';
 import EditCategoryModal from './EditCategoryModal';
 import BulkTransferModal from './BulkTransferModal';
+import BulkActionConfirmationModal from './BulkActionConfirmationModal';
 import { BookCategory } from '../types';
 
 
@@ -65,6 +66,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(new Set());
   const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
+  const [activeBulkAction, setActiveBulkAction] = useState<'download' | 'delete' | null>(null);
 
   const currentCustomCategory = customCategories.find(c => c.slug === filter);
 
@@ -127,7 +129,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
     }
   };
 
-  const handleBulkDownload = async () => {
+  const executeBulkDownload = async () => {
     const selectedBooks = books.filter(b => selectedBookIds.has(b.id));
     if (selectedBooks.length === 0) return;
 
@@ -153,14 +155,11 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
     setIsSelectionMode(false);
   };
 
-  const handleBulkDelete = async () => {
+  const executeBulkDelete = async () => {
     if (onBulkRemoveBooks && selectedBookIds.size > 0) {
-      const confirmMessage = `Are you sure you want to delete ${selectedBookIds.size} selected books?`;
-      if (window.confirm(confirmMessage)) {
-        await onBulkRemoveBooks(Array.from(selectedBookIds));
-        setSelectedBookIds(new Set());
-        setIsSelectionMode(false);
-      }
+      await onBulkRemoveBooks(Array.from(selectedBookIds));
+      setSelectedBookIds(new Set());
+      setIsSelectionMode(false);
     }
   };
 
@@ -254,7 +253,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           {selectedBookIds.size > 0 && (
             <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
               <button
-                onClick={handleBulkDownload}
+                onClick={() => setActiveBulkAction('download')}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
                   darkMode ? 'bg-lime-500/20 hover:bg-lime-500/30 text-lime-400 border border-lime-500/30' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                 }`}
@@ -266,7 +265,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
 
               <button
                 onClick={() => setShowBulkTransferModal(true)}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
                   darkMode ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
                 }`}
                 title="Bulk Transfer"
@@ -276,8 +275,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               </button>
 
               <button
-                onClick={handleBulkDelete}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+                onClick={() => setActiveBulkAction('delete')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
                   darkMode ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30' : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
                 }`}
                 title="Bulk Delete"
@@ -538,6 +537,15 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
         darkMode={darkMode || false}
         customCategories={customCategories}
         currentCategory={filter}
+      />
+
+      <BulkActionConfirmationModal
+        isOpen={!!activeBulkAction}
+        onClose={() => setActiveBulkAction(null)}
+        onConfirm={activeBulkAction === 'download' ? executeBulkDownload : executeBulkDelete}
+        action={activeBulkAction || 'download'}
+        selectedCount={selectedBookIds.size}
+        darkMode={darkMode || false}
       />
 
     </div>
