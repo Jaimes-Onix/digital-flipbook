@@ -40,7 +40,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
   if (!currentBook) return null;
 
   return (
-    <div className={`relative w-full h-[520px] overflow-hidden flex items-center justify-center mb-12 ${darkMode ? 'bg-black' : 'bg-black'}`}>
+    <div className={`relative w-full h-[380px] sm:h-[460px] md:h-[520px] overflow-hidden flex items-center justify-center mb-8 sm:mb-12 ${darkMode ? 'bg-black' : 'bg-black'}`}>
       {/* Dynamic Background with crossfade transition */}
       <div
         key={`bg-${currentBook.id}`}
@@ -53,7 +53,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
       <div className={`absolute inset-0 z-0 ${darkMode ? 'bg-gradient-to-b from-black/20 via-transparent to-black/40' : 'bg-gradient-to-b from-black/20 via-transparent to-black/60'
         }`} />
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 px-12 h-full py-16">
+      <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-center md:justify-between gap-6 sm:gap-12 px-6 sm:px-12 h-full py-10 sm:py-16">
 
         {/* Navigation - Left */}
         {books.length > 1 && (
@@ -71,13 +71,13 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
         <div className="flex-1 flex justify-center items-center">
           <div
             key={`book-${currentBook.id}`}
-            className={`relative w-64 h-96 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden transform transition-all duration-700 hover:scale-105 perspective-1000 group animate-in zoom-in fade-in duration-700 ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}
+            className={`relative w-32 h-48 sm:w-48 sm:h-72 md:w-64 md:h-96 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)] sm:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden transform transition-all duration-700 hover:scale-105 perspective-1000 group animate-in zoom-in fade-in duration-700 ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}
           >
-            <div className="absolute inset-y-0 left-0 w-2.5 bg-black/30 z-10" />
+            <div className="absolute inset-y-0 left-0 w-1 sm:w-2.5 bg-black/30 z-10" />
             <img
               src={currentBook.coverUrl}
               alt={currentBook.name}
-              className="w-full h-full object-contain p-2"
+              className="w-full h-full object-contain p-1 sm:p-2"
             />
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none" />
           </div>
@@ -88,16 +88,16 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
           key={`info-${currentBook.id}`}
           className={`flex-1 flex flex-col animate-in slide-in-from-right-12 fade-in duration-700 ${darkMode ? 'text-white' : 'text-white'}`}
         >
-          <div className="space-y-5">
-            <h4 className={`font-black uppercase tracking-[0.4em] text-[10px] opacity-90 ${darkMode ? 'text-blue-400' : 'text-blue-400'}`}>
+          <div className="space-y-2 sm:space-y-4 md:space-y-5 text-center md:text-left">
+            <h4 className={`font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] text-[8px] sm:text-[10px] opacity-90 ${darkMode ? 'text-blue-400' : 'text-blue-400'}`}>
               Featured Selection
             </h4>
-            <h2 className="text-5xl font-serif font-bold leading-tight mb-2 drop-shadow-lg text-white">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold leading-tight mb-1 sm:mb-2 drop-shadow-lg text-white">
               {currentBook.name.replace('.pdf', '')}
             </h2>
-            <div className="w-16 h-1 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />
-            <p className={`text-xl leading-relaxed font-light italic max-w-md line-clamp-3 ${darkMode ? 'text-gray-300' : 'text-gray-300'}`}>
-              {currentBook.summary || "Explore this premier selection from our curated collection of digital publications."}
+            <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50 mx-auto md:mx-0" />
+            <p className={`text-sm sm:text-lg leading-relaxed font-light italic max-w-md line-clamp-2 sm:line-clamp-3 ${darkMode ? 'text-gray-300' : 'text-gray-300'}`}>
+              {currentBook.summary || "Explore this premier selection from our curated collection."}
             </p>
           </div>
         </div>
@@ -117,7 +117,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ books, darkMode = t
 
       {/* Pagination indicators */}
       {books.length > 1 && (
-        <div className="absolute bottom-10 flex gap-3 z-20">
+        <div className="absolute bottom-6 sm:bottom-10 flex gap-2 sm:gap-3 z-20">
           {books.map((_, idx) => (
             <button
               key={idx}

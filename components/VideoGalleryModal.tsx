@@ -118,55 +118,58 @@ const VideoGalleryModal: React.FC<Props> = ({
     const inputCls = `w-full text-sm px-3 py-2 rounded-xl border outline-none transition-colors
     ${dm ? 'bg-white/[0.05] border-white/[0.10] text-zinc-200 placeholder-zinc-600 focus:border-lime-500/50'
             : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-emerald-400'}`;
-    const tabActive = `flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-lime-500 text-white shadow-md shadow-emerald-200/40 transition-all`;
-    const tabInactive = `flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${dm ? 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`;
+    const tabActive = `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold bg-lime-500 text-white shadow-md shadow-emerald-200/40 transition-all`;
+    const tabInactive = `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${dm ? 'text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`;
     const tabWrap = `flex items-center gap-1 p-1 rounded-xl mr-1 ${dm ? 'bg-white/[0.06]' : 'bg-gray-100'}`;
 
     return createPortal(
-        <div className="fixed inset-0 z-[210] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 shadow-2xl">
             <div className="absolute inset-0 backdrop-blur-md bg-black/50" onClick={onClose} />
 
-            <div className={`relative w-full max-w-6xl rounded-[28px] shadow-2xl border flex flex-col overflow-hidden ${bg}`}
-                style={{ height: 'min(88vh, 860px)', animation: 'vgIn 0.22s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div className={`relative w-full max-w-6xl rounded-[28px] shadow-2xl border flex flex-col overflow-hidden animate-in zoom-in-95 fade-in duration-300 ${bg}`}
+                style={{ height: 'min(90vh, 860px)' }}>
+
 
                 {/* ── Header ── */}
-                <div className={`flex items-center justify-between px-8 pt-7 pb-5 border-b shrink-0 ${divider}`}>
+                <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-8 py-4 sm:pt-7 sm:pb-5 border-b shrink-0 gap-4 sm:gap-3 ${divider}`}>
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${dm ? 'bg-emerald-500/20' : 'bg-emerald-50'}`}>
-                            <Video size={20} className={dm ? 'text-lime-400' : 'text-emerald-600'} />
+                        <div className={`p-2 rounded-xl flex-shrink-0 ${dm ? 'bg-emerald-500/20' : 'bg-emerald-50'}`}>
+                            <Video size={18} className={`sm:w-5 sm:h-5 ${dm ? 'text-lime-400' : 'text-emerald-600'}`} />
                         </div>
-                        <div>
-                            <h2 className={`text-2xl font-bold tracking-tight ${title1}`}>{title}</h2>
-                            <p className={`text-xs mt-0.5 ${sub}`}>{entries.length} video{entries.length !== 1 ? 's' : ''}</p>
+                        <div className="min-w-0">
+                            <h2 className={`text-[15px] sm:text-xl font-bold tracking-tight truncate ${title1}`}>{title}</h2>
+                            <p className={`text-[9px] sm:text-xs mt-0.5 ${sub}`}>{entries.length} video{entries.length !== 1 ? 's' : ''}</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        {/* View tabs */}
-                        <div className={tabWrap}>
-                            <button className={view === 'grid' ? tabActive : tabInactive} onClick={() => setView('grid')}>
-                                <Grid2X2 size={14} /> Grid
-                            </button>
-                            <button className={view === 'history' ? tabActive : tabInactive} onClick={() => setView('history')}>
-                                <History size={14} /> History
-                            </button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 flex-grow sm:flex-grow-0">
+                            {/* View tabs */}
+                            <div className={`${tabWrap} flex-grow sm:flex-grow-0`}>
+                                <button className={`${view === 'grid' ? tabActive : tabInactive} flex-1 sm:flex-none justify-center px-3 sm:px-4`} onClick={() => setView('grid')}>
+                                    <Grid2X2 size={14} /> <span className="hidden xs:inline sm:inline">Grid</span>
+                                </button>
+                                <button className={`${view === 'history' ? tabActive : tabInactive} flex-1 sm:flex-none justify-center px-3 sm:px-4`} onClick={() => setView('history')}>
+                                    <History size={14} /> <span className="hidden xs:inline sm:inline">History</span>
+                                </button>
+                            </div>
+                            {onAddVideo && (
+                                <button onClick={onAddVideo}
+                                    className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold
+                      bg-lime-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-300/40 transition-all active:scale-95 shrink-0">
+                                    <Plus size={15} /> <span className="hidden sm:inline">Add Video</span>
+                                </button>
+                            )}
                         </div>
-                        {onAddVideo && (
-                            <button onClick={onAddVideo}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
-                  bg-lime-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-300/40 transition-all active:scale-95">
-                                <Plus size={15} /> Add Video
-                            </button>
-                        )}
                         <button onClick={onClose}
-                            className={`p-2 rounded-full transition-colors ${dm ? 'text-zinc-500 hover:text-white hover:bg-white/[0.07]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
-                            <X size={19} />
+                            className={`p-1.5 sm:p-2 rounded-full transition-colors flex-shrink-0 ${dm ? 'text-zinc-500 hover:text-white hover:bg-white/[0.07]' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}>
+                            <X size={18} className="sm:w-[19px] sm:h-[19px]" />
                         </button>
                     </div>
                 </div>
 
                 {/* ── Body ── */}
-                <div className="flex-1 overflow-y-auto px-8 py-6">
+                <div className="flex-1 overflow-y-auto px-3.5 sm:px-8 py-4 sm:py-6">
 
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full">
@@ -186,7 +189,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                         <p className={`text-sm ${dm ? 'text-zinc-700' : 'text-gray-300'}`}>Click "Add Video" to get started</p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-7">
+                                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-6 sm:gap-y-7">
                                         {entries.map(e => (
                                             <div key={e.id} className="group relative cursor-pointer"
                                                 onMouseEnter={() => setHovered(e.id)} onMouseLeave={() => setHovered(null)}>
@@ -205,13 +208,13 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <p className={`text-sm font-semibold line-clamp-2 leading-snug transition-colors ${dm ? 'text-zinc-200 group-hover:text-white' : 'text-gray-900 group-hover:text-black'}`}>
+                                                    <p className={`text-[13px] sm:text-sm font-semibold line-clamp-2 leading-snug transition-colors ${dm ? 'text-zinc-200 group-hover:text-white' : 'text-gray-900 group-hover:text-black'}`}>
                                                         {e.name}
                                                     </p>
                                                 </a>
                                                 <div className="flex items-center justify-between mt-1">
                                                     <p className={`text-[11px] ${dm ? 'text-zinc-500' : 'text-gray-600'}`}>{fmtDate(e.addedAt)}</p>
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex items-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
                                                             className={`p-1 rounded-md transition-colors ${dm ? 'text-zinc-600 hover:text-lime-400' : 'text-gray-400 hover:text-emerald-600'}`}>
                                                             <ExternalLink size={12} />
@@ -237,8 +240,8 @@ const VideoGalleryModal: React.FC<Props> = ({
                                     </div>
                                 ) : (
                                     <div className="space-y-1">
-                                        {/* Table header */}
-                                        <div className={`grid grid-cols-[64px_1fr_1.2fr_180px_80px] text-[11px] font-bold uppercase tracking-[0.1em] pb-3 px-4 ${colHdr}`}>
+                                        {/* Table header — hidden on mobile */}
+                                        <div className={`hidden lg:grid grid-cols-[64px_1fr_1.2fr_180px_80px] text-[11px] font-bold uppercase tracking-[0.1em] pb-3 px-4 ${colHdr}`}>
                                             <span />
                                             <span>Name</span>
                                             <span>Link / Source</span>
@@ -262,7 +265,7 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                         </div>
                                                         <div className="flex justify-end gap-3">
                                                             <button onClick={() => setEditingId(null)} disabled={isEditingSaving}
-                                                                className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-white'}`}>
+                                                                className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
                                                                 Cancel
                                                             </button>
                                                             <button onClick={() => saveEdit(e.id)} disabled={isEditingSaving}
@@ -272,36 +275,38 @@ const VideoGalleryModal: React.FC<Props> = ({
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className={`group grid grid-cols-[64px_1fr_1.2fr_180px_80px] items-center gap-4 px-4 py-4 rounded-2xl transition-all ${rowHov} border border-transparent hover:border-white/5`}>
-                                                        <div className={`w-14 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border ${dm ? 'bg-black border-white/10' : 'bg-gray-100 border-gray-200'}`}>
+                                                    <div className={`group grid grid-cols-1 lg:grid-cols-[64px_1fr_1.2fr_180px_80px] items-start lg:items-center gap-2 lg:gap-4 px-3 sm:px-4 py-3 sm:py-4 rounded-2xl transition-all ${rowHov} border border-transparent hover:border-white/5`}>
+                                                        <div className={`w-14 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border ${dm ? 'bg-black border-white/10' : 'bg-gray-100 border-gray-200'} hidden lg:flex`}>
                                                             {e.thumbnailUrl
                                                                 ? <img src={e.thumbnailUrl} className="w-full h-full object-cover" alt="" />
                                                                 : <Play size={14} className={dm ? 'text-zinc-700' : 'text-gray-300'} />}
                                                         </div>
 
-                                                        {/* Name */}
-                                                        <p className={`text-[15px] font-bold truncate pr-3 ${colName}`}>{e.name}</p>
+                                                        {/* Name & Source stacked on mobile */}
+                                                        <div className="min-w-0 flex-1 w-full">
+                                                            <p className={`text-sm sm:text-[15px] font-bold truncate pr-3 ${colName}`}>{e.name}</p>
+                                                            <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
+                                                                onClick={ev => ev.stopPropagation()}
+                                                                className={`text-[12px] sm:text-sm font-medium truncate hover:underline block mt-0.5 ${dm ? 'text-lime-400/80 hover:text-lime-400' : 'text-emerald-600 hover:text-emerald-700'}`}>
+                                                                {e.sourceUrl}
+                                                            </a>
+                                                        </div>
 
-                                                        {/* Link */}
-                                                        <a href={e.sourceUrl} target="_blank" rel="noopener noreferrer"
-                                                            onClick={ev => ev.stopPropagation()}
-                                                            className={`text-sm font-medium truncate hover:underline ${dm ? 'text-lime-400/80 hover:text-lime-400' : 'text-emerald-600 hover:text-emerald-700'}`}>
-                                                            {e.sourceUrl}
-                                                        </a>
+                                                        {/* Date & Actions */}
+                                                        <div className="flex items-center justify-between lg:justify-start gap-4 w-full lg:w-auto mt-2 lg:mt-0">
+                                                            <span className={`text-[11px] sm:text-[13px] font-medium shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
 
-                                                        {/* Date */}
-                                                        <span className={`text-[13px] font-medium shrink-0 ${colDate}`}>{fmtDate(e.addedAt)}</span>
-
-                                                        {/* Actions */}
-                                                        <div className={`flex items-center justify-end gap-2 pr-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                                            <button onClick={() => startEdit(e)}
-                                                                className={`p-2 rounded-xl transition-all ${dm ? 'text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
-                                                                <Pencil size={15} />
-                                                            </button>
-                                                            <button onClick={() => setDeletingItem(e)}
-                                                                className={`p-2 rounded-xl transition-all ${dm ? 'text-zinc-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
-                                                                <Trash2 size={15} />
-                                                            </button>
+                                                            {/* Actions */}
+                                                            <div className={`flex items-center gap-1 sm:gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                                                <button onClick={() => startEdit(e)}
+                                                                    className={`p-2 rounded-xl transition-all ${dm ? 'text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}>
+                                                                    <Pencil size={15} />
+                                                                </button>
+                                                                <button onClick={() => setDeletingItem(e)}
+                                                                    className={`p-2 rounded-xl transition-all ${dm ? 'text-zinc-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}>
+                                                                    <Trash2 size={15} />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )}
@@ -315,10 +320,10 @@ const VideoGalleryModal: React.FC<Props> = ({
                 </div>
 
                 {/* ── Footer ── */}
-                <div className={`flex items-center justify-between px-8 py-4 border-t shrink-0 ${footer}`}>
+                <div className={`flex items-center justify-between px-4 sm:px-8 py-4 border-t shrink-0 ${footer}`}>
                     <p className={`text-xs ${dm ? 'text-zinc-600' : 'text-gray-500'}`}>{entries.length} total item{entries.length !== 1 ? 's' : ''}</p>
                     <button onClick={onClose}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
+                        className={`px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors ${dm ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
                         Close
                     </button>
                 </div>
@@ -327,8 +332,8 @@ const VideoGalleryModal: React.FC<Props> = ({
             {/* ── Delete Confirmation Overlay ── */}
             {deletingItem && (
                 <div className="fixed inset-0 z-[230] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-[28px]" onClick={() => !isCommitting && setDeletingItem(null)} />
-                    <div className={`relative w-full max-w-sm rounded-[24px] shadow-2xl border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200 ${dm ? 'bg-[#18181c] border-white/10' : 'bg-white border-gray-200'}`}>
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => !isCommitting && setDeletingItem(null)} />
+                    <div className={`relative w-full max-sm:max-w-xs max-w-sm rounded-[24px] shadow-2xl border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200 ${dm ? 'bg-[#18181c] border-white/10' : 'bg-white border-gray-200'}`}>
                         <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mb-4 text-red-500">
                             {isCommitting ? <Loader2 size={24} className="animate-spin" /> : <Trash2 size={24} strokeWidth={1.5} />}
                         </div>
@@ -352,8 +357,14 @@ const VideoGalleryModal: React.FC<Props> = ({
 
             <style>{`
         @keyframes vgIn {
-          from { opacity:0; transform:scale(.95) translateY(12px); }
-          to   { opacity:1; transform:scale(1) translateY(0); }
+          from { opacity:0; transform: translateY(100%); }
+          to   { opacity:1; transform: translateY(0); }
+        }
+        @media (min-width: 768px) {
+          @keyframes vgIn {
+            from { opacity:0; transform: scale(.95) translateY(12px); }
+            to   { opacity:1; transform: scale(1) translateY(0); }
+          }
         }
       `}</style>
         </div>,

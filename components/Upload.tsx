@@ -82,34 +82,34 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className={`relative w-full max-w-5xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col lg:flex-row h-auto lg:h-[620px] ${
+        className={`relative w-full max-w-5xl rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-2xl flex flex-col lg:flex-row h-auto lg:h-[620px] max-h-[98vh] sm:max-h-[90vh] ${
           darkMode ? 'bg-[#0c0c10]/95 border border-white/[0.08]' : 'bg-white/95 border border-gray-200'
         }`}
       >
         {/* Close Button */}
         <button
           onClick={onCancel}
-          className={`absolute top-6 right-6 z-20 p-2.5 rounded-full transition-all duration-200 ${
+          className={`absolute top-4 right-4 sm:top-6 sm:right-6 z-[30] p-2 sm:p-2.5 rounded-full transition-all duration-200 ${
             darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <X size={20} />
+          <X size={18} className="sm:w-5 sm:h-5" />
         </button>
 
         {/* ── Left Side: Radial Orbital Selector ── */}
-        <div className="flex-1 relative flex flex-col items-center justify-center p-8 lg:p-12 min-h-[400px] lg:min-h-0 overflow-hidden">
+        <div className="flex-1 relative flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 min-h-[320px] xs:min-h-[380px] lg:min-h-0 overflow-hidden">
           {/* Title */}
-          <div className="absolute top-8 left-8 text-left z-10">
-            <h2 className={`text-2xl lg:text-3xl font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className="absolute top-4 left-6 sm:top-8 sm:left-8 text-left z-10">
+            <h2 className={`text-base sm:text-2xl lg:text-3xl font-bold mb-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Book Orientation
             </h2>
-            <p className={`text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+            <p className={`text-[10px] sm:text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
               Select the structure for your digital asset
             </p>
           </div>
 
           {/* Orbital Stage */}
-          <div className="relative flex items-center justify-center" style={{ width: 420, height: 420 }}>
+          <div className="relative flex items-center justify-center scale-[0.5] xs:scale-[0.7] sm:scale-90 lg:scale-100" style={{ width: 420, height: 420 }}>
 
             {/* Click-Activated Pulsing Rings — vibrant lime green */}
             {[0, 1, 2].map(i => (
@@ -198,11 +198,11 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
         </div>
 
         {/* ── Right Side: Info Panel ── */}
-        <div className={`w-full lg:w-[380px] flex flex-col transition-colors duration-300 lg:border-l ${
+        <div className={`w-full lg:w-[380px] flex flex-col transition-colors duration-300 lg:border-l shrink-0 ${
           darkMode ? 'bg-zinc-900/60 border-white/[0.1]' : 'bg-gray-50 border-gray-200'
         }`}>
           {/* Scrollable Content Area */}
-          <div className="flex-1 overflow-y-auto p-8 lg:p-10 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 custom-scrollbar max-h-[35vh] lg:max-h-none">
             <div className="space-y-8">
             <AnimatePresence mode="wait">
               <motion.div
@@ -214,7 +214,7 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
                 className="space-y-6"
               >
                 {/* New Format Illustration */}
-                <div className={`relative h-48 rounded-2xl flex items-center justify-center overflow-hidden mb-4 ${
+                <div className={`relative h-32 sm:h-48 rounded-2xl flex items-center justify-center overflow-hidden mb-4 ${
                   darkMode ? 'bg-white/[0.03] border border-white/[0.08]' : 'bg-gray-100 border border-gray-200'
                 }`}>
                   <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA0Ii8+PHBhdGggZD0iTTAgMGg0djRIMG00IDRoNHY0SDRaIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9Ii4wNCIvPjwvc3ZnPg==')]" />
@@ -251,16 +251,16 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
                   </motion.div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-lime-500/10 text-lime-400' : 'bg-lime-50 text-lime-600'}`}>
-                    <Info size={24} />
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className={`p-2 rounded-xl sm:p-2.5 ${darkMode ? 'bg-lime-500/10 text-lime-400' : 'bg-lime-50 text-lime-600'}`}>
+                    <Info className="w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                   </div>
-                  <h3 className={`text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-lg sm:text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {details.title}
                   </h3>
                 </div>
 
-                <p className={`text-lg leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-gray-600'}`}>
+                <p className={`text-sm sm:text-lg leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-gray-600'}`}>
                   {details.description}
                 </p>
 
@@ -268,10 +268,10 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
                   <p className={`text-xs font-bold uppercase tracking-[0.2em] ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
                     Key Features
                   </p>
-                  <ul className="grid grid-cols-1 gap-3">
+                  <ul className="grid grid-cols-1 gap-2 sm:gap-3">
                     {details.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3.5 text-sm font-semibold">
-                        <div className="w-2 h-2 rounded-full bg-lime-500 shadow-lg shadow-lime-500/40" />
+                      <li key={idx} className="flex items-center gap-2.5 sm:gap-3.5 text-[13px] sm:text-sm font-semibold">
+                        <div className="w-1.5 h-1.5 rounded-full bg-lime-500 shadow-lg shadow-lime-500/40" />
                         <span className={darkMode ? 'text-zinc-200' : 'text-gray-800'}>{feature}</span>
                       </li>
                     ))}
@@ -289,16 +289,16 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
               <span className="font-semibold text-lime-500">{files.length}</span>{' '}
               {files.length === 1 ? 'document' : 'documents'}
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <button
                 onClick={() => onConfirm(selected)}
-                className="w-full py-4 rounded-2xl font-bold text-sm text-white bg-lime-500 hover:bg-lime-400 shadow-lg shadow-lime-500/20 active:scale-[0.98] transition-all"
+                className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-sm text-white bg-lime-500 hover:bg-lime-400 shadow-lg shadow-lime-500/20 active:scale-[0.98] transition-all"
               >
                 Import Book
               </button>
               <button
                 onClick={onCancel}
-                className={`w-full py-4 rounded-2xl font-medium text-sm transition-all ${
+                className={`w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-medium text-[13px] sm:text-sm transition-all ${
                   darkMode
                     ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white'
                     : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
@@ -383,20 +383,20 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
         {onBack && !isLoading && (
           <button
             onClick={onBack}
-            className={`absolute top-8 left-8 flex items-center gap-1 transition-colors font-medium text-sm group ${darkMode ? 'text-zinc-600 hover:text-white' : 'text-gray-400 hover:text-gray-900'
+            className={`absolute top-6 left-4 sm:top-8 sm:left-8 flex items-center gap-1 transition-colors font-medium text-[13px] sm:text-sm group ${darkMode ? 'text-zinc-600 hover:text-white' : 'text-gray-400 hover:text-gray-900'
               }`}
           >
-            <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+            <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform sm:size-[18px]" />
             Back to Library
           </button>
         )}
 
-        <div className={`max-w-md w-full text-center px-8 py-10 shadow-2xl ${darkMode
+        <div className={`max-w-md w-full text-center px-6 py-8 sm:px-8 sm:py-10 shadow-2xl ${darkMode
           ? 'glass-card shadow-black/30'
           : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
           }`}>
-          <h1 className={`text-3xl font-bold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${darkMode ? 'from-lime-300 via-lime-400 to-teal-400' : 'from-lime-500 via-lime-600 to-teal-600'}`}>Import PDF</h1>
-          <p className={`mb-10 text-base ${darkMode ? 'text-white' : 'text-gray-500'}`}>Create premium digital flipbooks from your documents.</p>
+          <h1 className={`text-2xl sm:text-3xl font-bold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${darkMode ? 'from-lime-300 via-lime-400 to-teal-400' : 'from-lime-500 via-lime-600 to-teal-600'}`}>Import PDF</h1>
+          <p className={`mb-6 sm:mb-10 text-sm sm:text-base ${darkMode ? 'text-white' : 'text-gray-500'}`}>Create premium digital flipbooks from your documents.</p>
 
           <div
             onDragOver={handleDragOver}

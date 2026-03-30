@@ -194,14 +194,15 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
         onClick={onClose}
       />
 
-      <div className={`relative w-full max-w-6xl max-h-[90vh] rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-200 flex flex-col ${darkMode
+      <div className={`relative w-full max-w-6xl max-h-[90vh] rounded-[28px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-300 flex flex-col ${darkMode
         ? 'bg-[#1c1c20]/95 backdrop-blur-3xl border-white/[0.08] shadow-black/60'
         : 'bg-white border-gray-200 shadow-gray-300/50'
         }`}>
 
+
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-7 pb-1 flex-shrink-0">
-          <h3 className={`text-xl font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <h3 className={`text-lg font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {title}
           </h3>
           <button onClick={onClose} className={`p-1.5 rounded-full transition-colors ${darkMode ? 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>
@@ -215,11 +216,11 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
             {/* Expiration Dropdown */}
             <div className="space-y-2 relative">
-              <label className={`block text-sm font-medium ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Link expiration</label>
+              <label className={`block text-[13px] font-semibold ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Link expiration</label>
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-colors ${darkMode
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl border transition-colors ${darkMode
                     ? 'bg-black/40 border-white/[0.08] hover:bg-white/[0.04] text-zinc-200'
                     : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-800 shadow-sm'
                     }`}
@@ -288,7 +289,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
             {/* Share Link display (only shows when generatedUrl exists) */}
             {generatedUrl && (
               <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
-                <label className={`block text-sm font-medium ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Share Link</label>
+                <label className={`block text-[13px] font-semibold ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>Share Link</label>
                 <div className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl border overflow-hidden ${darkMode ? 'bg-black/40 border-white/[0.08]' : 'bg-gray-50 border-gray-200'}`}>
                   <Link2 size={16} className={`shrink-0 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`} />
                   {isLoading ? (
@@ -312,7 +313,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
             {/* ─── Shared Links History ─── */}
             <div className="space-y-3">
-              <label className={`block text-base font-semibold ${darkMode ? 'text-zinc-200' : 'text-gray-800'}`}>Shared Links History</label>
+              <label className={`block text-sm font-semibold ${darkMode ? 'text-zinc-200' : 'text-gray-800'}`}>Shared Links History</label>
 
               {loadingLinks ? (
                 <div className={`flex items-center justify-center py-6 ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
@@ -361,7 +362,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                                 <p className={`text-sm font-semibold whitespace-nowrap ${darkMode ? 'text-zinc-200' : 'text-gray-800'}`}>
                                   {displayBookName}
                                 </p>
-                                <p className={`text-xs mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+                                <p className={`text-[11px] mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
                                   {formatDate(link.created_at)}
                                 </p>
                               </td>
@@ -435,9 +436,9 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className={`flex items-center justify-end gap-3 px-7 py-5 border-t flex-shrink-0 ${darkMode ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+        <div className={`flex items-center justify-end gap-3 px-7 py-4 border-t flex-shrink-0 ${darkMode ? 'border-white/[0.06]' : 'border-gray-100'}`}>
           <button onClick={onClose}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${darkMode ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
+            className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors ${darkMode ? 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
             Close
           </button>
           <button onClick={handleCopy} disabled={!generatedUrl || isLoading}

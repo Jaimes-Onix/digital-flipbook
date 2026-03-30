@@ -527,11 +527,14 @@ const BookViewer: React.FC<BookViewerProps> = ({
       const bookContainer = containerRef.current?.querySelector('.book-area-container');
       if (!bookContainer) return;
 
+      const isMobileOrTablet = window.innerWidth < 1024;
       const singlePage = pdfAspectRatio > 1.2 || window.innerWidth < 768;
 
-      // Consider standard safe padding: 40px width padding, 40px height padding
-      const w = Math.max(0, bookContainer.clientWidth - 40);
-      const h = Math.max(0, bookContainer.clientHeight - 40);
+      // Smaller padding on mobile/tablet for maximum book area
+      const padX = isMobileOrTablet ? 8 : 40;
+      const padY = isMobileOrTablet ? 8 : 40;
+      const w = Math.max(0, bookContainer.clientWidth - padX);
+      const h = Math.max(0, bookContainer.clientHeight - padY);
 
       const spreadW = singlePage ? pageW : pageW * 2;
       const scaleX = w / spreadW;
@@ -584,8 +587,12 @@ const BookViewer: React.FC<BookViewerProps> = ({
       setIsParsing(true);
       const total = pages.length;
 
-      // QUALITY_SCALE (Maximized for Perfect Clarity, ignoring limits)
-      const QUALITY_SCALE = Math.max((window.devicePixelRatio || 1) * 3.0, 4.0);
+      // QUALITY_SCALE — adaptive: lower on mobile/tablet to prevent GPU memory crashes
+      const isMobileDevice = window.innerWidth < 1024;
+      const dpr = window.devicePixelRatio || 1;
+      const QUALITY_SCALE = isMobileDevice
+        ? Math.min(dpr * 1.5, 2.0)   // Mobile/tablet: capped at 2x to prevent crashes
+        : Math.max(dpr * 3.0, 4.0);  // Desktop: max quality
 
       for (let i = 0; i < total; i++) {
         const pageNum = pages[i];
@@ -801,7 +808,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
       className="df-container w-full h-full flex flex-col relative"
       style={{
         background: 'transparent',
-        touchAction: 'pan-x pan-y'
+        touchAction: 'manipulation'
       }}
       onWheel={(e) => { if (e.ctrlKey) e.preventDefault(); }}
     >
@@ -811,10 +818,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
         <button
           onClick={flipPrev}
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-6 top-1/2 -translate-y-1/2 w-16 h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08]"
+          className="absolute left-0.5 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]"
           title="Previous Page"
         >
-          <ChevronLeft size={40} />
+          <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
         </button>
 
         {/* The Book */}
@@ -905,25 +912,30 @@ const BookViewer: React.FC<BookViewerProps> = ({
         <button
           onClick={flipNext}
           onMouseDown={(e) => e.preventDefault()}
-          className={`absolute top-1/2 -translate-y-1/2 w-16 h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08]`}
+          className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]`}
           style={{
-            right: rightPanelOpen ? 290 : 24,
+            right: rightPanelOpen ? (window.innerWidth < 640 ? 4 : window.innerWidth < 1024 ? 260 : 290) : (window.innerWidth < 640 ? 2 : window.innerWidth < 1024 ? 8 : 24),
             transition: 'right 0.3s ease'
           }}
           title="Next Page"
         >
-          <ChevronRight size={40} />
+          <ChevronRight className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
         </button>
 
         {/* Thumbnails Panel - Right Side */}
         <div
           className="absolute top-0 right-0 h-full z-30 flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
           style={{
-            width: 280,
+            width: window.innerWidth < 640 ? '100%' : window.innerWidth < 1024 ? 260 : 280,
             transform: showThumbnails ? 'translateX(0)' : 'translateX(100%)',
             transition: 'transform 0.3s ease',
           }}
         >
+          {/* Mobile Handle */}
+          <div className="sm:hidden flex justify-center py-2 border-b border-white/[0.03] shrink-0">
+            <div className="w-10 h-1 rounded-full bg-white/10" />
+          </div>
+
           {/* Panel Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04] bg-[#0c0c0e]">
             <div className="flex items-center gap-2">
@@ -1006,11 +1018,16 @@ const BookViewer: React.FC<BookViewerProps> = ({
         <div
           className="absolute top-0 right-0 h-full z-30 flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
           style={{
-            width: 320,
+            width: window.innerWidth < 640 ? '100%' : window.innerWidth < 1024 ? 280 : 320,
             transform: showSearch ? 'translateX(0)' : 'translateX(100%)',
             transition: 'transform 0.3s ease',
           }}
         >
+          {/* Mobile Handle */}
+          <div className="sm:hidden flex justify-center py-2 border-b border-white/[0.03] shrink-0">
+            <div className="w-10 h-1 rounded-full bg-white/10" />
+          </div>
+
           {/* Search Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04] bg-[#0c0c0e]">
             <div className="flex items-center gap-2">

@@ -57,7 +57,7 @@ const BulkTransferModal: React.FC<BulkTransferModalProps> = ({
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
       <div 
-        className={`relative w-full max-w-xl rounded-[32px] shadow-2xl border overflow-hidden animate-in zoom-in-95 duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
+        className={`relative w-full max-w-xl rounded-[32px] shadow-2xl border overflow-hidden animate-in zoom-in-95 fade-in duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -69,7 +69,7 @@ const BulkTransferModal: React.FC<BulkTransferModalProps> = ({
         </button>
 
         {showSuccess ? (
-          <div className="p-12 flex flex-col items-center text-center">
+          <div className="p-8 sm:p-12 flex flex-col items-center text-center">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${darkMode ? 'bg-lime-500/10 text-lime-400 border border-lime-500/20' : 'bg-emerald-50 text-emerald-500 border border-emerald-200'}`}>
               <Check size={40} />
             </div>
@@ -79,19 +79,19 @@ const BulkTransferModal: React.FC<BulkTransferModalProps> = ({
             </p>
           </div>
         ) : (
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className={`p-3 rounded-2xl ${darkMode ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600'}`}>
                 <FolderSync size={24} />
               </div>
               <div>
-                <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Bulk Transfer</h3>
-                <p className={`text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>Moving {selectedCount} selected flipbook{selectedCount !== 1 ? 's' : ''}</p>
+                <h3 className={`text-lg sm:text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Bulk Transfer</h3>
+                <p className={`text-[11px] sm:text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>Moving {selectedCount} selected flipbook{selectedCount !== 1 ? 's' : ''}</p>
               </div>
             </div>
 
             <div className="mb-8">
-              <p className={`text-xs font-bold uppercase tracking-widest mb-4 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Select Destination Category</p>
+              <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-4 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Select Destination Category</p>
               <div className="flex flex-wrap gap-2">
                 {[...CATEGORY_OPTIONS, ...customCategories.filter(c => !CATEGORY_OPTIONS.some(o => o.value === c.slug)).map(c => ({ value: c.slug, label: c.name }))].map((cat) => {
                   const isCurrent = currentCategory === cat.value;
@@ -118,22 +118,22 @@ const BulkTransferModal: React.FC<BulkTransferModalProps> = ({
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-2">
               <button
                 disabled={!selectedTarget || isSubmitting}
                 onClick={handleConfirm}
-                className={`flex-1 py-4 rounded-2xl font-bold text-base transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 ${
+                className={`flex-1 py-2.5 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 ${
                   !selectedTarget || isSubmitting
                     ? darkMode ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900' : 'bg-gray-900 hover:bg-gray-800 text-white'
                 }`}
               >
-                {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Check size={20} />}
+                {isSubmitting ? <Loader2 size={16} className="animate-spin sm:w-[18px] sm:h-[18px]" /> : <Check size={16} className="sm:w-[18px] sm:h-[18px]" />}
                 Confirm Transfer
               </button>
               <button
                 onClick={onClose}
-                className={`flex-1 py-4 rounded-2xl font-bold text-base transition-all active:scale-[0.98] ${
+                className={`flex-1 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-[0.98] ${
                   darkMode ? 'bg-white/[0.05] hover:bg-white/[0.08] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
                 }`}
               >

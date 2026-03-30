@@ -94,17 +94,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           }`}>
           {color ? (
             <Icon
-              size={20}
+              className="w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200"
               strokeWidth={active ? 2.2 : 1.8}
               style={{ color: color, opacity: active ? 1 : 0.65, filter: active ? `drop-shadow(0 0 6px ${color})` : 'none' }}
-              className="transition-all duration-200"
             />
           ) : (
-            <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? (darkMode ? 'text-lime-400' : 'text-gray-900') : (darkMode ? 'text-zinc-400 group-hover:text-zinc-200' : 'text-black group-hover:text-black')} />
+            <Icon className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${active ? (darkMode ? 'text-lime-400' : 'text-gray-900') : (darkMode ? 'text-zinc-400 group-hover:text-zinc-200' : 'text-black group-hover:text-black')}`} strokeWidth={active ? 2.2 : 1.8} />
           )}
         </div>
         <div className="flex-1 overflow-hidden">
-          <span className={`text-sm font-medium tracking-tight text-left block w-[150px] truncate ${active
+          <span className={`text-[13px] sm:text-sm font-medium tracking-tight text-left block w-full truncate ${active
             ? darkMode ? 'text-white' : 'text-gray-900'
             : darkMode ? 'text-zinc-400 group-hover:text-white' : 'text-black group-hover:text-black'
             }`}>
@@ -126,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </>
     );
 
-    const className = `flex items-center gap-3 py-2 px-4 rounded-2xl transition-all duration-300 group relative overflow-hidden w-[260px]
+    const className = `flex items-center gap-2 sm:gap-3 py-1.5 sm:py-2 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden w-full
       ${active
         ? darkMode ? 'bg-lime-500/[0.1]' : 'bg-gray-100'
         : darkMode ? 'hover:bg-lime-500/[0.06]' : 'hover:bg-gray-50'
@@ -134,7 +133,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     if (to) {
       return (
-        <Link to={to} className={className} onClick={() => onMobileClose?.()}>
+        <Link to={to} className={className} 
+          onClick={() => {
+            onClick?.();
+            onMobileClose?.();
+          }}>
           {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-lime-500 rounded-r-full" style={{ boxShadow: '0 0 12px rgba(34,197,94,0.4)' }} />}
           {content}
         </Link>
@@ -159,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
       <aside
         className={`
-        w-[300px]
+        w-[260px] sm:w-[300px]
         h-full flex flex-col shrink-0 z-50
         backdrop-blur-xl border-r
         ${darkMode ? 'bg-[#0e0e11]/95 border-white/[0.06]' : 'bg-white/95 border-gray-200'}
@@ -181,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* + Add Category button */}
           <button
             onClick={() => setShowAddCategory(true)}
-            className={`flex items-center gap-3 py-2 px-4 rounded-2xl transition-all duration-300 group mt-1 overflow-hidden w-[260px]
+            className={`flex items-center gap-3 py-2 px-4 rounded-2xl transition-all duration-300 group mt-1 overflow-hidden w-full
               ${darkMode
                 ? 'hover:bg-lime-500/[0.06] border border-dashed border-lime-700/20 hover:border-lime-500/30'
                 : 'hover:bg-gray-50 border border-dashed border-gray-200 hover:border-emerald-300'
@@ -191,7 +194,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <FolderPlus size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-zinc-500 group-hover:text-lime-400' : 'text-black group-hover:text-emerald-500'}`} />
             </div>
             <div className="flex-1">
-              <span className={`text-sm font-medium tracking-tight block w-[150px] truncate text-left transition-colors ${darkMode ? 'text-zinc-600 group-hover:text-zinc-300' : 'text-black group-hover:text-emerald-500'}`}>
+              <span className={`text-sm font-medium tracking-tight block w-full truncate text-left transition-colors ${darkMode ? 'text-zinc-600 group-hover:text-zinc-300' : 'text-black group-hover:text-emerald-500'}`}>
                 Add Category
               </span>
             </div>
@@ -240,7 +243,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Sign Out */}
             <button
               onClick={() => setShowSignOutModal(true)}
-              className={`flex items-center gap-3 py-2 px-3 rounded-2xl w-[260px] overflow-hidden group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'}`}
+              className={`flex items-center gap-3 py-2 px-3 rounded-2xl w-full overflow-hidden group ${darkMode ? 'hover:bg-red-500/[0.08]' : 'hover:bg-red-50'}`}
             >
               <div className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center transition-all duration-200 ${darkMode ? 'group-hover:bg-red-500/10' : 'group-hover:bg-red-50'}`}>
                 <LogOut size={18} strokeWidth={1.8} className={`transition-colors ${darkMode ? 'text-red-400/60 group-hover:text-red-400' : 'text-red-400/50 group-hover:text-red-500'}`} />
@@ -249,11 +252,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
 
             {/* Dark Mode Toggle */}
-            <div style={{ width: '260px', display: 'flex', alignItems: 'center' }} className="py-1">
+            <div style={{ width: '100%', display: 'flex', alignItems: 'center' }} className="py-1">
               <button
                 onClick={onToggleDarkMode}
                 style={{
-                  width: '260px',
+                  width: '100%',
                   height: '40px',
                   boxShadow: darkMode ? 'inset 0 3px 6px rgba(0,0,0,0.6)' : 'inset 0 2px 5px rgba(200,80,0,0.4)',
                   position: 'relative', overflow: 'hidden', borderRadius: '20px', flexShrink: 0, border: '1px solid',
@@ -280,7 +283,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   background: darkMode ? '#0f0f11' : 'white',
                   border: darkMode ? '1px solid rgba(0,0,0,0.5)' : '1px solid rgba(255,255,255,0.5)',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                  left: darkMode ? '222px' : '2px',
+                  left: darkMode ? 'calc(100% - 37px)' : '3px',
                 }}>
                   {darkMode ? (
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>

@@ -40,12 +40,12 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
       {/* ── Foreground Content ── */}
       <div className="relative z-10 flex flex-col min-h-full">
         {/* Hero Section */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 sm:py-12 md:py-16 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className={`rounded-3xl px-10 py-10 mb-2 max-w-3xl relative overflow-hidden ${darkMode
+            className={`rounded-3xl px-5 sm:px-8 md:px-10 py-8 sm:py-10 mb-2 max-w-3xl w-full relative overflow-hidden ${darkMode
               ? 'bg-[#141418]/80 backdrop-blur-2xl shadow-2xl shadow-black/30 border border-white/[0.06]'
               : 'bg-white/70 backdrop-blur-2xl shadow-xl shadow-gray-200/50 border border-gray-200/60'
               }`}
@@ -65,7 +65,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-              className="relative z-10 flex flex-wrap justify-center gap-2 mb-7"
+              className="relative z-10 flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-5 sm:mb-7"
             >
               {[
                 { icon: BookOpen, label: '3D Flipbook' },
@@ -86,7 +86,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="relative z-10 text-4xl sm:text-5xl md:text-6xl tracking-tight leading-tight mb-6"
+              className="relative z-10 text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight mb-4 sm:mb-6"
             >
               <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Lifewood
@@ -103,7 +103,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className={`relative z-10 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed ${darkMode ? 'text-white/50' : 'text-slate-600'}`}
+              className={`relative z-10 text-sm sm:text-base md:text-lg max-w-xl mx-auto mb-6 sm:mb-8 leading-relaxed ${darkMode ? 'text-white/50' : 'text-slate-600'}`}
             >
               Your immersive library experience. Read, share, and explore beautifully crafted flipbooks.
             </motion.p>
@@ -112,7 +112,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-              className="relative z-10 flex flex-wrap items-center justify-center gap-4"
+              className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
             >
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(16,185,129,0.2)" }}
@@ -149,9 +149,44 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-            className="relative px-6 pb-12 pt-4 overflow-hidden"
+            className="relative px-4 sm:px-6 pb-8 sm:pb-12 pt-4 overflow-hidden"
           >
-            <div className="flex justify-center items-end h-[380px] sm:h-[440px]">
+            {/* Mobile: horizontal scroll; Desktop: fan layout */}
+            <div className="block sm:hidden">
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar px-2">
+                {featuredBooks.map((book) => {
+                  const cardBg = darkMode ? 'bg-[#E8E8E8]' : 'bg-[#2A2A2D]';
+                  const cardTextColor = darkMode ? 'text-gray-900' : 'text-slate-900';
+                  const cardSubTextColor = darkMode ? 'text-amber-600' : 'text-amber-400';
+                  return (
+                    <button
+                      key={book.id}
+                      onClick={() => onSelectBook(book)}
+                      className="snap-center flex-shrink-0"
+                    >
+                      <div className={`w-40 ${cardBg} rounded-[20px] overflow-hidden shadow-2xl`}>
+                        <div className="px-3 pt-3 pb-1.5 text-left">
+                          <p className={`${cardTextColor} text-xs font-bold truncate leading-tight`}>
+                            {book.name.replace('.pdf', '').replace(/_/g, ' ')}
+                          </p>
+                          <p className={`${cardSubTextColor} text-[10px] mt-0.5 font-medium`}>
+                            {book.totalPages} pages
+                          </p>
+                        </div>
+                        <div className="px-2.5 pb-2.5">
+                          <div className={`rounded-lg overflow-hidden ${darkMode ? 'bg-zinc-900/50' : 'bg-white'} aspect-[3/4]`}>
+                            <img src={book.coverUrl} alt={book.name} className="w-full h-full object-contain bg-black/5" />
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Tablet/Desktop: fan layout */}
+            <div className="hidden sm:flex justify-center items-end h-[380px] sm:h-[440px]">
               <div className="relative flex items-end justify-center" style={{ perspective: '1000px' }}>
                 {featuredBooks.map((book, index) => {
                   const style = getCardStyle(index, featuredBooks.length);

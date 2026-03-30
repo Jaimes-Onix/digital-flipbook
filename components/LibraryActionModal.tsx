@@ -81,16 +81,16 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 animate-in fade-in duration-300" onClick={onClose}>
         <div
-          className={`relative backdrop-blur-3xl w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
+          className={`relative backdrop-blur-3xl w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl shadow-black/40 border overflow-hidden animate-in zoom-in-95 fade-in duration-500 ${darkMode ? 'bg-[#141418] border-white/[0.06]' : 'bg-white border-gray-200'}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Absolute Close Button */}
           <button
             onClick={onClose}
-            className={`absolute top-6 right-6 z-[70] p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-zinc-300' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}
+            className={`absolute top-4 right-4 sm:top-6 sm:right-6 z-[70] p-2 sm:p-2.5 rounded-full transition-colors ${darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-zinc-300' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}
             title="Close"
           >
-            <X size={20} />
+            <X size={18} className="sm:w-5 sm:h-5" />
           </button>
           {showTransferSuccess ? (
             <div className="p-10 flex flex-col items-center justify-center text-center w-full min-h-[400px]">
@@ -111,8 +111,8 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
             <div className="flex flex-col md:flex-row">
 
               {/* Left side — Book Cover */}
-              <div className={`flex-shrink-0 flex items-center justify-center p-12 md:p-14 ${darkMode ? 'bg-black/20' : 'bg-gray-50/80'} md:w-[420px]`}>
-                <div className={`relative ${book.orientation === 'landscape' ? 'w-80 aspect-[4/3]' : 'w-72 aspect-[3/4]'}`}>
+              <div className={`flex-shrink-0 flex items-center justify-center p-5 md:p-14 ${darkMode ? 'bg-black/20' : 'bg-gray-50/80'} md:w-[380px] lg:w-[420px]`}>
+                <div className={`relative ${book.orientation === 'landscape' ? 'w-full max-w-[180px] md:max-w-xs md:w-80 aspect-[4/3]' : 'w-full max-w-[140px] md:max-w-[280px] md:w-72 aspect-[3/4]'}`}>
                   {/* Decorative background layers for "thick book" effect (Portrait Only) */}
                   {book.orientation === 'portrait' && (
                     <>
@@ -129,7 +129,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
               </div>
 
               {/* Right side — Details */}
-              <div className="flex-1 p-8 md:p-10 pt-6 md:pt-8 overflow-y-auto max-h-[70vh] no-scrollbar">
+              <div className="flex-1 p-6 md:p-10 pt-2 md:pt-8 overflow-y-auto max-h-[60vh] md:max-h-[70vh] no-scrollbar">
 
                 {/* Settings & Actions Reveal */}
                 {!isEditingName && (
@@ -199,7 +199,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-start gap-2 mb-2 group cursor-pointer" onClick={onUpdateName ? handleStartEditing : undefined}>
-                    <h3 className={`text-3xl font-bold leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <h3 className={`text-lg sm:text-2xl font-bold leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                     </h3>
                     {onUpdateName && (
@@ -213,13 +213,13 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   </div>
                 )}
 
-                <p className={`text-sm mb-2 uppercase tracking-widest font-medium ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+                <p className={`text-[12px] mb-2 uppercase tracking-widest font-medium ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
                   {book.totalPages} Pages
                 </p>
                 {book.createdAt && (
                   <div className={`flex items-center gap-1.5 mb-6 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`}>
                     <Clock size={15} />
-                    <span className="text-sm font-medium">
+                    <span className="text-[13px] font-medium">
                       Date Added: {new Date(book.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
@@ -228,11 +228,11 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                 {/* Category Display or Selection */}
                 {onUpdateCategory && (
                   <div className="mb-6">
-                    <p className={`text-sm font-semibold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Category</p>
+                    <p className={`text-[11px] font-bold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Category</p>
 
                     {!isTransferring ? (
                       <div className="flex items-center gap-4">
-                        <span className={`text-xl font-bold ${darkMode ? (book.category ? 'text-white' : 'text-zinc-500') : (book.category ? 'text-gray-900' : 'text-gray-400')}`}>
+                        <span className={`text-lg sm:text-xl font-bold ${darkMode ? (book.category ? 'text-white' : 'text-zinc-500') : (book.category ? 'text-gray-900' : 'text-gray-400')}`}>
                           {book.category
                             ? (CATEGORY_OPTIONS.find(c => c.value === book.category)?.label || customCategories.find(c => c.slug === book.category)?.name || book.category)
                             : "Uncategorized"}
@@ -300,7 +300,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                                 setIsTransferring(false);
                                 setPendingTransferCategory(null);
                               }}
-                              className={`w-full py-3 rounded-xl font-bold transition-all shadow-md mt-2 ${darkMode ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-300'}`}
+                              className={`w-full py-2.5 rounded-xl font-bold transition-all shadow-md mt-2 ${darkMode ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-300'}`}
                             >
                               Confirm Transfer
                             </button>
@@ -327,17 +327,17 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                     <button
                       onClick={() => onSelectMode('manual')}
                       disabled={isLoadingBook}
-                      className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
                         }`}
                     >
                       {isLoadingBook ? (
                         <>
-                          <Loader2 size={20} className="animate-spin" />
+                          <Loader2 size={16} className="animate-spin sm:w-5 sm:h-5" />
                           <span>Loading...</span>
                         </>
                       ) : (
                         <>
-                          <BookOpen size={20} className="transition-transform group-hover:scale-110" />
+                          <BookOpen size={18} className="transition-transform group-hover:scale-110 sm:w-5 sm:h-5" />
                           <span>Read Now</span>
                         </>
                       )}
@@ -346,12 +346,12 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                     {onUpdateCategory && (
                       <button
                         onClick={() => setIsTransferring(!isTransferring)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold transition-all active:scale-[0.98] shadow-lg ${isTransferring
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold transition-all active:scale-[0.98] shadow-lg ${isTransferring
                           ? (darkMode ? 'bg-white/[0.15] text-white border border-white/20' : 'bg-gray-200 text-gray-800 border-gray-300')
                           : (darkMode ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-300')
                           }`}
                       >
-                        <FolderSync size={20} />
+                        <FolderSync size={18} className="sm:w-5 sm:h-5" />
                         <span>Transfer Book</span>
                       </button>
                     )}
@@ -360,10 +360,10 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowShareModal(true)}
-                      className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-semibold transition-all active:scale-[0.98] ${darkMode ? 'bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 border border-lime-500/20' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      className={`w-full flex items-center justify-center gap-2 sm:gap-3 py-3.5 sm:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-lg font-semibold transition-all active:scale-[0.98] ${darkMode ? 'bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 border border-lime-500/20' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                         }`}
                     >
-                      <Share2 size={20} /> Share Book
+                      <Share2 size={18} className="sm:w-5 sm:h-5" /> Share Book
                     </button>
                   </div>
                 </div>
@@ -371,11 +371,11 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
             </div>
           ) : (
             /* Delete Confirmation */
-            <div className="p-10 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mb-6">
-                <AlertCircle size={32} />
+            <div className="p-6 sm:p-10 flex flex-col items-center text-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mb-6">
+                <AlertCircle size={28} className="sm:w-8 sm:h-8" />
               </div>
-              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Remove Book?</h3>
+              <h3 className={`text-lg sm:text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Remove Book?</h3>
               <p className={`text-sm mb-10 leading-relaxed ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
                 Remove <span className={`font-semibold ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>"{book.name.replace('.pdf', '').replace(/_/g, ' ')}"</span>? This can't be undone.
               </p>

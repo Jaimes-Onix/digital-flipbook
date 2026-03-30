@@ -131,14 +131,14 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
   const confirmDelete = (e: React.MouseEvent, id: string) => { e.stopPropagation(); onRemoveBook(id); setConfirmingDeleteId(null); };
 
   return (
-    <div className={`w-full max-w-7xl mx-auto px-6 py-12 transition-all duration-500 ${openingBookId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
-        <div className="flex items-center gap-4">
+    <div className={`w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12 transition-all duration-500 ${openingBookId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 md:mb-12">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div>
-            <h2 className={`text-3xl font-bold tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-lg sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {sectionTitle}
             </h2>
-            <p className={`text-sm mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
+            <p className={`text-[10px] sm:text-sm mt-0.5 sm:mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
           </div>
           {currentCustomCategory && (
             <div className="flex pl-2 items-center gap-2">
@@ -152,68 +152,71 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
             </div>
           )}
         </div>
-        <div className="flex items-center flex-wrap gap-3">
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
           {shareSlug && (
             <button
               onClick={() => setShowShareModal(true)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
                 ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-lime-500/50 hover:shadow-lime-500/20 shadow-black/40'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
                 }`}
             >
-              <Link2 size={16} />
-              Share Category
+              <Link2 size={14} className="sm:size-[16px]" />
+              <span className="hidden sm:inline">Share Category</span>
+              <span className="sm:hidden">Share</span>
             </button>
           )}
           {shareSlug && (
             <button
               onClick={() => setShowVideoGallery(true)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
                 ? 'bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/30 shadow-black/20'
                 : 'bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200'
                 }`}
             >
-              <Video size={16} />
-              Video Links
+              <Video size={14} className="sm:size-[16px]" />
+              <span className="hidden sm:inline">Video Links</span>
+              <span className="sm:hidden">Videos</span>
             </button>
           )}
           <button
             onClick={() => setShowDeleteHistory(true)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
               ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 shadow-black/20'
               : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
               }`}
           >
             <Clock size={16} />
-            Delete History
+            <span className="hidden sm:inline">Delete History</span>
           </button>
           <button
             onClick={onAddNew}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${darkMode
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
               ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-lime-400 border border-white/10 hover:border-lime-500/50 hover:shadow-lime-500/20 shadow-black/40'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
               }`}
           >
-            <Plus size={16} />
-            Add PDF
+            <Plus size={14} className="sm:size-[16px]" />
+            <span className="hidden sm:inline">Add PDF</span>
+            <span className="sm:hidden">Add</span>
           </button>
           
           <button
             onClick={toggleSelectionMode}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
               isSelectionMode
                 ? darkMode ? 'bg-lime-500/20 text-lime-400 border border-lime-500/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 : darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 border border-white/10 shadow-black/40' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
             }`}
           >
             <Check size={16} className={isSelectionMode ? 'opacity-100' : 'opacity-40'} />
-            {isSelectionMode ? 'Cancel Selection' : 'Select'}
+            <span className="hidden sm:inline">{isSelectionMode ? 'Cancel Selection' : 'Select'}</span>
           </button>
 
           {selectedBookIds.size > 0 && (
             <button
               onClick={() => setShowBulkTransferModal(true)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all active:scale-95 text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
                 darkMode ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
               }`}
             >
@@ -225,8 +228,8 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
       </div>
 
       {/* Search & Sort toolbar */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className={`flex items-center flex-1 max-w-sm gap-2 px-4 py-2.5 rounded-2xl transition-all shadow-md ${darkMode
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+        <div className={`flex items-center flex-1 max-w-full sm:max-w-sm gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl transition-all shadow-md ${darkMode
           ? 'bg-zinc-900/80 border border-white/10 focus-within:border-lime-500/50 focus-within:ring-1 focus-within:ring-lime-500/50 shadow-black/40'
           : 'bg-gray-100 border border-gray-200 focus-within:border-gray-300 focus-within:bg-white'
           }`}>
@@ -378,11 +381,11 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
               </div>
 
               <div className={`space-y-1 transition-all duration-300 mt-3 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
-                <h3 className={`text-sm font-semibold transition-colors ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-slate-800 group-hover:text-slate-900'
+                <h3 className={`text-[11px] sm:text-sm font-semibold transition-colors line-clamp-2 ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-slate-800 group-hover:text-slate-900'
                   }`}>
                   {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                 </h3>
-                <p className={`text-[10px] font-medium uppercase tracking-[0.12em] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+                <p className={`text-[8px] sm:text-[10px] font-medium uppercase tracking-[0.12em] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
                   {book.totalPages} Pages
                 </p>
               </div>

@@ -45,20 +45,20 @@ const ConversionSuccessModal: React.FC<{
     <div className="fixed inset-0 z-[300] flex items-center justify-center">
       <div className={`absolute inset-0 backdrop-blur-md ${darkMode ? 'bg-black/40' : 'bg-black/20'}`} onClick={onClose} />
 
-      <div className={`relative backdrop-blur-3xl rounded-[32px] shadow-2xl w-[90%] max-w-md p-8 animate-in zoom-in-95 fade-in duration-300 border ${darkMode ? 'bg-[#141418]/95 shadow-black/50 border-white/[0.06]' : 'bg-white/95 shadow-gray-300/40 border-gray-200'
+      <div className={`relative backdrop-blur-3xl rounded-[24px] sm:rounded-[32px] shadow-2xl w-[90%] max-w-md p-6 sm:p-8 animate-in zoom-in-95 fade-in duration-300 border ${darkMode ? 'bg-[#141418]/95 shadow-black/50 border-white/[0.06]' : 'bg-white/95 shadow-gray-300/40 border-gray-200'
         }`}>
 
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-4 sm:mb-6">
           <div className="relative">
             <div className="absolute inset-0 bg-lime-500/20 rounded-full blur-xl animate-pulse" />
-            <div className="relative w-20 h-20 bg-gradient-to-br from-lime-500 to-lime-600 rounded-full flex items-center justify-center shadow-lg shadow-lime-500/20">
-              <CheckCircle2 size={40} className="text-white" />
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-lime-500 to-lime-600 rounded-full flex items-center justify-center shadow-lg shadow-lime-500/20">
+              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
           </div>
         </div>
 
-        <h2 className={`text-2xl font-bold text-center mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Conversion Successful</h2>
-        <p className={`text-center mb-8 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+        <h2 className={`text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Conversion Successful</h2>
+        <p className={`text-sm sm:text-base text-center mb-6 sm:mb-8 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
           {bookCount === 1
             ? "Your PDF has been converted to a digital flipbook!"
             : `${bookCount} PDFs have been converted to digital flipbooks!`
@@ -67,10 +67,10 @@ const ConversionSuccessModal: React.FC<{
 
         <div className="flex flex-col gap-3">
           <button onClick={onViewBooks}
-            className={`w-full py-3.5 font-semibold rounded-2xl shadow-lg transition-all active:scale-[0.98] ${darkMode ? 'bg-white text-zinc-900 shadow-white/5 hover:bg-zinc-100' : 'bg-gray-900 text-white shadow-gray-400/20 hover:bg-gray-800'
+            className={`w-full py-3 sm:py-3.5 font-semibold rounded-xl sm:rounded-2xl shadow-lg transition-all active:scale-[0.98] text-[13px] sm:text-base ${darkMode ? 'bg-white text-zinc-900 shadow-white/5 hover:bg-zinc-100' : 'bg-gray-900 text-white shadow-gray-400/20 hover:bg-gray-800'
               }`}>
             <span className="flex items-center justify-center gap-2">
-              <BookOpen size={18} /> Add to Category
+              <BookOpen className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> Add to Category
             </span>
           </button>
         </div>
@@ -621,7 +621,7 @@ const App: React.FC = () => {
   return (
     <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 relative ${darkMode ? 'text-white' : 'text-gray-900'}`}>
       {/* ── Universal Background Video ── */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none hidden md:block">
         <video
           autoPlay
           loop
@@ -634,6 +634,9 @@ const App: React.FC = () => {
         {/* Semi-transparent overlay to ensure text readability */}
         <div className={`absolute inset-0 ${darkMode ? 'bg-[#0a0a0a]/70' : 'bg-white/80'} backdrop-blur-[2px]`} />
       </div>
+
+      {/* Mobile/Tablet Background fallback (Solid or subtle gradient) */}
+      <div className={`absolute inset-0 z-0 pointer-events-none md:hidden ${darkMode ? 'bg-[#0a0a0c]' : 'bg-slate-50'}`} />
 
       {/* Sidebar - Shared across views except reader (optional) */}
       {view !== 'reader' && view !== 'signin' && view !== 'shared' && !isLandingPage && (

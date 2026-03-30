@@ -52,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({
     const divider = <div className={`w-px h-5 mx-0.5 shrink-0 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />;
 
     const btn = (active?: boolean) =>
-      `flex items-center justify-center w-8 h-8 rounded-lg transition-all shrink-0 ${active
+      `flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all shrink-0 active:scale-90 ${active
         ? (darkMode ? 'bg-white/[0.14] text-white border border-white/20' : 'bg-gray-200 text-gray-900')
         : (darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-black hover:text-gray-900 hover:bg-gray-100')
       }`;
@@ -62,58 +62,59 @@ const Header: React.FC<HeaderProps> = ({
         <header className={`fixed top-0 left-0 right-0 h-14 flex items-center justify-between px-4 z-50 border-b transition-colors shadow-sm ${bg}`}>
 
           {/* Left: close + title */}
-          <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-            <button onClick={onCloseReader} className={`p-1.5 -ml-1 rounded-full transition-colors shrink-0 ${closeBtn}`} title="Close">
-              <X size={18} />
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 overflow-hidden">
+            <button onClick={onCloseReader} className={`p-1.5 -ml-1 sm:p-1.5 rounded-full transition-colors shrink-0 ${closeBtn}`} title="Close">
+              <X className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </button>
-            <span className={`text-sm font-semibold truncate ${title}`}>{readerBookName}</span>
+            <span className={`text-[12px] sm:text-sm font-semibold truncate ${title}`}>{readerBookName}</span>
             {readerPageInfo && (
-              <span className={`text-xs tracking-wide font-medium shrink-0 hidden md:inline ${pageInfoColor}`}>· {readerPageInfo}</span>
+              <span className={`text-[10px] sm:text-xs tracking-wide font-medium shrink-0 hidden md:inline ${pageInfoColor}`}>· {readerPageInfo}</span>
             )}
           </div>
 
           {/* Right: toolbar */}
-          <div className="flex items-center gap-0.5 shrink-0 ml-2">
+          <div className="flex items-center gap-0 sm:gap-0.5 shrink-0 ml-1 sm:ml-2">
 
             {/* Thumbnails */}
             <button onClick={onToggleReaderThumbnails} className={btn(readerShowThumbnails)} title={readerShowThumbnails ? 'Hide Thumbnails' : 'Thumbnails'}>
-              <Grid3X3 size={16} />
+              <Grid3X3 className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
             </button>
 
             {/* Search */}
             <button onClick={onToggleReaderSearch} className={btn(readerShowSearch)} title={readerShowSearch ? 'Hide Search' : 'Search'}>
-              <Search size={16} />
+              <Search className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
             </button>
 
             {/* Auto-flip */}
             <button onClick={onToggleReaderAutoPlay} className={btn(readerAutoPlay)} title={readerAutoPlay ? 'Pause' : 'Auto-flip'}>
-              {readerAutoPlay ? <Pause size={16} /> : <Play size={16} />}
+              {readerAutoPlay ? <Pause className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /> : <Play className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />}
             </button>
 
-            {divider}
-
-            {/* Zoom */}
-            <button onClick={onReaderZoomOut} className={btn()} title="Zoom Out" disabled={readerZoom <= 50}><ZoomOut size={16} /></button>
-            <span className={`text-[11px] font-semibold tabular-nums w-9 text-center shrink-0 ${darkMode ? 'text-zinc-400' : 'text-black'}`}>{readerZoom}%</span>
-            <button onClick={onReaderZoomIn} className={btn()} title="Zoom In" disabled={readerZoom >= 150}><ZoomIn size={16} /></button>
+            {/* Zoom section — hidden on mobile, visible on tablet+ */}
+            <div className="hidden sm:flex items-center">
+              {divider}
+              <button onClick={onReaderZoomOut} className={btn()} title="Zoom Out" disabled={readerZoom <= 50}><ZoomOut className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /></button>
+              <span className={`text-[11px] font-semibold tabular-nums w-9 text-center shrink-0 ${darkMode ? 'text-zinc-400' : 'text-black'}`}>{readerZoom}%</span>
+              <button onClick={onReaderZoomIn} className={btn()} title="Zoom In" disabled={readerZoom >= 150}><ZoomIn className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /></button>
+            </div>
 
             {divider}
 
             {/* Fullscreen */}
             <button onClick={onToggleReaderFullscreen} className={btn(readerFullscreen)} title={readerFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
-              {readerFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+              {readerFullscreen ? <Minimize className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /> : <Maximize className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />}
             </button>
 
             {/* Share */}
             {readerBookId && (
               <>
-                {divider}
+                <span className="hidden sm:inline-flex">{divider}</span>
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-black hover:text-gray-900 hover:bg-gray-100'}`}
+                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 text-[11px] sm:text-[12px] font-medium rounded-lg transition-all shrink-0 ${darkMode ? 'text-zinc-400 hover:text-white hover:bg-white/[0.08]' : 'text-black hover:text-gray-900 hover:bg-gray-100'}`}
                   title="Share"
                 >
-                  <Share2 size={14} /><span className="hidden sm:inline">Share</span>
+                  <Share2 className="w-[13px] h-[13px] sm:w-[14px] sm:h-[14px]" /><span className="hidden md:inline">Share</span>
                 </button>
               </>
             )}
@@ -146,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({
   const toggleInactive = darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-black hover:text-gray-600';
 
   return (
-    <header className={`fixed top-0 left-0 lg:left-[300px] right-0 h-14 flex items-center justify-between px-6 z-50 border-b transition-colors shadow-sm ${headerBg} ${headerBorder}`}>
+    <header className={`fixed top-0 left-0 lg:left-[300px] right-0 h-14 flex items-center justify-between px-3 sm:px-4 md:px-6 z-50 border-b transition-colors shadow-sm ${headerBg} ${headerBorder}`}>
       <div className="flex items-center gap-3">
         {onToggleSidebar && (
           <button onClick={onToggleSidebar} className={`lg:hidden p-2 -ml-2 rounded-xl transition-colors ${menuBtnColor}`} aria-label="Toggle menu">
@@ -168,18 +169,18 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {view !== 'home' && (
-          <button onClick={() => navigate('/')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${navInactive}`}>Home</button>
+          <button onClick={() => navigate('/')} className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${navInactive}`}><span className="hidden sm:inline">Home</span><span className="sm:hidden text-[11px]">Home</span></button>
         )}
-        <button onClick={() => navigate('/library')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'library' ? navActive : navInactive}`}>
-          <LibraryIcon size={15} /><span>All Books</span>
+        <button onClick={() => navigate('/library')} className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'library' ? navActive : navInactive}`}>
+          <LibraryIcon size={15} /><span className="hidden sm:inline">All Books</span>
         </button>
-        <button onClick={() => navigate('/convert-pptx')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'convert-pptx' ? navActive : navInactive}`}>
-          <Presentation size={15} /><span>PPTX to PDF</span>
+        <button onClick={() => navigate('/convert-pptx')} className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 text-[13px] font-medium rounded-full transition-all hidden sm:flex ${view === 'convert-pptx' ? navActive : navInactive}`}>
+          <Presentation size={15} /><span className="hidden md:inline">PPTX to PDF</span>
         </button>
-        <button onClick={() => navigate('/upload')} className={`flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'upload' ? navActive : navInactive}`}>
-          <UploadCloud size={15} /><span>Import PDF</span>
+        <button onClick={() => navigate('/upload')} className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${view === 'upload' ? navActive : navInactive}`}>
+          <UploadCloud size={15} /><span className="hidden md:inline">Import PDF</span>
         </button>
 
         {view === 'home' && onToggleHomeVariant && (
