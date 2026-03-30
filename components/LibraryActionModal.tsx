@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock, FolderSync, Settings } from 'lucide-react';
+import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock, FolderSync, Settings, Download, FileText } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -36,6 +36,8 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
   const [transferredTo, setTransferredTo] = useState('');
   const [pendingTransferCategory, setPendingTransferCategory] = useState<{ slug: string, name: string } | null>(null);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [editedName, setEditedName] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +49,8 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
     setShowTransferSuccess(false);
     setPendingTransferCategory(null);
     setShowSettingsMenu(false);
+    setIsDownloadingPDF(false);
+    setDownloadError(null);
   }, [book?.id]);
 
   useEffect(() => {
@@ -73,6 +77,30 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 
   const handleCancelEdit = () => {
     setIsEditingName(false);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!book) return;
+    setIsDownloadingPDF(true);
+    setDownloadError(null);
+    try {
+      const response = await fetch(book.pdfUrl);
+      if (!response.ok) throw new Error('Failed to download PDF');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = book.name.endsWith('.pdf') ? book.name : `${book.name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('PDF Download Error:', err);
+      setDownloadError('Failed to download PDF.');
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
   if (!book) return null;
@@ -160,6 +188,26 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                         >
                           <Trash2 size={20} />
                         </button>
+
+                        <button
+                          onClick={handleDownloadPDF}
+                          disabled={isDownloadingPDF}
+                          className={`p-2.5 rounded-xl transition-all ${isDownloadingPDF ? 'bg-lime-500/10 text-lime-400' : darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'bg-gray-100 text-gray-400 hover:text-lime-600 hover:bg-emerald-50'}`}
+                          title="Download PDF"
+                        >
+                          {isDownloadingPDF ? (
+                            <Loader2 size={20} className="animate-spin" />
+                          ) : (
+                            <Download size={20} />
+                          )}
+                        </button>
+
+                        {downloadError && (
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium animate-in slide-in-from-left-2 ${darkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-500'}`}>
+                            <AlertCircle size={14} />
+                            {downloadError}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
