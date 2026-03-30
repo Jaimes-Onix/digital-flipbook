@@ -27,6 +27,7 @@ import {
   updateBook as updateBookInSupabase,
   updateBooksCategory as updateBooksCategoryInSupabase,
   deleteBook as deleteBookFromSupabase,
+  deleteBooks as deleteBooksFromSupabase,
   loadCategories as loadCategoriesFromSupabase,
   type StoredBook
 } from './src/lib/bookStorage';
@@ -450,6 +451,19 @@ const App: React.FC = () => {
     }
   };
 
+  const handleBulkRemoveBooks = async (bookIds: string[]) => {
+    // Remove from local state immediately
+    setBooks(prev => prev.filter(b => !bookIds.includes(b.id)));
+    
+    // Soft-delete in Supabase
+    try {
+      await deleteBooksFromSupabase(bookIds);
+      console.log('Books bulk soft-deleted in Supabase');
+    } catch (e) {
+      console.error('Failed to bulk delete books from Supabase:', e);
+    }
+  };
+
   const handleRestoreBook = async () => {
     // Reload all books from Supabase to get the restored one
     try {
@@ -766,6 +780,7 @@ const App: React.FC = () => {
                   onRemoveBook={handleRemoveBook}
                   onRestoreBook={handleRestoreBook}
                   onBulkUpdateCategory={handleBulkUpdateBookCategory}
+                  onBulkRemoveBooks={handleBulkRemoveBooks}
                   onCategoryEdited={(updatedCat, oldSlug) => {
                     setCustomCategories(prev => prev.map(c => c.id === updatedCat.id ? updatedCat : c));
                     if (updatedCat.slug !== oldSlug) {
@@ -789,6 +804,7 @@ const App: React.FC = () => {
                 onRemoveBook={handleRemoveBook}
                 onRestoreBook={handleRestoreBook}
                 onBulkUpdateCategory={handleBulkUpdateBookCategory}
+                onBulkRemoveBooks={handleBulkRemoveBooks}
                 onCategoryEdited={(updatedCat, oldSlug) => {
                   setCustomCategories(prev => prev.map(c => c.id === updatedCat.id ? updatedCat : c));
                   if (updatedCat.slug !== oldSlug) {

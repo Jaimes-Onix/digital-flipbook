@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown, Pencil, FolderSync } from 'lucide-react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown, Pencil, FolderSync, Download } from 'lucide-react';
 import { LibraryBook, CustomCategory } from '../types';
 import type { LibraryFilter } from './Sidebar';
 import ShareLinkModal from './ShareLinkModal';
@@ -35,9 +35,10 @@ interface LibraryProps {
   onRestoreBook?: () => void;
   onCategoryEdited?: (updatedCat: CustomCategory, oldSlug: string) => void;
   onBulkUpdateCategory?: (bookIds: string[], category?: BookCategory) => Promise<void>;
+  onBulkRemoveBooks?: (bookIds: string[]) => Promise<void>;
 }
 
-const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited, onBulkUpdateCategory }) => {
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited, onBulkUpdateCategory, onBulkRemoveBooks }) => {
   const filteredBooks = useMemo(() => {
     if (filter === 'all') return books;
     if (filter === 'favorites') return books.filter(b => b.isFavorite);
@@ -123,6 +124,43 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
       await onBulkUpdateCategory(Array.from(selectedBookIds), targetCategory);
       setSelectedBookIds(new Set());
       setIsSelectionMode(false);
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    const selectedBooks = books.filter(b => selectedBookIds.has(b.id));
+    if (selectedBooks.length === 0) return;
+
+    for (const book of selectedBooks) {
+      try {
+        const response = await fetch(book.pdfUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = book.name.endsWith('.pdf') ? book.name : `${book.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        // Small delay to prevent browser from blocking multiple downloads
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (err) {
+        console.error(`Failed to download ${book.name}:`, err);
+      }
+    }
+    setSelectedBookIds(new Set());
+    setIsSelectionMode(false);
+  };
+
+  const handleBulkDelete = async () => {
+    if (onBulkRemoveBooks && selectedBookIds.size > 0) {
+      const confirmMessage = `Are you sure you want to delete ${selectedBookIds.size} selected books?`;
+      if (window.confirm(confirmMessage)) {
+        await onBulkRemoveBooks(Array.from(selectedBookIds));
+        setSelectedBookIds(new Set());
+        setIsSelectionMode(false);
+      }
     }
   };
 
@@ -214,15 +252,40 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
           </button>
 
           {selectedBookIds.size > 0 && (
-            <button
-              onClick={() => setShowBulkTransferModal(true)}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
-                darkMode ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
-              }`}
-            >
-              <FolderSync size={16} />
-              Transfer ({selectedBookIds.size})
-            </button>
+            <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
+              <button
+                onClick={handleBulkDownload}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+                  darkMode ? 'bg-lime-500/20 hover:bg-lime-500/30 text-lime-400 border border-lime-500/30' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                }`}
+                title="Bulk Download"
+              >
+                <Download size={16} />
+                Download ({selectedBookIds.size})
+              </button>
+
+              <button
+                onClick={() => setShowBulkTransferModal(true)}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+                  darkMode ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
+                }`}
+                title="Bulk Transfer"
+              >
+                <FolderSync size={16} />
+                Transfer ({selectedBookIds.size})
+              </button>
+
+              <button
+                onClick={handleBulkDelete}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+                  darkMode ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30' : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+                }`}
+                title="Bulk Delete"
+              >
+                <Trash2 size={16} />
+                Delete ({selectedBookIds.size})
+              </button>
+            </div>
           )}
         </div>
       </div>

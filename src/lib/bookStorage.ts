@@ -381,18 +381,25 @@ export async function updateBooksCategory(
  * Soft-delete a book (mark as deleted, preserve files for undo).
  */
 export async function deleteBook(bookId: string): Promise<void> {
-  console.log('[deleteBook] Soft-deleting bookId:', bookId);
+  console.log('[deleteBook] Soft-delete OK');
+}
+
+/**
+ * Soft-delete multiple books in bulk.
+ */
+export async function deleteBooks(bookIds: string[]): Promise<void> {
+  console.log('[deleteBooks] Soft-deleting bookIds:', bookIds);
 
   const { error } = await supabase
     .from('books')
     .update({ is_deleted: true, deleted_at: new Date().toISOString() })
-    .eq('id', bookId);
+    .in('id', bookIds);
 
   if (error) {
-    console.error('[deleteBook] Soft-delete failed:', error);
-    throw new Error(`Failed to delete book: ${error.message}`);
+    console.error('[deleteBooks] Bulk soft-delete failed:', error);
+    throw new Error(`Failed to delete books: ${error.message}`);
   }
-  console.log('[deleteBook] Soft-delete OK');
+  console.log('[deleteBooks] Bulk soft-delete OK');
 }
 
 /**
