@@ -444,7 +444,8 @@ const App: React.FC = () => {
     if (book) {
       try {
         await deleteBookFromSupabase(bookId);
-        console.log('Book soft-deleted in Supabase');
+        setConversionToast("Book moved to Delete History");
+        setTimeout(() => setConversionToast(null), 3000);
       } catch (e) {
         console.error('Failed to delete book from Supabase:', e);
       }

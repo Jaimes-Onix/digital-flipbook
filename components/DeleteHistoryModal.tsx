@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Trash2, Loader2, Clock, BookX, Undo2, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { X, Trash2, Loader2, Clock, BookX, Undo2, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { loadDeletedBooks, clearDeletedBookLog, clearAllDeletedBookLogs, restoreBook, type DeletedBookLog } from '../src/lib/bookStorage';
 
 interface DeleteHistoryModalProps {
@@ -46,6 +46,11 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
         id?: string;
         title?: string;
     }>({ isOpen: false, type: 'single' });
+    const [successModal, setSuccessModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+    }>({ isOpen: false, title: '', message: '' });
 
     useEffect(() => {
         if (isOpen) {
@@ -72,6 +77,11 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
             await clearDeletedBookLog(logId);
             setLogs(prev => prev.filter(l => l.id !== logId));
             setConfirmModal({ isOpen: false, type: 'single' });
+            setSuccessModal({
+                isOpen: true,
+                title: 'Deleted Permanently',
+                message: 'The book record and its files have been removed.'
+            });
         } catch (err) {
             console.error('Failed to remove log entry:', err);
         }
@@ -82,6 +92,11 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
             await clearAllDeletedBookLogs(category);
             setLogs([]);
             setConfirmModal({ isOpen: false, type: 'single' });
+            setSuccessModal({
+                isOpen: true,
+                title: 'History Cleared',
+                message: 'All book records for this category have been removed.'
+            });
         } catch (err) {
             console.error('Failed to clear all logs:', err);
         }
@@ -92,6 +107,11 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
             await restoreBook(bookId);
             setLogs(prev => prev.filter(l => l.id !== bookId));
             onRestore?.(); // Refresh the library
+            setSuccessModal({
+                isOpen: true,
+                title: 'Restored Successfully',
+                message: 'The book is now back in your library.'
+            });
         } catch (err) {
             console.error('Failed to restore book:', err);
         }
@@ -271,6 +291,15 @@ const DeleteHistoryModal: React.FC<DeleteHistoryModalProps> = ({
                 }
                 darkMode={darkMode}
             />
+
+            {/* Success Modal overlay */}
+            <DeleteSuccessModal
+                isOpen={successModal.isOpen}
+                onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+                title={successModal.title}
+                message={successModal.message}
+                darkMode={darkMode}
+            />
         </div>,
         document.body
     );
@@ -359,6 +388,66 @@ const ConfirmDeleteModal: React.FC<{
                                 }`}
                         >
                             Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+const DeleteSuccessModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    message: string;
+    darkMode: boolean;
+}> = ({ isOpen, onClose, title, message, darkMode }) => {
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(onClose, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
+            <div
+                className={`absolute inset-0 backdrop-blur-md transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'bg-black/40' : 'bg-black/20'}`}
+                onClick={onClose}
+            />
+            <div className={`relative w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 ease-out transform ${isOpen ? 'scale-100 opacity-100' : 'scale-90 opacity-0'} ${darkMode ? 'bg-[#1c1c20]/95 border border-white/10' : 'bg-white/95 border border-gray-100'}`}>
+                <div className="relative p-8">
+                    <div className="flex justify-center mb-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-lime-500/20 rounded-full blur-2xl animate-pulse" />
+                            <div className={`relative w-20 h-20 bg-gradient-to-br from-lime-500 to-lime-600 rounded-full flex items-center justify-center shadow-lg shadow-lime-500/20 transition-transform duration-700 delay-100 ${isOpen ? 'scale-100 rotate-0' : 'scale-0 rotate-12'}`}>
+                                <CheckCircle2 className="w-10 h-10 text-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={`transition-all duration-500 delay-200 transform ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                        <h4 className={`text-2xl font-bold text-center mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {title}
+                        </h4>
+                        <p className={`text-center text-base leading-relaxed px-2 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+                            {message}
+                        </p>
+                    </div>
+
+                    <div className={`mt-10 transition-all duration-500 delay-300 transform ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                        <button
+                            onClick={onClose}
+                            className={`w-full py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 hover:scale-[1.02] ${darkMode
+                                ? 'bg-white text-zinc-900 hover:bg-zinc-100'
+                                : 'bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-400/20'
+                                }`}
+                        >
+                            Continue
                         </button>
                     </div>
                 </div>
