@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Clock, FolderSync, Settings, Download, FileText } from 'lucide-react';
+import { BookOpen, X, Trash2, AlertCircle, Check, Heart, Share2, Loader2, Pencil, Calendar, Clock, FolderSync, Settings, Download, FileText } from 'lucide-react';
 import { LibraryBook, BookCategory } from '../types';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -265,11 +265,19 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   {book.totalPages} Pages
                 </p>
                 {book.createdAt && (
-                  <div className={`flex items-center gap-1.5 mb-6 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`}>
-                    <Clock size={15} />
-                    <span className="text-[13px] font-medium">
-                      Date Added: {new Date(book.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
+                  <div className={`flex flex-col gap-1.5 mb-6 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`}>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={15} />
+                      <span className="text-[13px] font-medium">
+                        Date Added: {new Date(book.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={15} className={darkMode ? 'text-lime-400/70' : 'text-emerald-600/70'} />
+                      <span className={`text-[12px] font-medium ${darkMode ? 'text-lime-400/70' : 'text-emerald-600/70'}`}>
+                        Time Added: {new Date(book.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      </span>
+                    </div>
                   </div>
                 )}
 
