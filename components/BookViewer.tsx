@@ -800,6 +800,35 @@ const BookViewer: React.FC<BookViewerProps> = ({
     );
   }
 
+  // Enable native pinch-to-zoom by preventing react-pageflip from trapping multi-touch events
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleTouch = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        e.stopPropagation(); // Stop page-flip from cancelling the pinch gesture
+      }
+    };
+    const handlePointer = (e: PointerEvent) => {
+      if (!e.isPrimary) {
+        e.stopPropagation();
+      }
+    };
+
+    container.addEventListener('touchstart', handleTouch, { capture: true, passive: false });
+    container.addEventListener('touchmove', handleTouch, { capture: true, passive: false });
+    container.addEventListener('pointerdown', handlePointer, { capture: true });
+    container.addEventListener('pointermove', handlePointer, { capture: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouch, { capture: true });
+      container.removeEventListener('touchmove', handleTouch, { capture: true });
+      container.removeEventListener('pointerdown', handlePointer, { capture: true });
+      container.removeEventListener('pointermove', handlePointer, { capture: true });
+    };
+  }, []);
+
   const totalPages = orientation === 'trifold' ? 5 : pages.length;
 
   return (
@@ -808,7 +837,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
       className="df-container w-full h-full flex flex-col relative"
       style={{
         background: 'transparent',
-        touchAction: 'manipulation'
+        touchAction: 'pan-y pinch-zoom'
       }}
       onWheel={(e) => { if (e.ctrlKey) e.preventDefault(); }}
     >
