@@ -587,12 +587,12 @@ const BookViewer: React.FC<BookViewerProps> = ({
       setIsParsing(true);
       const total = pages.length;
 
-      // QUALITY_SCALE — Increased for better readability
+      // QUALITY_SCALE — carefully capped on mobile/tablet to prevent GPU memory crashes
       const isMobileDevice = window.innerWidth < 1024;
       const dpr = window.devicePixelRatio || 1;
       const QUALITY_SCALE = isMobileDevice
-        ? Math.max(dpr * 2.0, 3.0)   // Mobile/tablet: increased quality for clear text
-        : Math.max(dpr * 3.0, 4.0);  // Desktop: max quality
+        ? Math.min(dpr * 1.5, 2.5)   // Mobile/tablet: capped at 2.5x to prevent OOM crashes while maintaining clarity
+        : Math.min(dpr * 3.0, 4.0);  // Desktop: capped at 4.0x
 
       for (let i = 0; i < total; i++) {
         const pageNum = pages[i];
@@ -800,35 +800,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     );
   }
 
-  // Enable native pinch-to-zoom by preventing react-pageflip from trapping multi-touch events
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleTouch = (e: TouchEvent) => {
-      if (e.touches.length >= 2) {
-        e.stopPropagation(); // Stop page-flip from cancelling the pinch gesture
-      }
-    };
-    const handlePointer = (e: PointerEvent) => {
-      if (!e.isPrimary) {
-        e.stopPropagation();
-      }
-    };
-
-    container.addEventListener('touchstart', handleTouch, { capture: true, passive: false });
-    container.addEventListener('touchmove', handleTouch, { capture: true, passive: false });
-    container.addEventListener('pointerdown', handlePointer, { capture: true });
-    container.addEventListener('pointermove', handlePointer, { capture: true });
-
-    return () => {
-      container.removeEventListener('touchstart', handleTouch, { capture: true });
-      container.removeEventListener('touchmove', handleTouch, { capture: true });
-      container.removeEventListener('pointerdown', handlePointer, { capture: true });
-      container.removeEventListener('pointermove', handlePointer, { capture: true });
-    };
-  }, []);
-
   const totalPages = orientation === 'trifold' ? 5 : pages.length;
 
   return (
@@ -837,7 +808,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
       className="df-container w-full h-full flex flex-col relative"
       style={{
         background: 'transparent',
-        touchAction: 'pan-y pinch-zoom'
+        touchAction: 'manipulation'
       }}
       onWheel={(e) => { if (e.ctrlKey) e.preventDefault(); }}
     >
