@@ -8,6 +8,7 @@ import Home from './components/Home';
 import Upload from './components/Upload';
 import PptxConverter from './components/PptxConverter';
 import BookViewer from './components/BookViewer';
+import NormalModeViewer from './components/NormalModeViewer';
 import DflipViewer from './components/DflipViewer';
 import Controls from './components/Controls';
 import Library from './components/Library';
@@ -126,6 +127,7 @@ const App: React.FC = () => {
   const [readerAutoPlay, setReaderAutoPlay] = useState(false);
   const [readerFullscreen, setReaderFullscreen] = useState(false);
   const [readerShowThumbnails, setReaderShowThumbnails] = useState(false);
+  const [readerViewMode, setReaderViewMode] = useState<'flipbook' | 'normal'>('flipbook');
 
   const toggleReaderFullscreen = useCallback(() => {
     const target = readerContainerRef.current;
@@ -682,6 +684,7 @@ const App: React.FC = () => {
             setReaderShowThumbnails(false);
             setReaderAutoPlay(false);
             setReaderZoom(100);
+            setReaderViewMode('flipbook');
           }}
           readerBookName={selectedBook?.name.replace('.pdf', '')}
           readerBookId={selectedBook?.id}
@@ -713,6 +716,15 @@ const App: React.FC = () => {
             setShowSearch(p => !p);
             if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
           }}
+          readerViewMode={readerViewMode}
+          onToggleReaderViewMode={() => {
+            setReaderViewMode(p => p === 'flipbook' ? 'normal' : 'flipbook');
+            // Close panels when switching modes
+            setReaderShowThumbnails(false);
+            setShowSearch(false);
+            setReaderAutoPlay(false);
+          }}
+          readerOrientation={selectedBook?.orientation as any}
         />}
 
         <main className={`flex-1 relative w-full h-full ${isLandingPage || view === 'reader' || view === 'shared' ? '' : 'pt-14'} overflow-y-auto no-scrollbar`}>
@@ -818,38 +830,50 @@ const App: React.FC = () => {
             {/* Sharing Route - Token resolution */}
             <Route path="/share/link/:token" element={<SharedLinkResolver />} />
 
-            {/* Reader Route - Using DFlip library */}
             <Route path="/reader/:bookId" element={
               selectedBook && (
                 <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative ${readerFullscreen ? '' : 'pt-14'}`}>
 
-                  {/* BookViewer */}
-                  <div className="flex-1 w-full h-full min-h-0 relative z-10">
-                    <BookViewer
-                      pdfDocument={selectedBook.doc}
-                      onFlip={setCurrentPage}
-                      onBookInit={(book) => { bookRef.current = book; }}
-                      zoomLevel={readerZoom}
-                      onZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
-                      onZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
-                      isAutoPlaying={readerAutoPlay}
-                      onToggleAutoPlay={() => setReaderAutoPlay(p => !p)}
-                      isFullscreen={readerFullscreen}
-                      onToggleFullscreen={toggleReaderFullscreen}
-                      showThumbnails={readerShowThumbnails}
-                      onToggleThumbnails={() => {
-                        setReaderShowThumbnails(p => !p);
-                        if (!readerShowThumbnails && showSearch) setShowSearch(false);
-                      }}
-                      showSearch={showSearch}
-                      onToggleSearch={() => {
-                        setShowSearch(p => !p);
-                        if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
-                      }}
-                      fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
-                      orientation={selectedBook.orientation || 'portrait'}
-                    />
-                  </div>
+                  {/* Normal (4-up grid) Mode — landscape only */}
+                  {readerViewMode === 'normal' && selectedBook.orientation === 'landscape' ? (
+                    <div className="flex-1 w-full h-full min-h-0 relative z-10">
+                      <NormalModeViewer
+                        pdfDocument={selectedBook.doc}
+                        onFlip={setCurrentPage}
+                        zoomLevel={readerZoom}
+                        currentStartPage={currentPage}
+                        onPageChange={setCurrentPage}
+                      />
+                    </div>
+                  ) : (
+                    /* Flipbook Mode (default) */
+                    <div className="flex-1 w-full h-full min-h-0 relative z-10">
+                      <BookViewer
+                        pdfDocument={selectedBook.doc}
+                        onFlip={setCurrentPage}
+                        onBookInit={(book) => { bookRef.current = book; }}
+                        zoomLevel={readerZoom}
+                        onZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
+                        onZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
+                        isAutoPlaying={readerAutoPlay}
+                        onToggleAutoPlay={() => setReaderAutoPlay(p => !p)}
+                        isFullscreen={readerFullscreen}
+                        onToggleFullscreen={toggleReaderFullscreen}
+                        showThumbnails={readerShowThumbnails}
+                        onToggleThumbnails={() => {
+                          setReaderShowThumbnails(p => !p);
+                          if (!readerShowThumbnails && showSearch) setShowSearch(false);
+                        }}
+                        showSearch={showSearch}
+                        onToggleSearch={() => {
+                          setShowSearch(p => !p);
+                          if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
+                        }}
+                        fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
+                        orientation={selectedBook.orientation || 'portrait'}
+                      />
+                    </div>
+                  )}
                 </div>
               )
             } />

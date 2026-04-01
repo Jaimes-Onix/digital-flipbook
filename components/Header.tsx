@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Library as LibraryIcon, Menu, LayoutGrid, Layers, X, Share2, Presentation, UploadCloud,
-  Grid3X3, Search, Play, Pause, ZoomIn, ZoomOut, Maximize, Minimize,
+  Grid3X3, Search, Play, Pause, ZoomIn, ZoomOut, Maximize, Minimize, BookOpen, LayoutTemplate,
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 
@@ -29,6 +29,10 @@ interface HeaderProps {
   onToggleReaderThumbnails?: () => void;
   readerShowSearch?: boolean;
   onToggleReaderSearch?: () => void;
+  // View mode (landscape books only)
+  readerViewMode?: 'flipbook' | 'normal';
+  onToggleReaderViewMode?: () => void;
+  readerOrientation?: 'portrait' | 'landscape' | 'trifold';
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -39,6 +43,8 @@ const Header: React.FC<HeaderProps> = ({
   readerFullscreen, onToggleReaderFullscreen,
   readerShowThumbnails, onToggleReaderThumbnails,
   readerShowSearch, onToggleReaderSearch,
+  readerViewMode = 'flipbook', onToggleReaderViewMode,
+  readerOrientation = 'portrait',
 }) => {
   const navigate = useNavigate();
   const [showShareModal, setShowShareModal] = useState(false);
@@ -75,20 +81,64 @@ const Header: React.FC<HeaderProps> = ({
           {/* Right: toolbar */}
           <div className="flex items-center gap-0 sm:gap-0.5 shrink-0 ml-1 sm:ml-2">
 
-            {/* Thumbnails */}
-            <button onClick={onToggleReaderThumbnails} className={btn(readerShowThumbnails)} title={readerShowThumbnails ? 'Hide Thumbnails' : 'Thumbnails'}>
-              <Grid3X3 className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
-            </button>
+            {/* View Mode Toggle — landscape only */}
+            {readerOrientation === 'landscape' && onToggleReaderViewMode && (
+              <>
+                <div
+                  className={`flex items-center rounded-lg p-0.5 border mr-0.5 ${
+                    darkMode ? 'bg-black/40 border-white/[0.08]' : 'bg-gray-100/50 border-black/[0.04]'
+                  }`}
+                  title="Switch view mode"
+                >
+                  {/* Flipbook mode button */}
+                  <button
+                    onClick={readerViewMode !== 'flipbook' ? onToggleReaderViewMode : undefined}
+                    className={`flex items-center justify-center w-7 h-7 rounded-md transition-all ${
+                      readerViewMode === 'flipbook'
+                        ? (darkMode ? 'bg-white/[0.14] text-white border border-white/20' : 'bg-white text-gray-900 shadow-sm border border-black/[0.04]')
+                        : (darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-black hover:text-gray-600')
+                    }`}
+                    title="Flipbook mode"
+                  >
+                    <BookOpen className="w-[14px] h-[14px]" />
+                  </button>
+                  {/* Normal (grid) mode button */}
+                  <button
+                    onClick={readerViewMode !== 'normal' ? onToggleReaderViewMode : undefined}
+                    className={`flex items-center justify-center w-7 h-7 rounded-md transition-all ${
+                      readerViewMode === 'normal'
+                        ? (darkMode ? 'bg-white/[0.14] text-white border border-white/20' : 'bg-white text-gray-900 shadow-sm border border-black/[0.04]')
+                        : (darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-black hover:text-gray-600')
+                    }`}
+                    title="Normal (4-up) mode"
+                  >
+                    <LayoutTemplate className="w-[14px] h-[14px]" />
+                  </button>
+                </div>
+                <div className={`w-px h-5 mx-0.5 shrink-0 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
+              </>
+            )}
 
-            {/* Search */}
-            <button onClick={onToggleReaderSearch} className={btn(readerShowSearch)} title={readerShowSearch ? 'Hide Search' : 'Search'}>
-              <Search className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
-            </button>
+            {/* Thumbnails — only in flipbook mode */}
+            {readerViewMode !== 'normal' && (
+              <button onClick={onToggleReaderThumbnails} className={btn(readerShowThumbnails)} title={readerShowThumbnails ? 'Hide Thumbnails' : 'Thumbnails'}>
+                <Grid3X3 className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
+              </button>
+            )}
 
-            {/* Auto-flip */}
-            <button onClick={onToggleReaderAutoPlay} className={btn(readerAutoPlay)} title={readerAutoPlay ? 'Pause' : 'Auto-flip'}>
-              {readerAutoPlay ? <Pause className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /> : <Play className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />}
-            </button>
+            {/* Search — only in flipbook mode */}
+            {readerViewMode !== 'normal' && (
+              <button onClick={onToggleReaderSearch} className={btn(readerShowSearch)} title={readerShowSearch ? 'Hide Search' : 'Search'}>
+                <Search className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
+              </button>
+            )}
+
+            {/* Auto-flip — only in flipbook mode */}
+            {readerViewMode !== 'normal' && (
+              <button onClick={onToggleReaderAutoPlay} className={btn(readerAutoPlay)} title={readerAutoPlay ? 'Pause' : 'Auto-flip'}>
+                {readerAutoPlay ? <Pause className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /> : <Play className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />}
+              </button>
+            )}
 
             {/* Zoom section */}
             <div className="flex items-center">
