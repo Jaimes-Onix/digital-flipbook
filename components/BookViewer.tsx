@@ -587,11 +587,11 @@ const BookViewer: React.FC<BookViewerProps> = ({
       setIsParsing(true);
       const total = pages.length;
 
-      // QUALITY_SCALE — adaptive: lower on mobile/tablet to prevent GPU memory crashes
+      // QUALITY_SCALE — Increased for better readability
       const isMobileDevice = window.innerWidth < 1024;
       const dpr = window.devicePixelRatio || 1;
       const QUALITY_SCALE = isMobileDevice
-        ? Math.min(dpr * 1.5, 2.0)   // Mobile/tablet: capped at 2x to prevent crashes
+        ? Math.max(dpr * 2.0, 3.0)   // Mobile/tablet: increased quality for clear text
         : Math.max(dpr * 3.0, 4.0);  // Desktop: max quality
 
       for (let i = 0; i < total; i++) {

@@ -247,7 +247,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   const subtitleColor = darkMode ? 'text-zinc-500' : 'text-gray-500';
 
   return (
-    <div className={`h-screen w-full overflow-y-auto overflow-x-hidden relative transition-colors duration-300 thin-scrollbar ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
+    <div className={`h-[100dvh] w-full overflow-y-auto overflow-x-hidden relative transition-colors duration-300 thin-scrollbar ${darkMode ? 'bg-[#09090b]' : 'bg-[#f8f9fa]'}`}>
 
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-50 backdrop-blur-xl border-b transition-colors ${headerBg}`}>

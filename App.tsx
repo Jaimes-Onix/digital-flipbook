@@ -634,7 +634,7 @@ const App: React.FC = () => {
   const isLandingPage = false; // Sidebar always visible
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 relative ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+    <div className={`flex h-[100dvh] w-full overflow-hidden font-sans transition-colors duration-300 relative ${darkMode ? 'text-white' : 'text-gray-900'}`}>
       {/* ── Universal Background Video ── */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none hidden md:block">
         <video

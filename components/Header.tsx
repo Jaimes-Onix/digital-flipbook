@@ -90,11 +90,11 @@ const Header: React.FC<HeaderProps> = ({
               {readerAutoPlay ? <Pause className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /> : <Play className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />}
             </button>
 
-            {/* Zoom section — hidden on mobile, visible on tablet+ */}
-            <div className="hidden sm:flex items-center">
+            {/* Zoom section */}
+            <div className="flex items-center">
               {divider}
               <button onClick={onReaderZoomOut} className={btn()} title="Zoom Out" disabled={readerZoom <= 50}><ZoomOut className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /></button>
-              <span className={`text-[11px] font-semibold tabular-nums w-9 text-center shrink-0 ${darkMode ? 'text-zinc-400' : 'text-black'}`}>{readerZoom}%</span>
+              <span className={`hidden sm:inline-block text-[11px] font-semibold tabular-nums w-9 text-center shrink-0 ${darkMode ? 'text-zinc-400' : 'text-black'}`}>{readerZoom}%</span>
               <button onClick={onReaderZoomIn} className={btn()} title="Zoom In" disabled={readerZoom >= 150}><ZoomIn className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" /></button>
             </div>
 
