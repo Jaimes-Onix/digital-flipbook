@@ -141,8 +141,7 @@ const PDFPanel: React.FC<PanelProps> = ({
                         height: '100%',
                         objectFit: 'contain',
                         transform: clipThirds ? `translateX(${-clipIndex * 33.33}%)` : 'none',
-                        imageRendering: 'crisp-edges',
-                        ['WebkitImageRendering' as any]: '-webkit-optimize-contrast',
+                        imageRendering: 'auto',
                     } as React.CSSProperties}
                 />
             ) : (
@@ -401,58 +400,10 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
 
     let centerTranslateX = (foldState === 'opened_front_flap') ? panelWidth : 0;
 
-    // Swipe gesture support for mobile/tablet
-    const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-
-    const handleTouchStart = useCallback((e: React.TouchEvent) => {
-        if (e.touches.length === 1) {
-            touchStartRef.current = {
-                x: e.touches[0].clientX,
-                y: e.touches[0].clientY,
-                time: Date.now()
-            };
-        }
-    }, []);
-
-    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-        if (!touchStartRef.current || e.changedTouches.length !== 1) return;
-
-        const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
-        const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
-        const dt = Date.now() - touchStartRef.current.time;
-        touchStartRef.current = null;
-
-        // Minimum swipe: 40px horizontal, less than 100px vertical, within 500ms
-        if (Math.abs(dx) > 40 && Math.abs(dy) < 100 && dt < 500) {
-            if (dx < 0) {
-                // Swipe left → next
-                nextState();
-            } else {
-                // Swipe right → previous
-                prevState();
-            }
-            e.preventDefault();
-            return;
-        }
-
-        // If not a swipe, treat as tap → next
-        if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) {
-            nextState();
-        }
-    }, [nextState, prevState]);
-
     return (
         <div
             ref={containerRef}
-            className="w-full h-full flex items-center justify-center relative"
-            style={{ touchAction: 'pan-y' }}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onClick={(e) => {
-                // Only fire click on desktop (touch devices use swipe handlers above)
-                if ('ontouchstart' in window) return;
-                nextState();
-            }}
+            className="w-full h-full flex items-center justify-center relative touch-none"
         >
             <div className="relative flex items-center justify-center pointer-events-none" style={{
                 perspective: '3000px', transform: `scale(${scale})`, transition: 'transform 0.4s ease-out'

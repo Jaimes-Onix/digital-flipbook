@@ -61,7 +61,7 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
           await page.render({ canvasContext: ctx, viewport }).promise;
-          updates.set(pageNum, canvas.toDataURL('image/jpeg', 0.95));
+          updates.set(pageNum, canvas.toDataURL('image/png'));
           canvas.width = 0;
           canvas.height = 0;
         } catch {

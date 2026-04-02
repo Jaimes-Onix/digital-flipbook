@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, forwardRef, useCallback, useMemo } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Loader2, ChevronLeft, ChevronRight, X, Search, Grid3X3, Play, Pause, ZoomOut, ZoomIn, Minimize, Maximize } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import TrifoldViewer from './TrifoldViewer';
 
 
@@ -147,17 +148,86 @@ const playFlipSound = () => {
   }
 };
 
-// Page Component
-// The container (pageW × pageH) is fixed to the chosen orientation.
-// PDF content is scaled with contain-fit and centered — no stretching, no clipping.
+// Page Component — Direct Canvas Rendering (matches erayakartuna/pdf-flipbook approach)
+// Renders PDF at exactly the scale needed to fill the container.
+// NO intermediate DataURLs. NO image downscaling. The <canvas> IS the page.
 const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number; imageUrl?: string; searchQuery?: string }>(
   ({ number, pdfDocument, pageW, pageH, imageUrl, searchQuery }, ref) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const textLayerRef = useRef<HTMLDivElement>(null);
     const [rendered, setRendered] = useState(false);
-    const [fit, setFit] = useState<{ displayW: number; displayH: number; offsetX: number; offsetY: number } | null>(null);
-
+    const [canvasReady, setCanvasReady] = useState(false);
+    const renderTaskRef = useRef<any>(null);
     const lastSearchRef = useRef('');
 
+    // Direct canvas render — no encoding, no decoding, no quality loss
+    useEffect(() => {
+      if (!pdfDocument || !canvasRef.current) return;
+      if (canvasReady) return;
+
+      let active = true;
+
+      const render = async () => {
+        try {
+          const page = await pdfDocument.getPage(number);
+          if (!active) return;
+
+          const natural = page.getViewport({ scale: 1 });
+
+          // Calculate the scale that makes the PDF exactly fill this container
+          // This is the competitor's approach — no over-rendering, no under-rendering
+          const fitScale = Math.min(pageW / natural.width, pageH / natural.height);
+
+          // The canvas backing-store must account for devicePixelRatio
+          // so the browser renders 1 PDF pixel = 1 screen pixel on retina displays
+          const dpr = window.devicePixelRatio || 1;
+          const renderScale = fitScale * dpr;
+
+          const viewport = page.getViewport({ scale: renderScale });
+
+          const canvas = canvasRef.current!;
+          if (!active || !canvas) return;
+
+          // Set the actual canvas bitmap size (high-res)
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+
+          // Set the CSS display size (matches the container)
+          canvas.style.width = `${Math.round(natural.width * fitScale)}px`;
+          canvas.style.height = `${Math.round(natural.height * fitScale)}px`;
+          canvas.style.left = `${Math.round((pageW - natural.width * fitScale) / 2)}px`;
+          canvas.style.top = `${Math.round((pageH - natural.height * fitScale) / 2)}px`;
+
+          const ctx = canvas.getContext('2d', { alpha: false })!;
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          if (renderTaskRef.current) {
+            try { renderTaskRef.current.cancel(); } catch (_) {}
+          }
+
+          renderTaskRef.current = page.render({ canvasContext: ctx, viewport });
+          await renderTaskRef.current.promise;
+
+          if (!active) return;
+          setCanvasReady(true);
+        } catch (e: any) {
+          if (e.name === 'RenderingCancelledException') return;
+          console.error('Canvas render error:', e);
+        }
+      };
+
+      render();
+
+      return () => {
+        active = false;
+        if (renderTaskRef.current) {
+          try { renderTaskRef.current.cancel(); } catch (_) {}
+        }
+      };
+    }, [pdfDocument, number, pageW, pageH, canvasReady]);
+
+    // Text layer — transparent for selection + search highlighting
     useEffect(() => {
       if (!pdfDocument) return;
       if (rendered && lastSearchRef.current === searchQuery) return;
@@ -172,23 +242,18 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           const fitScale = Math.min(pageW / natural.width, pageH / natural.height);
           const displayW = Math.round(natural.width * fitScale);
           const displayH = Math.round(natural.height * fitScale);
-          const offsetX = Math.round((pageW - displayW) / 2);
-          const offsetY = Math.round((pageH - displayH) / 2);
 
-          // We still need text layer but skip canvas rendering (handled by pre-rendered imageUrl)
           if (textLayerRef.current) {
             const textContent = await page.getTextContent();
             const div = textLayerRef.current;
             div.innerHTML = '';
             
-            // Text layer scaling (match display size)
             div.style.width = `${displayW}px`;
             div.style.height = `${displayH}px`;
 
             textContent.items.forEach((item: any) => {
               if (!item.str) return;
               const [a, b, , d, tx, ty] = item.transform;
-              // fontSize relative to display scale
               const fontSize = Math.sqrt(d * d + item.transform[2] * item.transform[2]) * fitScale;
               const span = document.createElement('span');
               span.textContent = item.str;
@@ -215,7 +280,6 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
             });
           }
 
-          setFit({ displayW, displayH, offsetX, offsetY });
           setRendered(true);
         } catch (e) {
           console.error('Text layer init error:', e);
@@ -224,6 +288,11 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
 
       setupLayer();
     }, [pdfDocument, number, rendered, pageW, pageH, searchQuery]);
+
+    // Calculate fit for text layer positioning
+    const natural_w = pageW; // used as fallback
+    const offsetX = canvasRef.current ? parseInt(canvasRef.current.style.left || '0') : 0;
+    const offsetY = canvasRef.current ? parseInt(canvasRef.current.style.top || '0') : 0;
 
     return (
       <div
@@ -235,42 +304,47 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           background: '#fff',
           boxShadow: 'inset -2px 0 5px rgba(0,0,0,0.05)',
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        {!rendered && (
+        {!canvasReady && !imageUrl && (
           <div className="w-full h-full flex items-center justify-center bg-white">
             <Loader2 className="animate-spin text-gray-300" size={24} />
           </div>
         )}
-        {imageUrl ? (
+        {/* Direct canvas — PDF rendered at exact pixel ratio, zero rescaling */}
+        <canvas
+          ref={canvasRef}
+          className="flipbook-page-canvas"
+          style={{
+            position: 'absolute',
+            display: canvasReady ? 'block' : 'none',
+          }}
+        />
+        {/* Fallback: pre-rendered image while canvas loads */}
+        {!canvasReady && imageUrl && (
           <img
             src={imageUrl}
             alt={`Page ${number}`}
             className="flipbook-page-image"
             style={{
               position: 'absolute',
-              left: fit?.offsetX ?? 0,
-              top: fit?.offsetY ?? 0,
-              width: fit?.displayW ?? '100%',
-              height: fit?.displayH ?? '100%',
+              left: 0,
+              top: 0,
+              width: '100%',
+              height: '100%',
               objectFit: 'contain',
-              imageRendering: 'crisp-edges',
-              ['WebkitImageRendering' as any]: '-webkit-optimize-contrast',
-              msInterpolationMode: 'nearest-neighbor'
+              imageRendering: 'auto',
             } as React.CSSProperties}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-white/50">
-            <Loader2 className="animate-spin text-zinc-300" size={24} />
-          </div>
         )}
         <div
           ref={textLayerRef}
           className="pdf-text-layer"
           style={{
             position: 'absolute',
-            left: fit?.offsetX ?? 0,
-            top: fit?.offsetY ?? 0,
+            left: offsetX,
+            top: offsetY,
             transformOrigin: '0 0',
             overflow: 'hidden',
           }}
@@ -377,8 +451,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
   // Dynamically calculate page dimensions to perfectly match the PDF aspect ratio.
   // We use a high base resolution because CSS 3D transforms rasterize DOM layers
-  // based on their intrinsic dimensions. To prevent browser hardware texture caps
-  // (usually 2048px) from auto-downsampling the layer, we ensure the max dimension is 1600.
+  // based on their intrinsic dimensions. 
   const baseSize = 1600;
   const pageW = pdfAspectRatio > 1 ? baseSize : baseSize * pdfAspectRatio;
   const pageH = pdfAspectRatio > 1 ? baseSize / pdfAspectRatio : baseSize;
@@ -590,9 +663,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
       // QUALITY_SCALE — carefully capped on mobile/tablet to prevent GPU memory crashes
       const isMobileDevice = window.innerWidth < 1024;
       const dpr = window.devicePixelRatio || 1;
+      // With PNG (lossless), we don't need as high a scale — 2x DPR is sharp enough
       const QUALITY_SCALE = isMobileDevice
-        ? Math.min(dpr * 1.5, 2.5)   // Mobile/tablet: capped at 2.5x to prevent OOM crashes while maintaining clarity
-        : Math.min(dpr * 3.0, 4.0);  // Desktop: capped at 4.0x
+        ? Math.min(dpr * 2.0, 3.0)   // Mobile/tablet: crisp with PNG, no compression loss
+        : Math.min(dpr * 2.0, 3.0);  // Desktop: 2x DPR capped at 3.0x (PNG has zero quality loss)
 
       for (let i = 0; i < total; i++) {
         const pageNum = pages[i];
@@ -614,8 +688,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-          // Increase quality to 0.98 to avoid any JPEG artifacts / blurriness
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.98);
+          // Use PNG for lossless encoding — eliminates all JPEG compression artifacts on text
+          const dataUrl = canvas.toDataURL('image/png');
           
           setPageImages(prev => {
             const next = new Map(prev);
@@ -824,89 +898,114 @@ const BookViewer: React.FC<BookViewerProps> = ({
           <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
         </button>
 
-        {/* The Book */}
-        {orientation === 'trifold' ? (
-          <div
-            className="absolute top-1/2 left-1/2"
-            style={{
-              width: '100%',
-              height: '100%',
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            {isParsing && (
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl transition-opacity duration-300">
-                <Loader2 className="animate-spin text-lime-500" size={16} />
-                <div className="flex flex-col">
-                   <span className="text-[10px] uppercase font-bold text-white/50 leading-none mb-0.5">Optimizing Quality</span>
-                   <span className="text-xs font-semibold text-white whitespace-nowrap tracking-wide leading-none">
-                    Page {Math.min(pages.length, Math.floor((parsingProgress / 100) * pages.length) + 1)} of {pages.length} ({parsingProgress}%)
-                   </span>
+        <TransformWrapper
+          initialScale={1}
+          minScale={1} // Prevent zooming out smaller than the default fit!
+          maxScale={6}
+          centerOnInit={true}
+          doubleClick={{ disabled: false, step: 2.5, mode: "toggle" }} // The main requested feature: double tap to toggle zoom
+          pinch={{ disabled: false, step: 5 }}       // Mobile pinch to zoom
+          wheel={{ step: 0.1, wheelDisabled: false }} // PC wheel to zoom
+          panning={{
+            disabled: false,
+            // We remove activationKeys so mobile users can pan without keyboards!
+            // react-pageflip uses swipe left/right, and TransformWrapper panning 
+            // only takes over if scale > 1 basically (if content is bounded).
+          }}
+        >
+            <TransformComponent
+              wrapperStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+              contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <div 
+                className="w-full h-full flex items-center justify-center relative touch-none"
+              >
+                <div style={{ pointerEvents: 'auto' }}>
+                  {orientation === 'trifold' ? (
+                    <div
+                      className="relative"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    >
+                      {isParsing && (
+                        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl transition-opacity duration-300">
+                          <Loader2 className="animate-spin text-lime-500" size={16} />
+                          <div className="flex flex-col">
+                            <span className="text-[10px] uppercase font-bold text-white/50 leading-none mb-0.5">Optimizing Quality</span>
+                            <span className="text-xs font-semibold text-white whitespace-nowrap tracking-wide leading-none">
+                              Page {Math.min(pages.length, Math.floor((parsingProgress / 100) * pages.length) + 1)} of {pages.length} ({parsingProgress}%)
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <TrifoldViewer
+                        pdfDocument={pdfDocument}
+                        onFlip={handleFlip}
+                        onBookInit={handleBookInit}
+                        pageImages={pageImages}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="book-3d-container relative"
+                      style={{
+                        width: isSinglePage ? pageW : pageW * 2,
+                        height: pageH,
+                        transform: `scale(${scale})`, // Keep manual zoomLevel integration
+                      }}
+                    >
+                      <HTMLFlipBook
+                        key={`${pageW}-${pageH}-${isSinglePage}`}
+                        width={pageW}
+                        height={pageH}
+                        size="fixed"
+                        minWidth={pageW}
+                        maxWidth={pageW}
+                        minHeight={pageH}
+                        maxHeight={pageH}
+                        showCover={!isSinglePage}
+                        maxShadowOpacity={0.5}
+                        mobileScrollSupport={true}
+                        onFlip={handleFlip}
+                        onChangeState={handleChangeState}
+                        onInit={() => {
+                          setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
+                        }}
+                        ref={handleBookInit}
+                        className="book-3d-flip"
+                        style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
+                        startPage={0}
+                        flippingTime={800}
+                        usePortrait={isSinglePage}
+                        drawShadow={true}
+                        startZIndex={0}
+                        autoSize={false}
+                        clickEventForward={false}
+                        useMouseEvents={false}
+                        swipeDistance={30}
+                        showPageCorners={false}
+                        disableFlipByClick={true}
+                      >
+                        {pages.map((num) => (
+                          <Page 
+                            key={num} 
+                            number={num} 
+                            pdfDocument={pdfDocument} 
+                            pageW={pageW} 
+                            pageH={pageH} 
+                            imageUrl={pageImages.get(num)}
+                            searchQuery={searchQuery} 
+                          />
+                        ))}
+                      </HTMLFlipBook>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-            <TrifoldViewer
-              pdfDocument={pdfDocument}
-              onFlip={handleFlip}
-              onBookInit={handleBookInit}
-              pageImages={pageImages}
-            />
-          </div>
-        ) : (
-          <div
-            className="absolute top-1/2 left-1/2 book-3d-container"
-            style={{
-              width: isSinglePage ? pageW : pageW * 2,
-              height: pageH,
-              transform: `translate(-50%, -50%) scale(${scale})`,
-            }}
-          >
-            <HTMLFlipBook
-              key={`${pageW}-${pageH}-${isSinglePage}`}
-              width={pageW}
-              height={pageH}
-              size="fixed"
-              minWidth={pageW}
-              maxWidth={pageW}
-              minHeight={pageH}
-              maxHeight={pageH}
-              showCover={!isSinglePage}
-              maxShadowOpacity={0.5}
-              mobileScrollSupport={true}
-              onFlip={handleFlip}
-              onChangeState={handleChangeState}
-              onInit={() => {
-                setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
-              }}
-              ref={handleBookInit}
-              className="book-3d-flip"
-              style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
-              startPage={0}
-              flippingTime={800}
-              usePortrait={isSinglePage}
-              drawShadow={true}
-              startZIndex={0}
-              autoSize={false}
-              clickEventForward={false}
-              useMouseEvents={true}
-              swipeDistance={30}
-              showPageCorners={false}
-              disableFlipByClick={false}
-            >
-              {pages.map((num) => (
-                <Page 
-                  key={num} 
-                  number={num} 
-                  pdfDocument={pdfDocument} 
-                  pageW={pageW} 
-                  pageH={pageH} 
-                  imageUrl={pageImages.get(num)}
-                  searchQuery={searchQuery} 
-                />
-              ))}
-            </HTMLFlipBook>
-          </div>
-        )}
+            </TransformComponent>
+        </TransformWrapper>
 
         {/* Right Navigation */}
         <button
