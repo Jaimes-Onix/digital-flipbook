@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Loader2, Moon, Sun, ArrowLeft, BookOpen } from 'lucide-react';
 import Header from './Header';
 import BookViewer from './BookViewer';
+import NormalModeViewer from './NormalModeViewer';
 import { getDocument } from '../utils/pdfUtils';
 import { loadBookById } from '../src/lib/bookStorage';
 import type { LibraryBook, BookRef } from '../types';
@@ -29,6 +30,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   const [readerAutoPlay, setReaderAutoPlay] = useState(false);
   const [readerFullscreen, setReaderFullscreen] = useState(false);
   const [readerShowThumbnails, setReaderShowThumbnails] = useState(false);
+  const [readerViewMode, setReaderViewMode] = useState<'flipbook' | 'normal'>('flipbook');
   
   const bookRef = useRef<BookRef | null>(null);
   const readerContainerRef = useRef<HTMLDivElement>(null);
@@ -116,6 +118,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
       setReaderShowThumbnails(false);
       setReaderAutoPlay(false);
       setReaderZoom(100);
+      setReaderViewMode('flipbook');
     } catch (err: any) {
       console.error('Failed to load PDF:', err);
       setError('Failed to load the PDF. Please try again.');
@@ -187,6 +190,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
             setReaderShowThumbnails(false);
             setReaderAutoPlay(false);
             setReaderZoom(100);
+            setReaderViewMode('flipbook');
           }}
           fileName={book.name}
           readerBookName={book.name.replace('.pdf', '')}
@@ -209,33 +213,47 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
             setShowSearch(p => !p);
             if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
           }}
+          readerViewMode={readerViewMode}
+          onToggleReaderViewMode={() => setReaderViewMode(m => m === 'flipbook' ? 'normal' : 'flipbook')}
+          readerOrientation={book.orientation ?? 'portrait'}
         />
         )}
         <div className="flex-1 w-full h-full min-h-0 relative z-10">
-          <BookViewer
-            pdfDocument={book.doc}
-            onFlip={setCurrentPage}
-            onBookInit={(b) => { bookRef.current = b; }}
-            zoomLevel={readerZoom}
-            onZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
-            onZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
-            isAutoPlaying={readerAutoPlay}
-            onToggleAutoPlay={() => setReaderAutoPlay(p => !p)}
-            isFullscreen={readerFullscreen}
-            onToggleFullscreen={toggleReaderFullscreen}
-            showThumbnails={readerShowThumbnails}
-            onToggleThumbnails={() => {
-              setReaderShowThumbnails(p => !p);
-              if (!readerShowThumbnails && showSearch) setShowSearch(false);
-            }}
-            showSearch={showSearch}
-            onToggleSearch={() => {
-              setShowSearch(p => !p);
-              if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
-            }}
-            fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
-            orientation={book.orientation}
-          />
+          {readerViewMode === 'normal' ? (
+            <NormalModeViewer
+              pdfDocument={book.doc}
+              onFlip={setCurrentPage}
+              zoomLevel={readerZoom}
+              isFullscreen={readerFullscreen}
+              currentStartPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          ) : (
+            <BookViewer
+              pdfDocument={book.doc}
+              onFlip={setCurrentPage}
+              onBookInit={(b) => { bookRef.current = b; }}
+              zoomLevel={readerZoom}
+              onZoomIn={() => setReaderZoom(p => Math.min(150, p + 10))}
+              onZoomOut={() => setReaderZoom(p => Math.max(50, p - 10))}
+              isAutoPlaying={readerAutoPlay}
+              onToggleAutoPlay={() => setReaderAutoPlay(p => !p)}
+              isFullscreen={readerFullscreen}
+              onToggleFullscreen={toggleReaderFullscreen}
+              showThumbnails={readerShowThumbnails}
+              onToggleThumbnails={() => {
+                setReaderShowThumbnails(p => !p);
+                if (!readerShowThumbnails && showSearch) setShowSearch(false);
+              }}
+              showSearch={showSearch}
+              onToggleSearch={() => {
+                setShowSearch(p => !p);
+                if (!showSearch && readerShowThumbnails) setReaderShowThumbnails(false);
+              }}
+              fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
+              orientation={book.orientation}
+            />
+          )}
         </div>
       </div>
     );

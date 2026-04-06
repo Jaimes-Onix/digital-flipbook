@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 interface NormalModeViewerProps {
   pdfDocument: any;
@@ -142,77 +143,92 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
         <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
       </button>
 
-      {/* 2×2 Grid */}
-      <div
-        className="relative"
-        style={{
-          transform: `scale(${scale})`,
-          transformOrigin: 'center center',
-          transition: 'transform 0.2s ease',
-        }}
+      <TransformWrapper
+        initialScale={1}
+        minScale={1}
+        maxScale={6}
+        centerOnInit={true}
+        doubleClick={{ disabled: false, step: 2.5, mode: "toggle" }}
+        pinch={{ disabled: false, step: 5 }}
+        wheel={{ step: 0.1, wheelDisabled: false }}
+        panning={{ disabled: false }}
       >
-        <div
-          className="grid grid-cols-2"
-          style={{
-            // Fill as much of the viewport as possible (96%), account for nav arrows (~80px each side)
-            width: 'min(calc(96vw - 160px), calc(92vh * 1.6))',
-            height: 'min(calc((96vw - 160px) / 1.6), 92vh)',
-            gap: '12px',
-          }}
+        <TransformComponent
+          wrapperStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+          contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          {slots.map((slot, idx) => (
+          <div
+            className="relative touch-none"
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: 'center center',
+              transition: 'transform 0.2s ease',
+            }}
+          >
             <div
-              key={idx}
-              className="relative overflow-hidden flex items-center justify-center bg-[#f0f0ee] rounded-sm"
+              className="grid grid-cols-2"
               style={{
-                border: '1.5px solid #2a2a2a',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.35)',
+                // Fill as much of the viewport as possible (96%), account for nav arrows (~80px each side)
+                width: 'min(calc(96vw - 160px), calc(92vh * 1.6))',
+                height: 'min(calc((96vw - 160px) / 1.6), 92vh)',
+                gap: '12px',
               }}
             >
-              {slot.pageNum !== null ? (
-                renderedPages.has(slot.pageNum) ? (
-                  renderedPages.get(slot.pageNum) ? (
-                    <img
-                      src={renderedPages.get(slot.pageNum)!}
-                      alt={`Page ${slot.pageNum}`}
-                      className="w-full h-full object-contain"
-                      draggable={false}
-                    />
+              {slots.map((slot, idx) => (
+                <div
+                  key={idx}
+                  className="relative overflow-hidden flex items-center justify-center bg-[#f0f0ee] rounded-sm"
+                  style={{
+                    border: '1.5px solid #2a2a2a',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.35)',
+                  }}
+                >
+                  {slot.pageNum !== null ? (
+                    renderedPages.has(slot.pageNum) ? (
+                      renderedPages.get(slot.pageNum) ? (
+                        <img
+                          src={renderedPages.get(slot.pageNum)!}
+                          alt={`Page ${slot.pageNum}`}
+                          className="w-full h-full object-contain"
+                          draggable={false}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-2 text-zinc-400">
+                          <span className="text-xs">Failed to render</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full">
+                        <Loader2 className="animate-spin text-zinc-400" size={28} />
+                      </div>
+                    )
                   ) : (
-                    <div className="flex flex-col items-center justify-center gap-2 text-zinc-400">
-                      <span className="text-xs">Failed to render</span>
+                    // Empty cell (when total pages isn't a multiple of 4)
+                    <div className="w-full h-full bg-[#e8e8e6]" />
+                  )}
+
+                  {/* Page number badge */}
+                  {slot.pageNum !== null && (
+                    <div className="absolute bottom-2 right-2 bg-black/40 text-white/70 text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                      {slot.pageNum}
                     </div>
-                  )
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full">
-                    <Loader2 className="animate-spin text-zinc-400" size={28} />
-                  </div>
-                )
-              ) : (
-                // Empty cell (when total pages isn't a multiple of 4)
-                <div className="w-full h-full bg-[#e8e8e6]" />
-              )}
-
-              {/* Page number badge */}
-              {slot.pageNum !== null && (
-                <div className="absolute bottom-2 right-2 bg-black/40 text-white/70 text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                  {slot.pageNum}
+                  )}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Loading overlay */}
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded">
-            <div className="flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full border border-white/10">
-              <Loader2 className="animate-spin text-lime-500" size={16} />
-              <span className="text-xs text-white/70 font-medium">Rendering pages...</span>
-            </div>
+            {/* Loading overlay */}
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded">
+                <div className="flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full border border-white/10">
+                  <Loader2 className="animate-spin text-lime-500" size={16} />
+                  <span className="text-xs text-white/70 font-medium">Rendering pages...</span>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </TransformComponent>
+      </TransformWrapper>
 
       {/* Page range label */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/30 font-medium tracking-wide pointer-events-none">
