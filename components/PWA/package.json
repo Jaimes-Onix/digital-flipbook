@@ -1,10 +1,10 @@
 {
-  "name": "digital-flipbook--lifewood(apple-version)",
+  "name": "digital-flipbook-pwa",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -24,23 +24,17 @@
     "react-zoom-pan-pinch": "^3.7.0",
     "three": "^0.182.0",
     "tus-js-client": "^4.3.1",
-    "vanta": "^0.5.24"
+    "vanta": "^0.5.24",
+    "workbox-window": "^7.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vite-plugin-pwa": "^1.2.0"
-  },
-  "overrides": {
-    "tar": "^7.4.3",
-    "rimraf": "^6.0.1",
-    "glob": "^13.0.1",
-    "inflight": "npm:@isaacs/lru-cache@^1.0.3",
-    "npmlog": "npm:proc-log@^5.0.0",
-    "gauge": "npm:proc-log@^5.0.0",
-    "are-we-there-yet": "npm:proc-log@^5.0.0",
-    "node-domexception": "npm:noop2@^2.0.0"
+    "vite-plugin-mkcert": "^1.17.10",
+    "vite-plugin-pwa": "^0.21.1"
   }
 }

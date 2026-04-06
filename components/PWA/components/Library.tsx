@@ -1,0 +1,555 @@
+import React, { useState, useMemo } from 'react';
+import { Plus, Trash2, X, Check, Heart, Link2, Video, Clock, Search, ArrowUpDown, Pencil, FolderSync, Download } from 'lucide-react';
+import { LibraryBook, CustomCategory } from '../types';
+import type { LibraryFilter } from './Sidebar';
+import ShareLinkModal from './ShareLinkModal';
+import VideoLinksModal from './VideoLinksModal';
+import VideoGalleryModal from './VideoGalleryModal';
+import DeleteHistoryModal from './DeleteHistoryModal';
+import EditCategoryModal from './EditCategoryModal';
+import BulkTransferModal from './BulkTransferModal';
+import BulkActionConfirmationModal from './BulkActionConfirmationModal';
+import { BookCategory } from '../types';
+
+
+
+const BUILTIN_TITLES: Record<string, string> = {
+  all: 'Your Library',
+  favorites: 'Favorite Flipbooks',
+  philippines: 'Philippines Flipbooks',
+  internal: 'Internal Flipbooks',
+  international: 'International Flipbooks',
+  ph_interns: 'PH Interns Flipbooks',
+  deseret: 'Deseret Flipbooks',
+  angelhost: 'Angelhost Flipbooks',
+};
+
+interface LibraryProps {
+  books: LibraryBook[];
+  filter: LibraryFilter;
+  darkMode?: boolean;
+  isLoading?: boolean;
+  customCategories?: CustomCategory[];
+  onSelectBook: (book: LibraryBook) => void;
+  onAddNew: () => void;
+  onRemoveBook: (id: string) => void;
+  onRestoreBook?: () => void;
+  onCategoryEdited?: (updatedCat: CustomCategory, oldSlug: string) => void;
+  onBulkUpdateCategory?: (bookIds: string[], category?: BookCategory) => Promise<void>;
+  onBulkRemoveBooks?: (bookIds: string[]) => Promise<void>;
+}
+
+const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLoading = false, customCategories = [], onSelectBook, onAddNew, onRemoveBook, onRestoreBook, onCategoryEdited, onBulkUpdateCategory, onBulkRemoveBooks }) => {
+  const filteredBooks = useMemo(() => {
+    if (filter === 'all') return books;
+    if (filter === 'favorites') return books.filter(b => b.isFavorite);
+    return books.filter(b => b.category === filter);
+  }, [books, filter]);
+
+  // Resolve title: priority goes to custom title from DB, then built-in, then fallback
+  const customTitle = customCategories.find(c => c.slug === filter)?.name;
+  const sectionTitle = customTitle ? `${customTitle} Flipbooks` : (BUILTIN_TITLES[filter] || `${filter} Flipbooks`);
+  const [openingBookId, setOpeningBookId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showVideoLinksModal, setShowVideoLinksModal] = useState(false);
+  const [showVideoGallery, setShowVideoGallery] = useState(false);
+  const [showDeleteHistory, setShowDeleteHistory] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'az' | 'za' | 'most-pages' | 'fewest-pages'>('newest');
+  const [sortOpen, setSortOpen] = useState(false);
+
+  // For Edit Custom Category
+  const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
+
+  // Multi-selection state
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(new Set());
+  const [showBulkTransferModal, setShowBulkTransferModal] = useState(false);
+  const [activeBulkAction, setActiveBulkAction] = useState<'download' | 'delete' | null>(null);
+
+  const currentCustomCategory = customCategories.find(c => c.slug === filter);
+
+  // Apply search + sort
+  const sortedBooks = useMemo(() => {
+    let result = [...filteredBooks];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(b => b.name.toLowerCase().includes(q));
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'newest': break; // Already ordered by created_at desc from DB
+      case 'oldest': result.reverse(); break;
+      case 'az': result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'za': result.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case 'most-pages': result.sort((a, b) => b.totalPages - a.totalPages); break;
+      case 'fewest-pages': result.sort((a, b) => a.totalPages - b.totalPages); break;
+    }
+
+    return result;
+  }, [filteredBooks, searchQuery, sortBy]);
+
+  // Share slug: any non-special filter is a shareable category (built-in or user-created)
+  const shareSlug = (filter !== 'all' && filter !== 'favorites') ? filter : undefined;
+
+  const handleBookClick = (book: LibraryBook) => {
+    if (openingBookId || confirmingDeleteId) return;
+
+    if (isSelectionMode) {
+      const newSelected = new Set(selectedBookIds);
+      if (newSelected.has(book.id)) {
+        newSelected.delete(book.id);
+      } else {
+        newSelected.add(book.id);
+      }
+      setSelectedBookIds(newSelected);
+      return;
+    }
+
+    setOpeningBookId(book.id);
+    setTimeout(() => { onSelectBook(book); setOpeningBookId(null); }, 600);
+  };
+
+  const toggleSelectionMode = () => {
+    if (isSelectionMode) {
+      setSelectedBookIds(new Set());
+    }
+    setIsSelectionMode(!isSelectionMode);
+  };
+
+  const handleBulkTransfer = async (targetCategory: string) => {
+    if (onBulkUpdateCategory && selectedBookIds.size > 0) {
+      await onBulkUpdateCategory(Array.from(selectedBookIds), targetCategory);
+      setSelectedBookIds(new Set());
+      setIsSelectionMode(false);
+    }
+  };
+
+  const executeBulkDownload = async () => {
+    const selectedBooks = books.filter(b => selectedBookIds.has(b.id));
+    if (selectedBooks.length === 0) return;
+
+    for (const book of selectedBooks) {
+      try {
+        const response = await fetch(book.pdfUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = book.name.endsWith('.pdf') ? book.name : `${book.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        // Small delay to prevent browser from blocking multiple downloads
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (err) {
+        console.error(`Failed to download ${book.name}:`, err);
+      }
+    }
+    setSelectedBookIds(new Set());
+    setIsSelectionMode(false);
+  };
+
+  const executeBulkDelete = async () => {
+    if (onBulkRemoveBooks && selectedBookIds.size > 0) {
+      await onBulkRemoveBooks(Array.from(selectedBookIds));
+      setSelectedBookIds(new Set());
+      setIsSelectionMode(false);
+    }
+  };
+
+  const initiateDelete = (e: React.MouseEvent, id: string) => { e.stopPropagation(); setConfirmingDeleteId(id); };
+  const cancelDelete = (e: React.MouseEvent) => { e.stopPropagation(); setConfirmingDeleteId(null); };
+  const confirmDelete = (e: React.MouseEvent, id: string) => { e.stopPropagation(); onRemoveBook(id); setConfirmingDeleteId(null); };
+
+  return (
+    <div className={`w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12 transition-all duration-500 ${openingBookId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 md:mb-12">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div>
+            <h2 className={`text-lg sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {sectionTitle}
+            </h2>
+            <p className={`text-[10px] sm:text-sm mt-0.5 sm:mt-1 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>{filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''}</p>
+          </div>
+          {currentCustomCategory && (
+            <div className="flex pl-2 items-center gap-2">
+              <button
+                onClick={() => setCategoryToEdit(currentCustomCategory)}
+                className={`p-2 rounded-full transition-all shadow-sm ${darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/10 hover:border-lime-500/50 shadow-black/40' : 'bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 border border-gray-200'}`}
+                title="Edit Category"
+              >
+                <Pencil size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+          {shareSlug && (
+            <button
+              onClick={() => setShowShareModal(true)}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
+                ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-lime-500/50 hover:shadow-lime-500/20 shadow-black/40'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+                }`}
+            >
+              <Link2 size={14} className="sm:size-[16px]" />
+              <span className="hidden sm:inline">Share Category</span>
+              <span className="sm:hidden">Share</span>
+            </button>
+          )}
+          {shareSlug && (
+            <button
+              onClick={() => setShowVideoGallery(true)}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
+                ? 'bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/30 shadow-black/20'
+                : 'bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200'
+                }`}
+            >
+              <Video size={14} className="sm:size-[16px]" />
+              <span className="hidden sm:inline">Video Links</span>
+              <span className="sm:hidden">Videos</span>
+            </button>
+          )}
+          <button
+            onClick={() => setShowDeleteHistory(true)}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
+              ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 shadow-black/20'
+              : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+              }`}
+          >
+            <Clock size={16} />
+            <span className="hidden sm:inline">Delete History</span>
+          </button>
+          <button
+            onClick={onAddNew}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${darkMode
+              ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-lime-400 border border-white/10 hover:border-lime-500/50 hover:shadow-lime-500/20 shadow-black/40'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+              }`}
+          >
+            <Plus size={14} className="sm:size-[16px]" />
+            <span className="hidden sm:inline">Add PDF</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+          
+          <button
+            onClick={toggleSelectionMode}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+              isSelectionMode
+                ? darkMode ? 'bg-lime-500/20 text-lime-400 border border-lime-500/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : darkMode ? 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 border border-white/10 shadow-black/40' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
+            }`}
+          >
+            <Check size={16} className={isSelectionMode ? 'opacity-100' : 'opacity-40'} />
+            <span className="hidden sm:inline">{isSelectionMode ? 'Cancel Selection' : 'Select'}</span>
+          </button>
+
+          {selectedBookIds.size > 0 && (
+            <div className="flex items-center gap-2 animate-in slide-in-from-right-4">
+              <button
+                onClick={() => setActiveBulkAction('download')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg ${
+                  darkMode ? 'bg-lime-500/20 hover:bg-lime-500/30 text-lime-400 border border-lime-500/30' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                }`}
+                title="Bulk Download"
+              >
+                <Download size={16} />
+                Download ({selectedBookIds.size})
+              </button>
+
+              <button
+                onClick={() => setShowBulkTransferModal(true)}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
+                  darkMode ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
+                }`}
+                title="Bulk Transfer"
+              >
+                <FolderSync size={16} />
+                Transfer ({selectedBookIds.size})
+              </button>
+
+              <button
+                onClick={() => setActiveBulkAction('delete')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all active:scale-95 text-xs sm:text-sm font-medium shadow-lg animate-in slide-in-from-right-4 ${
+                  darkMode ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30' : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+                }`}
+                title="Bulk Delete"
+              >
+                <Trash2 size={16} />
+                Delete ({selectedBookIds.size})
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Search & Sort toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+        <div className={`flex items-center flex-1 max-w-full sm:max-w-sm gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl transition-all shadow-md ${darkMode
+          ? 'bg-zinc-900/80 border border-white/10 focus-within:border-lime-500/50 focus-within:ring-1 focus-within:ring-lime-500/50 shadow-black/40'
+          : 'bg-gray-100 border border-gray-200 focus-within:border-gray-300 focus-within:bg-white'
+          }`}>
+          <Search size={15} className={`flex-shrink-0 ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search books..."
+            className={`w-full bg-transparent outline-none text-sm ${darkMode ? 'text-zinc-200 placeholder:text-zinc-600' : 'text-gray-800 placeholder:text-gray-400'}`}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className={`p-0.5 rounded-full ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <div className="relative">
+          <button
+            onClick={() => setSortOpen(!sortOpen)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl cursor-pointer transition-all shadow-md ${darkMode
+              ? 'bg-zinc-900/80 border border-white/10 hover:border-lime-500/50 shadow-black/40'
+              : 'bg-gray-100 border border-gray-200 hover:bg-gray-50'
+              }`}
+          >
+            <ArrowUpDown size={14} className={`${darkMode ? 'text-zinc-500' : 'text-gray-400'}`} />
+            <span className={`text-sm ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
+              {{ newest: 'Newest First', oldest: 'Oldest First', az: 'A → Z', za: 'Z → A', 'most-pages': 'Most Pages', 'fewest-pages': 'Fewest Pages' }[sortBy]}
+            </span>
+          </button>
+          {sortOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+              <div className={`absolute right-0 top-full mt-2 z-50 min-w-[180px] rounded-2xl shadow-2xl border overflow-hidden ${darkMode
+                ? 'bg-[#1c1c20] border-white/[0.08] shadow-black/60'
+                : 'bg-white border-gray-200 shadow-gray-300/50'
+                }`}>
+                {([
+                  { value: 'newest', label: 'Newest First' },
+                  { value: 'oldest', label: 'Oldest First' },
+                  { value: 'az', label: 'A → Z' },
+                  { value: 'za', label: 'Z → A' },
+                  { value: 'most-pages', label: 'Most Pages' },
+                  { value: 'fewest-pages', label: 'Fewest Pages' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSortBy(opt.value); setSortOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === opt.value
+                      ? darkMode ? 'bg-white/[0.08] text-white font-medium' : 'bg-emerald-50 text-emerald-700 font-medium'
+                      : darkMode ? 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        {searchQuery && (
+          <span className={`text-xs ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
+            {sortedBooks.length} result{sortedBooks.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
+      {/* Skeleton loading */}
+      {isLoading && filteredBooks.length === 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className={`aspect-[3/4] rounded-2xl mb-3 ${darkMode ? 'bg-white/[0.04]' : 'bg-gray-200'}`} />
+              <div className={`h-3 rounded-full w-3/4 mb-2 ${darkMode ? 'bg-white/[0.04]' : 'bg-gray-200'}`} />
+              <div className={`h-2 rounded-full w-1/2 ${darkMode ? 'bg-white/[0.04]' : 'bg-gray-200'}`} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
+        {sortedBooks.map((book) => {
+          const isOpening = openingBookId === book.id;
+          const isConfirming = confirmingDeleteId === book.id;
+          const isSelected = selectedBookIds.has(book.id);
+
+          return (
+            <div
+              key={book.id}
+              className={`group cursor-pointer perspective-1000 ${isOpening ? 'z-50 pointer-events-none' : 'z-10'} col-span-1`}
+              onClick={() => handleBookClick(book)}
+            >
+              <div className={`relative mb-3 transition-all duration-500 ${isOpening ? 'animate-zoom-forward' : ''} aspect-[3/4]`}>
+                <div className={`w-full h-full relative transition-all duration-500 ease-out rounded-2xl overflow-hidden
+                  ${!isOpening && !isConfirming ? 'group-hover:-translate-y-2 group-hover:scale-[1.02]' : ''}
+                  ${isSelected ? (darkMode ? 'border-2 border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.3)]' : 'border-2 border-emerald-500 shadow-lg') : (darkMode ? 'border border-white/[0.06] group-hover:border-white/[0.12] bg-zinc-900/50' : 'border border-gray-200 group-hover:border-gray-300 bg-gray-100')}
+                  ${darkMode && !isSelected ? 'shadow-lg shadow-black/30 group-hover:shadow-xl group-hover:shadow-black/40' : !darkMode && !isSelected ? 'shadow-lg shadow-gray-200/60 group-hover:shadow-xl group-hover:shadow-gray-200/80' : ''}
+                `}>
+                  {/* Selection Overlay */}
+                  {isSelectionMode && (
+                    <div className={`absolute top-2.5 left-2.5 w-6 h-6 rounded-full border-2 z-30 flex items-center justify-center transition-all ${
+                      isSelected 
+                        ? 'bg-lime-500 border-lime-500 text-white scale-110' 
+                        : darkMode ? 'bg-black/20 border-white/30' : 'bg-white/50 border-gray-300'
+                    }`}>
+                      {isSelected && <Check size={14} strokeWidth={4} />}
+                    </div>
+                  )}
+
+                  {/* Cover Image */}
+                  <img src={book.coverUrl} alt={book.name} className="w-full h-full object-contain bg-black/5" loading="lazy" />
+
+                  {/* Dark gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                  {/* Favorite */}
+                  {book.isFavorite && !isSelectionMode && (
+                    <div className="absolute top-2.5 left-2.5 p-1.5 bg-black/40 backdrop-blur-md text-red-400 rounded-full z-20">
+                      <Heart size={12} fill="currentColor" />
+                    </div>
+                  )}
+
+                  {/* Remove Button */}
+                  {!isConfirming && !isOpening && !isSelectionMode && (
+                    <button
+                      onClick={(e) => initiateDelete(e, book.id)}
+                      className="absolute top-2.5 right-2.5 p-2 bg-black/40 hover:bg-red-500/80 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 z-30"
+                      title="Remove"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+
+                  {/* Delete Confirmation */}
+                  {isConfirming && (
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-4 text-center">
+                      <p className="text-white text-[10px] font-bold mb-4 uppercase tracking-widest">Delete?</p>
+                      <div className="flex gap-3">
+                        <button onClick={(e) => confirmDelete(e, book.id)} className="p-2.5 bg-red-600 text-white rounded-full hover:bg-red-500 transition-all active:scale-90 shadow-lg">
+                          <Check size={18} strokeWidth={3} />
+                        </button>
+                        <button onClick={cancelDelete} className="p-2.5 bg-white/15 text-white rounded-full hover:bg-white/25 transition-all active:scale-90">
+                          <X size={18} strokeWidth={3} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={`space-y-1 transition-all duration-300 mt-3 ${openingBookId ? 'opacity-0 translate-y-2' : 'opacity-100'}`}>
+                <h3 className={`text-[11px] sm:text-sm font-semibold transition-colors line-clamp-2 ${darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-slate-800 group-hover:text-slate-900'
+                  }`}>
+                  {book.name.replace('.pdf', '').replace(/_/g, ' ')}
+                </h3>
+                <p className={`text-[8px] sm:text-[10px] font-medium uppercase tracking-[0.12em] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+                  {book.totalPages} Pages
+                </p>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Empty State */}
+        {filteredBooks.length === 0 && !isLoading && (
+          <button
+            onClick={onAddNew}
+            className={`group aspect-[3/4] border border-dashed rounded-2xl flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:bg-emerald-500/[0.03] ${darkMode ? 'border-white/[0.08] hover:border-lime-500/30' : 'border-gray-200 hover:border-emerald-400'
+              }`}
+          >
+            <div className="p-5 rounded-full bg-white/[0.03] group-hover:bg-emerald-500/10 group-hover:scale-110 transition-all">
+              <Plus size={32} strokeWidth={1.5} className={`group-hover:text-emerald-500 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`} />
+            </div>
+            <div className="text-center">
+              <span className={`block text-sm font-medium ${darkMode ? 'text-zinc-500 group-hover:text-zinc-300' : 'text-gray-500 group-hover:text-gray-300'
+                }`}>
+                {filter === 'all' && books.length === 0 ? 'Add first book' : `No books yet`}
+              </span>
+              <span className={`text-[10px] uppercase tracking-widest ${darkMode ? 'text-zinc-700' : 'text-gray-300'}`}>Upload PDF</span>
+            </div>
+          </button>
+        )}
+      </div>
+
+      {shareSlug && (
+        <ShareLinkModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          linkType="category"
+          target={shareSlug}
+          title={`Share ${sectionTitle}`}
+          description="Anyone with this link can view and read these flipbooks."
+          darkMode={darkMode || false}
+        />
+      )}
+
+      {shareSlug && (
+        <VideoLinksModal
+          isOpen={showVideoLinksModal}
+          onClose={() => setShowVideoLinksModal(false)}
+          onBack={() => { setShowVideoLinksModal(false); setShowVideoGallery(true); }}
+          categorySlug={shareSlug}
+          categoryName={sectionTitle}
+          darkMode={darkMode || false}
+        />
+      )}
+
+      {shareSlug && (
+        <VideoGalleryModal
+          isOpen={showVideoGallery}
+          onClose={() => setShowVideoGallery(false)}
+          categorySlug={shareSlug}
+          categoryName={sectionTitle}
+          darkMode={darkMode || false}
+          onAddVideo={() => { setShowVideoGallery(false); setShowVideoLinksModal(true); }}
+        />
+      )}
+
+      <DeleteHistoryModal
+        isOpen={showDeleteHistory}
+        onClose={() => setShowDeleteHistory(false)}
+        category={filter !== 'all' && filter !== 'favorites' ? filter : undefined}
+        categoryName={sectionTitle}
+        darkMode={darkMode || false}
+        onRestore={onRestoreBook}
+      />
+
+      <EditCategoryModal
+        isOpen={!!categoryToEdit}
+        darkMode={darkMode || false}
+        category={categoryToEdit}
+        onClose={() => setCategoryToEdit(null)}
+        onCategoryEdited={(updatedCat, oldSlug) => {
+          if (onCategoryEdited) onCategoryEdited(updatedCat, oldSlug);
+        }}
+      />
+
+      <BulkTransferModal
+        isOpen={showBulkTransferModal}
+        onClose={() => setShowBulkTransferModal(false)}
+        selectedCount={selectedBookIds.size}
+        onConfirm={handleBulkTransfer}
+        darkMode={darkMode || false}
+        customCategories={customCategories}
+        currentCategory={filter}
+      />
+
+      <BulkActionConfirmationModal
+        isOpen={!!activeBulkAction}
+        onClose={() => setActiveBulkAction(null)}
+        onConfirm={activeBulkAction === 'download' ? executeBulkDownload : executeBulkDelete}
+        action={activeBulkAction || 'download'}
+        selectedCount={selectedBookIds.size}
+        darkMode={darkMode || false}
+      />
+
+    </div>
+  );
+};
+
+export default Library;
