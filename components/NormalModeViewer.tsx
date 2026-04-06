@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
 
 interface NormalModeViewerProps {
   pdfDocument: any;
@@ -44,6 +44,17 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
   const [renderedPages, setRenderedPages] = useState<Map<number, string | null>>(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const transformRef = useRef<ReactZoomPanPinchRef>(null);
+
+  // Sync zoomLevel prop with TransformWrapper scale
+  useEffect(() => {
+    if (transformRef.current) {
+      const scale = (zoomLevel ?? 100) / 100;
+      const { setTransform, instance } = transformRef.current;
+      const { positionX, positionY } = instance.transformState;
+      setTransform(positionX, positionY, scale, 200, "easeOut");
+    }
+  }, [zoomLevel]);
 
   // The page numbers (1-indexed) visible in this group
   const pageNums = Array.from({ length: groupSize }, (_, i) => groupStart + i + 1).filter(
@@ -76,7 +87,7 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
           await page.render({ canvasContext: ctx, viewport }).promise;
-          updates.set(pageNum, canvas.toDataURL('image/png'));
+          updates.set(pageNum, canvas.toDataURL('image/jpeg', 0.85));
           canvas.width = 0;
           canvas.height = 0;
         } catch {
@@ -156,6 +167,7 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
       </button>
 
       <TransformWrapper
+        ref={transformRef}
         initialScale={1}
         minScale={1}
         maxScale={6}
@@ -169,23 +181,14 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           wrapperStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
           contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <div
-            className="relative touch-none"
-            style={{
-              transform: `scale(${scale})`,
-              transformOrigin: 'center center',
-              transition: 'transform 0.2s ease',
-            }}
-          >
+          <div className="relative touch-none">
             <div
               className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}
               style={{
-                // Responsive dimensions: 
-                // Mobile (isMobile): Wider and taller for vertical stack
-                // Desktop: Wider overall for 2x2 grid
-                width: isMobile ? 'min(92vw, calc(85vh * 0.7))' : 'min(calc(96vw - 160px), calc(92vh * 1.6))',
-                height: isMobile ? 'min(calc(92vw / 0.7), 85vh)' : 'min(calc((96vw - 160px) / 1.6), 92vh)',
-                gap: isMobile ? '12px' : '16px',
+                // Maximized for mobile: almost full width and more vertical space
+                width: isMobile ? 'min(98vw, calc(95vh * 0.75))' : 'min(calc(96vw - 160px), calc(92vh * 1.6))',
+                height: isMobile ? 'min(calc(98vw / 0.75), 95vh)' : 'min(calc((96vw - 160px) / 1.6), 92vh)',
+                gap: isMobile ? '8px' : '16px',
               }}
             >
               {slots.map((slot, idx) => (

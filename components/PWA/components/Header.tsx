@@ -81,8 +81,8 @@ const Header: React.FC<HeaderProps> = ({
           {/* Right: toolbar */}
           <div className="flex items-center gap-0 sm:gap-0.5 shrink-0 ml-1 sm:ml-2">
 
-            {/* View Mode Toggle — landscape only */}
-            {readerOrientation === 'landscape' && onToggleReaderViewMode && (
+            {/* View Mode Toggle */}
+            {onToggleReaderViewMode && (
               <>
                 <div
                   className={`flex items-center rounded-lg p-0.5 border mr-0.5 ${

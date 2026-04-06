@@ -834,8 +834,8 @@ const App: React.FC = () => {
               selectedBook && (
                 <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative ${readerFullscreen ? '' : 'pt-14'}`}>
 
-                  {/* Normal (4-up grid) Mode — landscape only */}
-                  {readerViewMode === 'normal' && selectedBook.orientation === 'landscape' ? (
+                  {/* Normal (Grid/Stack) Mode */}
+                  {readerViewMode === 'normal' ? (
                     <div className="flex-1 w-full h-full min-h-0 relative z-10">
                       <NormalModeViewer
                         pdfDocument={selectedBook.doc}

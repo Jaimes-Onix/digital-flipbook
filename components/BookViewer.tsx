@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, forwardRef, useCallback, useMemo } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Loader2, ChevronLeft, ChevronRight, X, Search, Grid3X3, Play, Pause, ZoomOut, ZoomIn, Minimize, Maximize } from 'lucide-react';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch';
 import TrifoldViewer from './TrifoldViewer';
 
 
@@ -481,8 +481,20 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const scaleRef = useRef(1);
 
-  const scale = baseScale * (zoomLevel / 100);
+  const scale = (zoomLevel / 100);
   scaleRef.current = scale;
+
+  const transformRef = useRef<ReactZoomPanPinchRef>(null);
+
+  // Sync zoomLevel prop with TransformWrapper scale
+  useEffect(() => {
+    if (transformRef.current) {
+      const targetScale = (zoomLevel ?? 100) / 100;
+      const { setTransform, instance } = transformRef.current;
+      const { positionX, positionY } = instance.transformState;
+      setTransform(positionX, positionY, targetScale, 200, "easeOut");
+    }
+  }, [zoomLevel]);
 
   // Extract text from all pages when search opens
   useEffect(() => {
@@ -688,8 +700,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-          // Use PNG for lossless encoding — eliminates all JPEG compression artifacts on text
-          const dataUrl = canvas.toDataURL('image/png');
+           // Use JPEG for performance — significantly reduces memory and string size
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
           
           setPageImages(prev => {
             const next = new Map(prev);
@@ -898,7 +910,8 @@ const BookViewer: React.FC<BookViewerProps> = ({
           <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
         </button>
 
-        <TransformWrapper
+         <TransformWrapper
+          ref={transformRef}
           initialScale={1}
           minScale={1} // Prevent zooming out smaller than the default fit!
           maxScale={6}
@@ -908,9 +921,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
           wheel={{ step: 0.1, wheelDisabled: false }} // PC wheel to zoom
           panning={{
             disabled: false,
-            // We remove activationKeys so mobile users can pan without keyboards!
-            // react-pageflip uses swipe left/right, and TransformWrapper panning 
-            // only takes over if scale > 1 basically (if content is bounded).
           }}
         >
             <TransformComponent
@@ -948,12 +958,13 @@ const BookViewer: React.FC<BookViewerProps> = ({
                       />
                     </div>
                   ) : (
-                    <div
+                     <div
                       className="book-3d-container relative"
                       style={{
                         width: isSinglePage ? pageW : pageW * 2,
                         height: pageH,
-                        transform: `scale(${scale})`, // Keep manual zoomLevel integration
+                        transform: `scale(${baseScale})`, // Static fit-to-screen scale
+                        transformOrigin: 'center center',
                       }}
                     >
                       <HTMLFlipBook

@@ -140,7 +140,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 
               {/* Left side — Book Cover */}
               <div className={`flex-shrink-0 flex items-center justify-center p-5 md:p-14 ${darkMode ? 'bg-black/20' : 'bg-gray-50/80'} md:w-[380px] lg:w-[420px]`}>
-                <div className={`relative ${book.orientation === 'landscape' ? 'w-full max-w-[180px] md:max-w-xs md:w-80 aspect-[4/3]' : 'w-full max-w-[140px] md:max-w-[280px] md:w-72 aspect-[3/4]'}`}>
+                <div className={`relative ${book.orientation === 'landscape' ? 'w-full max-w-[85vw] md:max-w-xs md:w-80 aspect-[4/3]' : 'w-full max-w-[70vw] md:max-w-[280px] md:w-72 aspect-[3/4]'}`}>
                   {/* Decorative background layers for "thick book" effect (Portrait Only) */}
                   {book.orientation === 'portrait' && (
                     <>
