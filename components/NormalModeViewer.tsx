@@ -19,20 +19,34 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
   currentStartPage = 0,
   onPageChange,
 }) => {
-  const totalPages = pdfDocument?.numPages ?? 0;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // groupStart is the index of the top-left page in the 2x2 grid (0-indexed, steps of 4)
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const totalPages = pdfDocument?.numPages ?? 0;
+  const groupSize = isMobile ? 2 : 4;
+
+  // groupStart is the index of the first page in the group (0-indexed, steps of groupSize)
   const [groupStart, setGroupStart] = useState<number>(() => {
     const clamped = Math.max(0, currentStartPage);
-    return Math.floor(clamped / 4) * 4;
+    return Math.floor(clamped / groupSize) * groupSize;
   });
+
+  // Re-calculate groupStart when groupSize changes (e.g., rotation/resize)
+  useEffect(() => {
+    setGroupStart(prev => Math.floor(prev / groupSize) * groupSize);
+  }, [groupSize]);
 
   const [renderedPages, setRenderedPages] = useState<Map<number, string | null>>(new Map());
   const [loading, setLoading] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // The 4 page numbers (1-indexed) visible in this group
-  const pageNums = Array.from({ length: 4 }, (_, i) => groupStart + i + 1).filter(
+  // The page numbers (1-indexed) visible in this group
+  const pageNums = Array.from({ length: groupSize }, (_, i) => groupStart + i + 1).filter(
     (n) => n >= 1 && n <= totalPages
   );
 
@@ -87,23 +101,23 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
   }, [groupStart, pdfDocument]);
 
   const canGoPrev = groupStart > 0;
-  const canGoNext = groupStart + 4 < totalPages;
+  const canGoNext = groupStart + groupSize < totalPages;
 
   const goPrev = useCallback(() => {
     if (!canGoPrev) return;
-    const next = groupStart - 4;
+    const next = Math.max(0, groupStart - groupSize);
     setGroupStart(next);
     onFlip(next);
     onPageChange?.(next);
-  }, [canGoPrev, groupStart, onFlip, onPageChange]);
+  }, [canGoPrev, groupStart, onFlip, onPageChange, groupSize]);
 
   const goNext = useCallback(() => {
     if (!canGoNext) return;
-    const next = groupStart + 4;
+    const next = groupStart + groupSize;
     setGroupStart(next);
     onFlip(next);
     onPageChange?.(next);
-  }, [canGoNext, groupStart, onFlip, onPageChange]);
+  }, [canGoNext, groupStart, onFlip, onPageChange, groupSize]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -119,13 +133,11 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
 
   const scale = (zoomLevel ?? 100) / 100;
 
-  // Labels: top-left=page 1, top-right=page 2, bottom-left=page 3, bottom-right=page 4
-  const slots: Array<{ label: string; pageNum: number | null }> = [
-    { label: 'one', pageNum: groupStart + 1 <= totalPages ? groupStart + 1 : null },
-    { label: 'two', pageNum: groupStart + 2 <= totalPages ? groupStart + 2 : null },
-    { label: 'three', pageNum: groupStart + 3 <= totalPages ? groupStart + 3 : null },
-    { label: 'four', pageNum: groupStart + 4 <= totalPages ? groupStart + 4 : null },
-  ];
+  // Slots based on group size
+  const slots: Array<{ label: string; pageNum: number | null }> = Array.from({ length: groupSize }, (_, i) => ({
+    label: `page-${i + 1}`,
+    pageNum: groupStart + i + 1 <= totalPages ? groupStart + i + 1 : null
+  }));
 
   return (
     <div
@@ -166,12 +178,14 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
             }}
           >
             <div
-              className="grid grid-cols-2"
+              className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}
               style={{
-                // Fill as much of the viewport as possible (96%), account for nav arrows (~80px each side)
-                width: 'min(calc(96vw - 160px), calc(92vh * 1.6))',
-                height: 'min(calc((96vw - 160px) / 1.6), 92vh)',
-                gap: '12px',
+                // Responsive dimensions: 
+                // Mobile (isMobile): Wider and taller for vertical stack
+                // Desktop: Wider overall for 2x2 grid
+                width: isMobile ? 'min(92vw, calc(85vh * 0.7))' : 'min(calc(96vw - 160px), calc(92vh * 1.6))',
+                height: isMobile ? 'min(calc(92vw / 0.7), 85vh)' : 'min(calc((96vw - 160px) / 1.6), 92vh)',
+                gap: isMobile ? '12px' : '16px',
               }}
             >
               {slots.map((slot, idx) => (
@@ -232,7 +246,7 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
 
       {/* Page range label */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/30 font-medium tracking-wide pointer-events-none">
-        Pages {groupStart + 1}–{Math.min(groupStart + 4, totalPages)} of {totalPages}
+        Pages {groupStart + 1}–{Math.min(groupStart + groupSize, totalPages)} of {totalPages}
       </div>
 
       {/* Navigation - Next */}

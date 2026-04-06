@@ -151,7 +151,10 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 
                   {/* Actual Cover */}
                   <div className={`relative h-full rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/[0.06] ${darkMode ? 'bg-zinc-900/80' : 'bg-gray-100'}`}>
-                    <img src={book.coverUrl} alt={book.name} className="w-full h-full object-cover" />
+                    {/* Blurred Background Fallback */}
+                    <img src={book.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 blur-xl scale-110" />
+                    {/* Main Cover Image */}
+                    <img src={book.coverUrl} alt={book.name} className="relative w-full h-full object-contain z-10" />
                   </div>
                 </div>
               </div>
