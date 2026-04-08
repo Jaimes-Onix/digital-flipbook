@@ -169,7 +169,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
               </div>
 
               {/* Right side — Details */}
-              <div className="flex-1 p-6 md:p-10 pt-2 md:pt-8 overflow-y-auto max-h-[60vh] md:max-h-[70vh] no-scrollbar">
+              <div className="flex-1 p-5 md:p-10 pt-2 md:pt-8 overflow-y-auto max-h-[60vh] md:max-h-[70vh] no-scrollbar">
 
                 {/* Settings & Actions Reveal */}
                 {!isEditingName && (
@@ -259,7 +259,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-start gap-2 mb-2 group cursor-pointer" onClick={onUpdateName ? handleStartEditing : undefined}>
-                    <h3 className={`text-lg sm:text-2xl font-bold leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <h3 className={`text-base sm:text-2xl font-bold leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {book.name.replace('.pdf', '').replace(/_/g, ' ')}
                     </h3>
                     {onUpdateName && (
@@ -273,20 +273,20 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                   </div>
                 )}
 
-                <p className={`text-[12px] mb-2 uppercase tracking-widest font-medium ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
+                <p className={`text-[11px] mb-1.5 uppercase tracking-widest font-medium ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>
                   {book.totalPages} Pages
                 </p>
                 {book.createdAt && (
-                  <div className={`flex flex-col gap-1.5 mb-6 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`}>
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={15} />
-                      <span className="text-[13px] font-medium">
+                  <div className={`flex flex-col gap-1.5 mb-4 ${darkMode ? 'text-lime-400' : 'text-emerald-600'}`}>
+                    <div className="flex items-center gap-1.2">
+                      <Calendar size={13} />
+                      <span className="text-[12px] font-medium">
                         Date Added: {new Date(book.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock size={15} className={darkMode ? 'text-lime-400/70' : 'text-emerald-600/70'} />
-                      <span className={`text-[12px] font-medium ${darkMode ? 'text-lime-400/70' : 'text-emerald-600/70'}`}>
+                    <div className="flex items-center gap-1.2">
+                      <Clock size={13} className={darkMode ? 'text-lime-400/70' : 'text-emerald-600/70'} />
+                      <span className={`text-[11px] font-medium ${darkMode ? 'text-lime-400/70' : 'text-emerald-600/70'}`}>
                         Time Added: {new Date(book.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                       </span>
                     </div>
@@ -295,21 +295,18 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 
                 {/* Orientation Display or Selection */}
                 {onUpdateOrientation && (
-                  <div className="mb-6">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-orange-500/80' : 'text-orange-600/80'}`}>Orientation</p>
-
+                  <div className="mb-2.5 sm:mb-4">
                     {!isChangingOrientation ? (
-                      <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setIsChangingOrientation(true)}>
-                        <span className={`text-lg sm:text-xl font-bold transition-colors ${darkMode ? 'text-orange-400 group-hover:text-orange-300' : 'text-orange-600 group-hover:text-orange-700'}`}>
+                      <div className="flex items-center gap-1.5 cursor-pointer group" onClick={() => setIsChangingOrientation(true)}>
+                        <p className={`text-xs sm:text-[11px] font-bold uppercase tracking-[0.15em] ${darkMode ? 'text-orange-500/80' : 'text-orange-600/80'}`}>Orientation:</p>
+                        <span className={`text-xs sm:text-xl font-bold transition-colors ${darkMode ? 'text-orange-400 group-hover:text-orange-300' : 'text-orange-600 group-hover:text-orange-700'}`}>
                           {ORIENTATION_OPTIONS.find(o => o.value === (book.orientation || 'portrait'))?.label}
                         </span>
-                        <div className={`p-1 rounded-full transition-all opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600'}`}>
-                          <Pencil size={14} />
-                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="flex flex-wrap gap-2.5">
+                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <p className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] mb-1 ${darkMode ? 'text-orange-500/80' : 'text-orange-600/80'}`}>Select Orientation</p>
+                        <div className="flex flex-wrap gap-2">
                           {ORIENTATION_OPTIONS.map(({ value, label }) => {
                             const isSelected = book.orientation === value || (!book.orientation && value === 'portrait');
                             return (
@@ -319,7 +316,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                                   onUpdateOrientation(book.id, value);
                                   setIsChangingOrientation(false);
                                 }}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${isSelected
+                                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer border ${isSelected
                                   ? darkMode
                                     ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.15)]'
                                     : 'bg-orange-50 text-orange-700 border-orange-200'
@@ -335,7 +332,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                         </div>
                         <button
                           onClick={() => setIsChangingOrientation(false)}
-                          className={`text-sm tracking-wide ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
+                          className={`text-xs sm:text-sm tracking-wide ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
                         >
                           Cancel
                         </button>
@@ -346,12 +343,11 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
 
                 {/* Category Display or Selection */}
                 {onUpdateCategory && (
-                  <div className="mb-6">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Category</p>
-
+                  <div className="mb-4">
                     {!isTransferring ? (
-                      <div className="flex items-center gap-4">
-                        <span className={`text-lg sm:text-xl font-bold ${darkMode ? (book.category ? 'text-white' : 'text-zinc-500') : (book.category ? 'text-gray-900' : 'text-gray-400')}`}>
+                      <div className="flex items-center gap-1.5">
+                        <p className={`text-xs sm:text-[11px] font-bold uppercase tracking-[0.15em] ${darkMode ? 'text-zinc-600' : 'text-gray-400'}`}>Category:</p>
+                        <span className={`text-xs sm:text-xl font-bold ${darkMode ? (book.category ? 'text-white' : 'text-zinc-500') : (book.category ? 'text-gray-900' : 'text-gray-400')}`}>
                           {book.category
                             ? (CATEGORY_OPTIONS.find(c => c.value === book.category)?.label || customCategories.find(c => c.slug === book.category)?.name || book.category)
                             : "Uncategorized"}
@@ -441,22 +437,22 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                 )}
 
                 {/* Action Buttons */}
-                <div className="space-y-4 mt-6">
-                  <div className="flex gap-3">
+                <div className="space-y-2.5 sm:space-y-4 mt-3 sm:mt-6">
+                  <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={() => onSelectMode('manual')}
                       disabled={isLoadingBook}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-[11px] sm:text-base font-bold transition-all active:scale-[0.98] shadow-lg group disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-white hover:bg-zinc-100 text-zinc-900 shadow-white/5' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-300/30'
                         }`}
                     >
                       {isLoadingBook ? (
                         <>
-                          <Loader2 size={16} className="animate-spin sm:w-5 sm:h-5" />
+                          <Loader2 size={14} className="animate-spin sm:w-5 sm:h-5" />
                           <span>Loading...</span>
                         </>
                       ) : (
                         <>
-                          <BookOpen size={18} className="transition-transform group-hover:scale-110 sm:w-5 sm:h-5" />
+                          <BookOpen size={14} className="transition-transform group-hover:scale-110 sm:w-5 sm:h-5" />
                           <span>Read Now</span>
                         </>
                       )}
@@ -465,24 +461,24 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                     {onUpdateCategory && (
                       <button
                         onClick={() => setIsTransferring(!isTransferring)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold transition-all active:scale-[0.98] shadow-lg ${isTransferring
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 sm:py-4 rounded-xl sm:rounded-2xl text-[11px] sm:text-base font-bold transition-all active:scale-[0.98] shadow-lg ${isTransferring
                           ? (darkMode ? 'bg-white/[0.15] text-white border border-white/20' : 'bg-gray-200 text-gray-800 border-gray-300')
                           : (darkMode ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]' : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-300')
                           }`}
                       >
-                        <FolderSync size={18} className="sm:w-5 sm:h-5" />
+                        <FolderSync size={14} className="sm:w-5 sm:h-5" />
                         <span>Transfer Book</span>
                       </button>
                     )}
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={() => setShowShareModal(true)}
-                      className={`w-full flex items-center justify-center gap-2 sm:gap-3 py-3.5 sm:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-lg font-semibold transition-all active:scale-[0.98] ${darkMode ? 'bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 border border-lime-500/20' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      className={`w-full flex items-center justify-center gap-2 sm:gap-3 py-2.5 sm:py-5 rounded-xl sm:rounded-2xl text-[13px] sm:text-lg font-semibold transition-all active:scale-[0.98] ${darkMode ? 'bg-lime-500/10 hover:bg-lime-500/20 text-lime-400 border border-lime-500/20' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
                         }`}
                     >
-                      <Share2 size={18} className="sm:w-5 sm:h-5" /> Share Book
+                      <Share2 size={15} className="sm:w-5 sm:h-5" /> Share Book
                     </button>
                   </div>
                 </div>

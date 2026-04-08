@@ -35,7 +35,7 @@ interface PanelProps {
     imageUrl?: string;
 }
 
-const PDFPanel: React.FC<PanelProps> = ({
+const PDFPanel: React.FC<PanelProps> = React.memo(({
     pdfDocument, pageNumber, width, height, clipThirds, clipIndex, lazy, className = '', style = {}, imageUrl
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -60,16 +60,17 @@ const PDFPanel: React.FC<PanelProps> = ({
                 const page = await pdfDocument.getPage(pageNumber);
                 if (!active) return;
 
-                // Adaptive Scaling: calculate exactly what we need for the current width/height
-                // We add a huge buffer (2.5x) to guarantee perfect crispness when zoomed/scaled by CSS
-                const viewport1 = page.getViewport({ scale: 1 });
-                const baseWidth = clipThirds ? (viewport1.width / 3) : viewport1.width;
-                let fitScale = Math.max(width / baseWidth, height / viewport1.height) * 2.5;
+                const natural = viewport1;
+                const baseWidth = clipThirds ? (natural.width / 3) : natural.width;
+                
+                // OPTIMIZATION: Reduce the "crispness" multiplier on mobile to save memory/crashes
+                const isMobileOrTablet = window.innerWidth < 1024;
+                const multiplier = isMobileOrTablet ? 1.5 : 2.5;
+                let fitScale = Math.max(width / baseWidth, height / natural.height) * multiplier;
 
                 let viewport = page.getViewport({ scale: fitScale });
-                // Cap to prevent mobile/tablet crashes — lower limit on small screens
-                const isMobileOrTablet = window.innerWidth < 1024;
-                const maxDim = isMobileOrTablet ? 2048 : 4500;
+                // Cap to prevent mobile/tablet crashes
+                const maxDim = isMobileOrTablet ? 1536 : 4096;
                 if (viewport.width > maxDim || viewport.height > maxDim) {
                     const maxScale = maxDim / Math.max(viewport1.width, viewport1.height);
                     fitScale = Math.min(fitScale, maxScale);
@@ -111,7 +112,12 @@ const PDFPanel: React.FC<PanelProps> = ({
 
         return () => {
             active = false;
-            if (renderTask) renderTask.cancel();
+            if (renderTask) try { renderTask.cancel(); } catch(_) {}
+            // OPTIMIZATION: Explicitly clear canvas memory on unmount
+            if (canvasRef.current) {
+                canvasRef.current.width = 0;
+                canvasRef.current.height = 0;
+            }
         };
     }, [pdfDocument, pageNumber, width, height, clipThirds, clipIndex, lazy]);
 
@@ -161,7 +167,9 @@ const PDFPanel: React.FC<PanelProps> = ({
             }} />
         </div>
     );
-};
+});
+
+PDFPanel.displayName = 'PDFPanel';
 
 
 // -----------------------------------------------------------------------------

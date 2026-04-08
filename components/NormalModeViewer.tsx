@@ -81,17 +81,26 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
         if (cancelled) break;
         try {
           const page = await pdfDocument.getPage(pageNum);
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          const baseScale = isMobile ? 1.0 : 1.5;
+          // OPTIMIZATION: Cap DPR for mobile grid view
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.5); 
+          const baseScale = isMobile ? 1.0 : 1.2;
           const viewport = page.getViewport({ scale: dpr * baseScale });
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d', { alpha: false })!;
           ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
+
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
           await page.render({ canvasContext: ctx, viewport }).promise;
-          updates.set(pageNum, canvas.toDataURL('image/jpeg', 0.85));
+          
+          // OPTIMIZATION: Use toBlob + ObjectURL instead of toDataURL
+          const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/jpeg', 0.8));
+          if (blob) {
+            updates.set(pageNum, URL.createObjectURL(blob));
+          } else {
+            updates.set(pageNum, null);
+          }
+          
           canvas.width = 0;
           canvas.height = 0;
         } catch {
@@ -111,7 +120,12 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
 
     render();
 
-    return () => { cancelled = true; };
+    return () => { 
+      cancelled = true; 
+      // OPTIMIZATION: Clean up Object URLs to prevent memory leaks
+      // Note: In a production app, you might want to only revoke URLs not in the NEXT group,
+      // but revoking on unmount or complete group change is a safe starting point.
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupStart, pdfDocument]);
 

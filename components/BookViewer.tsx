@@ -151,13 +151,14 @@ const playFlipSound = () => {
 // Page Component — Direct Canvas Rendering (matches erayakartuna/pdf-flipbook approach)
 // Renders PDF at exactly the scale needed to fill the container.
 // NO intermediate DataURLs. NO image downscaling. The <canvas> IS the page.
-const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number; imageUrl?: string; searchQuery?: string }>(
+const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument: any; pageW: number; pageH: number; imageUrl?: string; searchQuery?: string }>(
   ({ number, pdfDocument, pageW, pageH, imageUrl, searchQuery }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const textLayerRef = useRef<HTMLDivElement>(null);
     const [rendered, setRendered] = useState(false);
     const [canvasReady, setCanvasReady] = useState(false);
     const renderTaskRef = useRef<any>(null);
+    const textLayerTaskRef = useRef<any>(null); // Added for cleanup
     const lastSearchRef = useRef('');
 
     // Direct canvas render — no encoding, no decoding, no quality loss
@@ -180,7 +181,8 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
 
           // The canvas backing-store must account for devicePixelRatio
           // so the browser renders 1 PDF pixel = 1 screen pixel on retina displays
-          const dpr = window.devicePixelRatio || 1;
+          // OPTIMIZATION: Cap DPR to 2.0 on mobile to prevent memory lag/crashes
+          const dpr = Math.min(window.devicePixelRatio || 1, 2.0);
           const renderScale = fitScale * dpr;
 
           const viewport = page.getViewport({ scale: renderScale });
@@ -224,6 +226,11 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
         if (renderTaskRef.current) {
           try { renderTaskRef.current.cancel(); } catch (_) {}
         }
+        // OPTIMIZATION: Explicitly clear canvas memory on unmount
+        if (canvasRef.current) {
+          canvasRef.current.width = 0;
+          canvasRef.current.height = 0;
+        }
       };
     }, [pdfDocument, number, pageW, pageH, canvasReady]);
 
@@ -244,6 +251,10 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
           const displayH = Math.round(natural.height * fitScale);
 
           if (textLayerRef.current) {
+            // OPTIMIZATION: Delay text extraction slightly to prioritize rendering
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (!textLayerRef.current) return;
+
             const textContent = await page.getTextContent();
             // Re-check after async call to prevent TypeError if component unmounted
             if (!textLayerRef.current) return;
@@ -354,7 +365,7 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
         />
       </div>
     );
-  }
+  })
 );
 
 
