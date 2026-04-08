@@ -31,7 +31,7 @@ const App: React.FC = () => {
               className="relative"
             >
               <div className="absolute inset-0 bg-[#ccff00]/20 blur-[50px] rounded-full animate-pulse" />
-              <img src="/Digital Logo.png" alt="Logo" className="w-32 h-32 relative z-10 drop-shadow-2xl" />
+              <img src="/digital-logo.png" alt="Logo" className="w-32 h-32 relative z-10 drop-shadow-2xl" />
             </motion.div>
             
             <motion.h1 

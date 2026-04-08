@@ -421,7 +421,7 @@ const SignIn: React.FC = () => {
             {/* Form */}
             <div className="w-full max-w-[340px] space-y-8">
               <div className="flex justify-center -mb-4">
-                <img src="/Digital Logo.png" alt="Digital Logo" className="h-[80px] w-auto drop-shadow-xl" />
+                <img src="/digital-logo.png" alt="Digital Logo" className="h-[80px] w-auto drop-shadow-xl" />
               </div>
               <div className={`w-fit py-2.5 px-8 rounded-full flex items-center justify-center mx-auto ${dark ? 'bg-white' : 'bg-white border border-gray-100 shadow-sm'}`}>
                 <img src="/Lifewood_Transparent_LOGO.png" alt="Lifewood Logo" className="h-[28px] w-auto" />

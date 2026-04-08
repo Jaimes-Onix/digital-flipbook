@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import ReloadPrompt from './ReloadPrompt';
-import { Download, X } from 'lucide-react';
+import { Download, X, Share, MoreVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PWAHandler: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [showInstallBanner, setShowInstallBanner] = useState(false);
+    const [isIOS, setIsIOS] = useState(false);
+    const [isAndroid, setIsAndroid] = useState(false);
 
     useEffect(() => {
+        // Device detection
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        const ios = /iphone|ipad|ipod/.test(userAgent);
+        const android = /android/.test(userAgent);
+        setIsIOS(ios);
+        setIsAndroid(android);
+
         const handler = (e: any) => {
             // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
             // Stash the event so it can be triggered later.
             setDeferredPrompt(e);
-            // Check if user has already dismissed it this session
+            
+            // Show the banner if not dismissed
             const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
             if (!isDismissed) {
                 setShowInstallBanner(true);
@@ -22,22 +32,35 @@ const PWAHandler: React.FC = () => {
 
         window.addEventListener('beforeinstallprompt', handler);
 
-        return () => window.removeEventListener('beforeinstallprompt', handler);
-    }, []);
+        // Fallback for iOS or mobile devices where beforeinstallprompt doesn't fire
+        // Show after 3 seconds if on mobile and not dismissed
+        const timer = setTimeout(() => {
+            const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
+            if (!isDismissed && (ios || android) && !deferredPrompt) {
+                setShowInstallBanner(true);
+            }
+        }, 3000);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handler);
+            clearTimeout(timer);
+        };
+    }, [deferredPrompt]);
 
     const handleInstall = async () => {
-        if (!deferredPrompt) return;
-        
-        // Show the prompt
-        deferredPrompt.prompt();
-        
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        
-        // We've used the prompt, and can't use it again, throw it away
-        setDeferredPrompt(null);
-        setShowInstallBanner(false);
+        if (deferredPrompt) {
+            // Show the native prompt
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response: ${outcome}`);
+            setDeferredPrompt(null);
+            setShowInstallBanner(false);
+        } else if (isIOS) {
+            // iOS manual instructions are shown in the UI
+        } else {
+            // Android manual instructions fallback
+            alert("To install: Tap the three dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen'.");
+        }
     };
 
     const handleDismiss = () => {
@@ -65,12 +88,14 @@ const PWAHandler: React.FC = () => {
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
-                                        <img src="/Digital Logo.png" alt="App Icon" className="w-8 h-8 object-contain" />
+                                        <img src="/digital-logo.png" alt="App Icon" className="w-8 h-8 object-contain" />
                                     </div>
                                     <div className="flex flex-col">
                                         <h3 className="text-sm font-bold text-white leading-tight">Install LifeBook</h3>
                                         <p className="text-xs text-white/50 leading-relaxed mt-0.5">
-                                            Add to your home screen for a better mobile experience.
+                                            {isIOS 
+                                                ? "Run LifeBook as a standalone app." 
+                                                : "Get the best experience by installing our app."}
                                         </p>
                                     </div>
                                 </div>
@@ -82,15 +107,35 @@ const PWAHandler: React.FC = () => {
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-3 w-full">
+                            {isIOS ? (
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5 space-y-2">
+                                    <p className="text-[11px] text-white/70 flex items-center gap-2">
+                                        1. Tap the <Share size={14} className="text-blue-400" /> Share button below
+                                    </p>
+                                    <p className="text-[11px] text-white/70">
+                                        2. Scroll down and tap "Add to Home Screen"
+                                    </p>
+                                </div>
+                            ) : deferredPrompt ? (
                                 <button
                                     onClick={handleInstall}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ccff00] text-black rounded-xl text-xs font-bold hover:bg-[#b8e600] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ccff00] text-black rounded-xl text-xs font-bold hover:bg-[#b8e600] transition-all hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                     <Download className="w-3.5 h-3.5" />
-                                    Install App
+                                    Install App Now
                                 </button>
-                            </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                        <p className="text-[11px] text-white/70 flex items-center flex-wrap gap-x-1.5 leading-relaxed">
+                                            Tap the <MoreVertical size={14} className="inline" /> menu in Chrome and select <span className="text-[#ccff00] font-bold">"Install app"</span> or <span className="text-[#ccff00] font-bold">"Add to Home screen"</span>
+                                        </p>
+                                    </div>
+                                    <p className="text-[10px] text-white/30 text-center italic">
+                                        Note: Requires HTTPS connection for automatic prompt.
+                                    </p>
+                                </div>
+                            )}
                         </motion.div>
                     </div>
                 )}

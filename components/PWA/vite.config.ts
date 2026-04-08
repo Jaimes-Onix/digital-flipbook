@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
+import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '../../', ''); // Load env from root
@@ -9,9 +10,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      mkcert(),
       VitePWA({
         registerType: 'prompt',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'Digital Logo.png'],
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'digital-logo.png'],
         manifest: {
           name: 'PH LifeBook Mobile',
           short_name: 'LifeBook',
@@ -24,13 +26,13 @@ export default defineConfig(({ mode }) => {
           scope: '/',
           icons: [
             {
-              src: 'Digital Logo.png',
+              src: 'digital-logo.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any'
             },
             {
-              src: 'Digital Logo.png',
+              src: 'digital-logo.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable'
@@ -54,6 +56,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3001,
       host: true,
+      https: {},
       proxy: {
         '/supabase-storage': {
           target: 'https://gikpzgdmxjqapioutsmo.supabase.co',
