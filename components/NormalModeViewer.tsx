@@ -56,6 +56,9 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
     }
   }, [zoomLevel]);
 
+  const [isZoomed, setIsZoomed] = useState(false);
+  const touchStartRef = useRef<number>(0);
+
   // The page numbers (1-indexed) visible in this group
   const pageNums = Array.from({ length: groupSize }, (_, i) => groupStart + i + 1).filter(
     (n) => n >= 1 && n <= totalPages
@@ -79,7 +82,8 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
         try {
           const page = await pdfDocument.getPage(pageNum);
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          const viewport = page.getViewport({ scale: dpr * 1.5 });
+          const baseScale = isMobile ? 1.0 : 1.5;
+          const viewport = page.getViewport({ scale: dpr * baseScale });
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d', { alpha: false })!;
           ctx.imageSmoothingEnabled = true;
@@ -130,6 +134,25 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
     onPageChange?.(next);
   }, [canGoNext, groupStart, onFlip, onPageChange, groupSize]);
 
+  // Touch Swipe Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isZoomed) return;
+    touchStartRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isZoomed || !touchStartRef.current) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchStartRef.current - touchEnd;
+    
+    // Swipe left -> next page
+    if (distance > 50) goNext();
+    // Swipe right -> prev page
+    if (distance < -50) goPrev();
+    
+    touchStartRef.current = 0;
+  };
+
   // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -175,13 +198,20 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
         doubleClick={{ disabled: false, step: 2.5, mode: "toggle" }}
         pinch={{ disabled: false, step: 5 }}
         wheel={{ step: 0.1, wheelDisabled: false }}
-        panning={{ disabled: false }}
+        panning={{ disabled: !isZoomed }}
+        onTransformed={(ref, state) => {
+          setIsZoomed(state.scale > 1.05);
+        }}
       >
         <TransformComponent
           wrapperStyle={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
           contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <div className="relative touch-none">
+          <div 
+            className="relative touch-none" 
+            onTouchStart={handleTouchStart} 
+            onTouchEnd={handleTouchEnd}
+          >
             <div
               className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}
               style={{

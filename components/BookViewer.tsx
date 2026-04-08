@@ -958,47 +958,56 @@ const BookViewer: React.FC<BookViewerProps> = ({
                       />
                     </div>
                   ) : (
-                     <div
-                      className="book-3d-container relative"
+                    <div
                       style={{
-                        width: isSinglePage ? pageW : pageW * 2,
-                        height: pageH,
-                        transform: `scale(${baseScale})`, // Static fit-to-screen scale
-                        transformOrigin: 'center center',
+                        width: (isSinglePage ? pageW : pageW * 2) * baseScale,
+                        height: pageH * baseScale,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
-                      <HTMLFlipBook
-                        key={`${pageW}-${pageH}-${isSinglePage}`}
-                        width={pageW}
-                        height={pageH}
-                        size="fixed"
-                        minWidth={pageW}
-                        maxWidth={pageW}
-                        minHeight={pageH}
-                        maxHeight={pageH}
-                        showCover={!isSinglePage}
-                        maxShadowOpacity={0.5}
-                        mobileScrollSupport={true}
-                        onFlip={handleFlip}
-                        onChangeState={handleChangeState}
-                        onInit={() => {
-                          setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
+                      <div
+                        className="book-3d-container relative"
+                        style={{
+                          width: isSinglePage ? pageW : pageW * 2,
+                          height: pageH,
+                          transform: `scale(${baseScale})`, // Static fit-to-screen scale
+                          transformOrigin: 'center center',
                         }}
-                        ref={handleBookInit}
-                        className="book-3d-flip"
-                        style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
-                        startPage={0}
-                        flippingTime={800}
-                        usePortrait={isSinglePage}
-                        drawShadow={true}
-                        startZIndex={0}
-                        autoSize={false}
-                        clickEventForward={false}
-                        useMouseEvents={false}
-                        swipeDistance={30}
-                        showPageCorners={false}
-                        disableFlipByClick={true}
                       >
+                        <HTMLFlipBook
+                          key={`${pageW}-${pageH}-${isSinglePage}`}
+                          width={pageW}
+                          height={pageH}
+                          size="fixed"
+                          minWidth={pageW}
+                          maxWidth={pageW}
+                          minHeight={pageH}
+                          maxHeight={pageH}
+                          showCover={!isSinglePage}
+                          maxShadowOpacity={0.5}
+                          mobileScrollSupport={true}
+                          onFlip={handleFlip}
+                          onChangeState={handleChangeState}
+                          onInit={() => {
+                            setTimeout(() => bookRef.current?.pageFlip()?.update(), 150);
+                          }}
+                          ref={handleBookInit}
+                          className="book-3d-flip"
+                          style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
+                          startPage={0}
+                          flippingTime={800}
+                          usePortrait={isSinglePage}
+                          drawShadow={true}
+                          startZIndex={0}
+                          autoSize={false}
+                          clickEventForward={false}
+                          useMouseEvents={false}
+                          swipeDistance={30}
+                          showPageCorners={false}
+                          disableFlipByClick={true}
+                        >
                         {pages.map((num) => (
                           <Page 
                             key={num} 
@@ -1012,6 +1021,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
                         ))}
                       </HTMLFlipBook>
                     </div>
+                  </div>
                   )}
                 </div>
               </div>
