@@ -892,16 +892,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
     >
       {/* Main Book Area */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden book-area-container">
-        {/* Left Navigation */}
-        <button
-          onClick={flipPrev}
-          onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-0.5 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]"
-          title="Previous Page"
-        >
-          <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-        </button>
-
          <TransformWrapper
           ref={transformRef}
           initialScale={1}
@@ -1001,7 +991,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           useMouseEvents={false}
                           swipeDistance={30}
                           showPageCorners={false}
-                          disableFlipByClick={true}
                         >
                         {pages.map((num) => (
                           <Page 
@@ -1022,6 +1011,16 @@ const BookViewer: React.FC<BookViewerProps> = ({
               </div>
             </TransformComponent>
         </TransformWrapper>
+
+        {/* Left Navigation — Must be AFTER TransformWrapper in DOM so it stacks above the absolute overlay */}
+        <button
+          onClick={flipPrev}
+          onMouseDown={(e) => e.preventDefault()}
+          className="absolute left-0.5 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]"
+          title="Previous Page"
+        >
+          <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
+        </button>
 
         {/* Right Navigation */}
         <button
