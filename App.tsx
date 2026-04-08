@@ -530,6 +530,19 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateBookOrientation = async (bookId: string, orientation: 'portrait' | 'landscape' | 'trifold') => {
+    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, orientation } : b));
+    if (pendingBook?.id === bookId) {
+      setPendingBook(prev => prev ? { ...prev, orientation } : null);
+    }
+    // Save to Supabase
+    try {
+      await updateBookInSupabase(bookId, { orientation });
+    } catch (e) {
+      console.error('Failed to save orientation to Supabase:', e);
+    }
+  };
+
   const handleBulkUpdateBookCategory = async (bookIds: string[], category?: import('./types').BookCategory) => {
     // Update local state
     setBooks(prev => prev.map(b => 
@@ -888,6 +901,7 @@ const App: React.FC = () => {
         onClose={() => setPendingBook(null)}
         onSelectMode={handleSelectMode}
         onUpdateCategory={handleUpdateBookCategory}
+        onUpdateOrientation={handleUpdateBookOrientation}
         onUpdateName={handleUpdateBookName}
         onToggleFavorite={handleToggleFavorite}
         isLoadingBook={isLoadingBook}

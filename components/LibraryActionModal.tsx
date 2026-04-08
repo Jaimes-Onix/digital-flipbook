@@ -12,11 +12,18 @@ const CATEGORY_OPTIONS: { value: BookCategory; label: string }[] = [
   { value: 'angelhost', label: 'Angelhost' },
 ];
 
+const ORIENTATION_OPTIONS: { value: 'portrait' | 'landscape' | 'trifold'; label: string }[] = [
+  { value: 'portrait', label: 'Portrait' },
+  { value: 'landscape', label: 'Landscape' },
+  { value: 'trifold', label: 'Tri fold' },
+];
+
 interface LibraryActionModalProps {
   book: LibraryBook | null;
   onClose: () => void;
   onSelectMode: (mode: 'manual' | 'preview') => void;
   onUpdateCategory?: (id: string, category?: BookCategory) => void;
+  onUpdateOrientation?: (id: string, orientation: 'portrait' | 'landscape' | 'trifold') => void;
   onUpdateName?: (id: string, newName: string) => void;
   onToggleFavorite?: (id: string) => void;
   isLoadingBook?: boolean;
@@ -26,7 +33,7 @@ interface LibraryActionModalProps {
 }
 
 const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
-  book, onClose, onSelectMode, onUpdateCategory, onUpdateName, onToggleFavorite, isLoadingBook, onRemove, darkMode = true, customCategories = []
+  book, onClose, onSelectMode, onUpdateCategory, onUpdateOrientation, onUpdateName, onToggleFavorite, isLoadingBook, onRemove, darkMode = true, customCategories = []
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -38,6 +45,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [isChangingOrientation, setIsChangingOrientation] = useState(false);
   const [editedName, setEditedName] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,6 +59,7 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
     setShowSettingsMenu(false);
     setIsDownloadingPDF(false);
     setDownloadError(null);
+    setIsChangingOrientation(false);
   }, [book?.id]);
 
   useEffect(() => {
@@ -281,6 +290,57 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
                         Time Added: {new Date(book.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                       </span>
                     </div>
+                  </div>
+                )}
+
+                {/* Orientation Display or Selection */}
+                {onUpdateOrientation && (
+                  <div className="mb-6">
+                    <p className={`text-[11px] font-bold uppercase tracking-[0.15em] mb-2 ${darkMode ? 'text-orange-500/80' : 'text-orange-600/80'}`}>Orientation</p>
+
+                    {!isChangingOrientation ? (
+                      <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setIsChangingOrientation(true)}>
+                        <span className={`text-lg sm:text-xl font-bold transition-colors ${darkMode ? 'text-orange-400 group-hover:text-orange-300' : 'text-orange-600 group-hover:text-orange-700'}`}>
+                          {ORIENTATION_OPTIONS.find(o => o.value === (book.orientation || 'portrait'))?.label}
+                        </span>
+                        <div className={`p-1 rounded-full transition-all opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600'}`}>
+                          <Pencil size={14} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex flex-wrap gap-2.5">
+                          {ORIENTATION_OPTIONS.map(({ value, label }) => {
+                            const isSelected = book.orientation === value || (!book.orientation && value === 'portrait');
+                            return (
+                              <button
+                                key={value}
+                                onClick={() => {
+                                  onUpdateOrientation(book.id, value);
+                                  setIsChangingOrientation(false);
+                                }}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${isSelected
+                                  ? darkMode
+                                    ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.15)]'
+                                    : 'bg-orange-50 text-orange-700 border-orange-200'
+                                  : darkMode
+                                    ? 'bg-white/[0.04] text-zinc-400 hover:bg-orange-500/10 hover:text-orange-400 border-transparent'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-orange-50 border-transparent'
+                                  }`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={() => setIsChangingOrientation(false)}
+                          className={`text-sm tracking-wide ${darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

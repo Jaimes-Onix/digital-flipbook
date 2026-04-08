@@ -346,7 +346,7 @@ export async function loadBooksByCategory(category: string): Promise<StoredBook[
  */
 export async function updateBook(
   bookId: string,
-  updates: Partial<Pick<StoredBook, 'title' | 'category' | 'is_favorite' | 'summary'>>
+  updates: Partial<Pick<StoredBook, 'title' | 'category' | 'is_favorite' | 'summary' | 'orientation'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('books')
