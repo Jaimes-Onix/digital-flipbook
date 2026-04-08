@@ -1,145 +1,252 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReloadPrompt from './ReloadPrompt';
-import { Download, X, Share, MoreVertical } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
+const STORAGE_KEY = 'pwa-install-dismissed-v3';
 
 const PWAHandler: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-    const [showInstallBanner, setShowInstallBanner] = useState(false);
+    const [show, setShow] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
-    const [isAndroid, setIsAndroid] = useState(false);
+    const [installing, setInstalling] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        // Device detection
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        const ios = /iphone|ipad|ipod/.test(userAgent);
-        const android = /android/.test(userAgent);
+        const ua = window.navigator.userAgent.toLowerCase();
+        const ios = /iphone|ipad|ipod/.test(ua);
+        const android = /android/.test(ua);
+        const isMobile = ios || android;
+
+        // Already running as installed PWA — skip
+        const isStandalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as any).standalone === true;
+
+        if (isStandalone || !isMobile) return;
+
+        const dismissed = sessionStorage.getItem(STORAGE_KEY);
+        if (dismissed) return;
+
         setIsIOS(ios);
-        setIsAndroid(android);
 
-        const handler = (e: any) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
+        // Catch native Android install prompt (only fires on HTTPS)
+        const handler = (e: Event) => {
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             setDeferredPrompt(e);
-            
-            // Show the banner if not dismissed
-            const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
-            if (!isDismissed) {
-                setShowInstallBanner(true);
-            }
         };
+        window.addEventListener('beforeinstallprompt', handler as any);
 
-        window.addEventListener('beforeinstallprompt', handler);
-
-        // Fallback for iOS or mobile devices where beforeinstallprompt doesn't fire
-        // Show after 3 seconds if on mobile and not dismissed
-        const timer = setTimeout(() => {
-            const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
-            if (!isDismissed && (ios || android) && !deferredPrompt) {
-                setShowInstallBanner(true);
-            }
-        }, 3000);
+        // Always show banner after 2s on any mobile device (HTTP or HTTPS)
+        timerRef.current = setTimeout(() => {
+            setShow(true);
+        }, 2000);
 
         return () => {
-            window.removeEventListener('beforeinstallprompt', handler);
-            clearTimeout(timer);
+            window.removeEventListener('beforeinstallprompt', handler as any);
+            if (timerRef.current) clearTimeout(timerRef.current);
         };
-    }, [deferredPrompt]);
+    }, []);
 
     const handleInstall = async () => {
-        if (deferredPrompt) {
-            // Show the native prompt
+        if (!deferredPrompt) return;
+        setInstalling(true);
+        try {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response: ${outcome}`);
+            if (outcome === 'accepted') {
+                setShow(false);
+            }
+        } finally {
+            setInstalling(false);
             setDeferredPrompt(null);
-            setShowInstallBanner(false);
-        } else if (isIOS) {
-            // iOS manual instructions are shown in the UI
-        } else {
-            // Android manual instructions fallback
-            alert("To install: Tap the three dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen'.");
         }
     };
 
     const handleDismiss = () => {
-        setShowInstallBanner(false);
-        sessionStorage.setItem('pwa-install-dismissed', 'true');
+        setShow(false);
+        sessionStorage.setItem(STORAGE_KEY, 'true');
     };
+
+    if (!show) return <ReloadPrompt />;
 
     return (
         <>
             <ReloadPrompt />
-            
-            <AnimatePresence>
-                {showInstallBanner && (
-                    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-md">
-                        <motion.div
-                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                            className="glass-card p-5 shadow-2xl flex flex-col gap-4 border border-white/10 overflow-hidden relative"
-                        >
-                            {/* Decorative background glow */}
-                            <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#ccff00]/10 blur-[40px] rounded-full" />
-                            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#ccff00]/10 blur-[40px] rounded-full" />
 
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
-                                        <img src="/digital-logo.png" alt="App Icon" className="w-8 h-8 object-contain" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <h3 className="text-sm font-bold text-white leading-tight">Install LifeBook</h3>
-                                        <p className="text-xs text-white/50 leading-relaxed mt-0.5">
-                                            {isIOS 
-                                                ? "Run LifeBook as a standalone app." 
-                                                : "Get the best experience by installing our app."}
-                                        </p>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={handleDismiss}
-                                    className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
+            {/* Backdrop */}
+            <div
+                onClick={handleDismiss}
+                style={{
+                    position: 'fixed', inset: 0, zIndex: 9998,
+                    background: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(3px)',
+                    WebkitBackdropFilter: 'blur(3px)',
+                }}
+            />
 
-                            {isIOS ? (
-                                <div className="bg-white/5 rounded-xl p-3 border border-white/5 space-y-2">
-                                    <p className="text-[11px] text-white/70 flex items-center gap-2">
-                                        1. Tap the <Share size={14} className="text-blue-400" /> Share button below
-                                    </p>
-                                    <p className="text-[11px] text-white/70">
-                                        2. Scroll down and tap "Add to Home Screen"
-                                    </p>
-                                </div>
-                            ) : deferredPrompt ? (
-                                <button
-                                    onClick={handleInstall}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ccff00] text-black rounded-xl text-xs font-bold hover:bg-[#b8e600] transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                >
-                                    <Download className="w-3.5 h-3.5" />
-                                    Install App Now
-                                </button>
-                            ) : (
-                                <div className="space-y-3">
-                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                        <p className="text-[11px] text-white/70 flex items-center flex-wrap gap-x-1.5 leading-relaxed">
-                                            Tap the <MoreVertical size={14} className="inline" /> menu in Chrome and select <span className="text-[#ccff00] font-bold">"Install app"</span> or <span className="text-[#ccff00] font-bold">"Add to Home screen"</span>
-                                        </p>
-                                    </div>
-                                    <p className="text-[10px] text-white/30 text-center italic">
-                                        Note: Requires HTTPS connection for automatic prompt.
-                                    </p>
-                                </div>
-                            )}
-                        </motion.div>
+            {/* Banner slides up from bottom */}
+            <div
+                style={{
+                    position: 'fixed', bottom: 0, left: 0, right: 0,
+                    zIndex: 9999, padding: '0 16px 24px',
+                    animation: 'pwaBannerUp 0.45s cubic-bezier(0.16,1,0.3,1) forwards',
+                }}
+            >
+                <style>{`
+                    @keyframes pwaBannerUp {
+                        from { transform: translateY(110%); opacity: 0; }
+                        to   { transform: translateY(0);    opacity: 1; }
+                    }
+                    @keyframes iconPop {
+                        0%   { transform: scale(0.7); opacity: 0; }
+                        70%  { transform: scale(1.12); }
+                        100% { transform: scale(1);   opacity: 1; }
+                    }
+                    .pwa-install-btn:active { transform: scale(0.96); }
+                `}</style>
+
+                <div style={{
+                    background: 'rgba(12, 12, 16, 0.96)',
+                    backdropFilter: 'blur(32px)',
+                    WebkitBackdropFilter: 'blur(32px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 24,
+                    padding: '20px 18px',
+                    boxShadow: '0 -12px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',
+                }}>
+
+                    {/* Header row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+                        <img
+                            src="/digital-logo.png"
+                            alt="LifeBook"
+                            style={{
+                                width: 52, height: 52, borderRadius: 14,
+                                border: '1.5px solid rgba(255,255,255,0.12)',
+                                objectFit: 'contain',
+                                background: 'rgba(255,255,255,0.05)',
+                                animation: 'iconPop 0.5s 0.3s cubic-bezier(0.16,1,0.3,1) both',
+                                flexShrink: 0,
+                            }}
+                        />
+                        <div style={{ flex: 1 }}>
+                            <p style={{ color: '#f4f4f5', fontWeight: 700, fontSize: 16, margin: 0 }}>
+                                Install LifeBook
+                            </p>
+                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
+                                Add to your Home Screen for the best experience
+                            </p>
+                        </div>
+                        <button
+                            onClick={handleDismiss}
+                            style={{
+                                width: 30, height: 30, borderRadius: 10,
+                                background: 'rgba(255,255,255,0.07)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'rgba(255,255,255,0.5)',
+                                fontSize: 18, cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0, padding: 0,
+                            }}
+                        >×</button>
                     </div>
-                )}
-            </AnimatePresence>
+
+                    {/* iOS — manual instructions */}
+                    {isIOS ? (
+                        <div style={{
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.07)',
+                            borderRadius: 16, padding: '14px 16px',
+                            display: 'flex', flexDirection: 'column', gap: 10,
+                        }}>
+                            {[
+                                { step: '1', icon: '⬆️', text: <>Tap the <span style={{ color: '#60a5fa', fontWeight: 700 }}>Share</span> button in Safari's toolbar</> },
+                                { step: '2', icon: '📋', text: <>Scroll and tap <span style={{ color: '#ccff00', fontWeight: 700 }}>"Add to Home Screen"</span></> },
+                                { step: '3', icon: '✅', text: <>Tap <span style={{ color: '#ccff00', fontWeight: 700 }}>"Add"</span> to install</> },
+                            ].map(({ step, icon, text }) => (
+                                <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <div style={{
+                                        width: 28, height: 28, borderRadius: 8,
+                                        background: 'rgba(204,255,0,0.1)',
+                                        border: '1px solid rgba(204,255,0,0.2)',
+                                        color: '#ccff00', fontWeight: 800, fontSize: 12,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        flexShrink: 0,
+                                    }}>{step}</div>
+                                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>{icon} {text}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : deferredPrompt ? (
+                        /* Android — native install available */
+                        <button
+                            className="pwa-install-btn"
+                            onClick={handleInstall}
+                            disabled={installing}
+                            style={{
+                                width: '100%', padding: '14px',
+                                borderRadius: 16, border: 'none',
+                                background: installing ? 'rgba(204,255,0,0.5)' : '#ccff00',
+                                color: '#0a0a0a', fontWeight: 800, fontSize: 15,
+                                cursor: installing ? 'not-allowed' : 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                transition: 'transform 0.15s, background 0.2s',
+                                boxShadow: '0 4px 24px rgba(204,255,0,0.25)',
+                            }}
+                        >
+                            {!installing && (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                            )}
+                            {installing ? 'Installing…' : 'Add to Home Screen'}
+                        </button>
+                    ) : (
+                        /* Android on HTTP — manual instructions */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <div style={{
+                                background: 'rgba(255,255,255,0.04)',
+                                border: '1px solid rgba(255,255,255,0.07)',
+                                borderRadius: 16, padding: '14px 16px',
+                                display: 'flex', flexDirection: 'column', gap: 10,
+                            }}>
+                                {[
+                                    { step: '1', icon: '⋮', text: <>Tap the <span style={{ color: '#60a5fa', fontWeight: 700 }}>3-dot menu</span> (⋮) in Chrome's top-right corner</> },
+                                    { step: '2', icon: '📲', text: <>Tap <span style={{ color: '#ccff00', fontWeight: 700 }}>"Add to Home screen"</span> or <span style={{ color: '#ccff00', fontWeight: 700 }}>"Install app"</span></> },
+                                    { step: '3', icon: '✅', text: <>Tap <span style={{ color: '#ccff00', fontWeight: 700 }}>"Add"</span> to install</> },
+                                ].map(({ step, icon, text }) => (
+                                    <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <div style={{
+                                            width: 28, height: 28, borderRadius: 8,
+                                            background: 'rgba(204,255,0,0.1)',
+                                            border: '1px solid rgba(204,255,0,0.2)',
+                                            color: '#ccff00', fontWeight: 800, fontSize: 12,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            flexShrink: 0,
+                                        }}>{step}</div>
+                                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>{icon} {text}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Dismiss button */}
+                    <button
+                        onClick={handleDismiss}
+                        style={{
+                            width: '100%', marginTop: 10, padding: '11px',
+                            borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)',
+                            background: 'transparent',
+                            color: 'rgba(255,255,255,0.3)', fontSize: 13,
+                            fontWeight: 600, cursor: 'pointer',
+                        }}
+                    >
+                        Maybe later
+                    </button>
+                </div>
+            </div>
         </>
     );
 };
