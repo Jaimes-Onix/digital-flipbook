@@ -86,11 +86,14 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           const baseScale = isMobile ? 1.0 : 1.2;
           const viewport = page.getViewport({ scale: dpr * baseScale });
           const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d', { alpha: false })!;
-          ctx.imageSmoothingEnabled = true;
-
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
+
+          const ctx = canvas.getContext('2d', { alpha: true })!;
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.imageSmoothingEnabled = true;
+
           await page.render({ canvasContext: ctx, viewport }).promise;
           
           // OPTIMIZATION: Use toBlob + ObjectURL instead of toDataURL
@@ -222,7 +225,7 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <div 
-            className="relative touch-none -translate-y-8 md:-translate-y-12" 
+            className="relative touch-none" 
             onTouchStart={handleTouchStart} 
             onTouchEnd={handleTouchEnd}
           >

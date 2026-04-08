@@ -60,7 +60,7 @@ const PDFPanel: React.FC<PanelProps> = React.memo(({
                 const page = await pdfDocument.getPage(pageNumber);
                 if (!active) return;
 
-                const natural = viewport1;
+                const natural = page.getViewport({ scale: 1 });
                 const baseWidth = clipThirds ? (natural.width / 3) : natural.width;
                 
                 // OPTIMIZATION: Reduce the "crispness" multiplier on mobile to save memory/crashes
@@ -72,20 +72,21 @@ const PDFPanel: React.FC<PanelProps> = React.memo(({
                 // Cap to prevent mobile/tablet crashes
                 const maxDim = isMobileOrTablet ? 1536 : 4096;
                 if (viewport.width > maxDim || viewport.height > maxDim) {
-                    const maxScale = maxDim / Math.max(viewport1.width, viewport1.height);
+                    const maxScale = maxDim / Math.max(natural.width, natural.height);
                     fitScale = Math.min(fitScale, maxScale);
                     viewport = page.getViewport({ scale: fitScale });
                 }
 
                 const canvas = canvasRef.current!;
-                const ctx = canvas.getContext('2d', { alpha: false })!;
+                const ctx = canvas.getContext('2d', { alpha: true })!;
+                
+                // Consistently fill with white to prevent black background on transparent PDFs
+                ctx.fillStyle = 'white';
 
                 if (clipThirds) {
                     const panelW = viewport.width / 3;
                     canvas.width = Math.floor(panelW);
                     canvas.height = Math.floor(viewport.height);
-
-                    ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                     ctx.save();
@@ -96,6 +97,7 @@ const PDFPanel: React.FC<PanelProps> = React.memo(({
                 } else {
                     canvas.width = Math.floor(viewport.width);
                     canvas.height = Math.floor(viewport.height);
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                     renderTask = page.render({ canvasContext: ctx, viewport });
                     await renderTask.promise;
                 }

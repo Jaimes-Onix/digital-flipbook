@@ -163,56 +163,60 @@ const LibraryActionModal: React.FC<LibraryActionModalProps> = ({
               <div className="flex-1 p-6 md:p-10 pt-2 md:pt-8 overflow-y-auto max-h-[60vh] md:max-h-[70vh] no-scrollbar">
 
                 {/* Settings & Actions Reveal */}
+                {/* Settings & Actions Reveal */}
                 {!isEditingName && (
-                  <div className="flex items-center gap-3 mb-4">
-                    <button
-                      onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                      className={`p-2 rounded-xl transition-all duration-500 ${showSettingsMenu ? 'rotate-180 bg-white/10' : 'bg-transparent'} ${darkMode ? 'text-zinc-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}
-                      title="Settings"
-                    >
-                      <Settings size={22} className={showSettingsMenu ? 'text-lime-400' : ''} />
-                    </button>
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                        className={`p-2 rounded-xl transition-all duration-500 ${showSettingsMenu ? 'rotate-180 bg-white/10' : 'bg-transparent'} ${darkMode ? 'text-zinc-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}
+                        title="Settings"
+                      >
+                        <Settings size={22} className={showSettingsMenu ? 'text-lime-400' : ''} />
+                      </button>
 
-                    {showSettingsMenu && (
-                      <div className="flex items-center gap-2.5 animate-in slide-in-from-left-4 duration-500 fade-in">
-                        {onToggleFavorite && (
-                          <button
-                            onClick={() => onToggleFavorite(book.id)}
-                            className={`p-2.5 rounded-xl transition-all ${book.isFavorite ? 'bg-red-500/15 text-red-500' : darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-red-400 hover:bg-red-500/10' : 'bg-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
-                            title={book.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
-                          >
-                            <Heart size={20} fill={book.isFavorite ? 'currentColor' : 'none'} className="transition-transform active:scale-125" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setShowConfirmDelete(true)}
-                          className={`p-2.5 rounded-xl transition-all ${darkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-200/50'}`}
-                          title="Remove Book"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-
-                        <button
-                          onClick={handleDownloadPDF}
-                          disabled={isDownloadingPDF}
-                          className={`p-2.5 rounded-xl transition-all ${isDownloadingPDF ? 'bg-lime-500/10 text-lime-400' : darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'bg-gray-100 text-gray-400 hover:text-lime-600 hover:bg-emerald-50'}`}
-                          title="Download PDF"
-                        >
-                          {isDownloadingPDF ? (
-                            <Loader2 size={20} className="animate-spin" />
-                          ) : (
-                            <Download size={20} />
+                      {showSettingsMenu && (
+                        <div className="flex items-center gap-2.5 animate-in slide-in-from-left-4 duration-500 fade-in">
+                          {onToggleFavorite && (
+                            <button
+                              onClick={() => onToggleFavorite(book.id)}
+                              className={`p-2.5 rounded-xl transition-all ${book.isFavorite ? 'bg-red-500/15 text-red-500' : darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-red-400 hover:bg-red-500/10' : 'bg-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                              title={book.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
+                            >
+                              <Heart size={20} fill={book.isFavorite ? 'currentColor' : 'none'} className="transition-transform active:scale-125" />
+                            </button>
                           )}
-                        </button>
+                          <button
+                            onClick={() => setShowConfirmDelete(true)}
+                            className={`p-2.5 rounded-xl transition-all ${darkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-200/50'}`}
+                            title="Remove Book"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-                        {downloadError && (
-                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium animate-in slide-in-from-left-2 ${darkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-500'}`}>
-                            <AlertCircle size={14} />
-                            {downloadError}
-                          </div>
+                    <div className="flex items-center gap-3">
+                      {downloadError && (
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium animate-in slide-in-from-right-2 ${darkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-500'}`}>
+                          <AlertCircle size={14} />
+                          {downloadError}
+                        </div>
+                      )}
+                      <button
+                        onClick={handleDownloadPDF}
+                        disabled={isDownloadingPDF}
+                        className={`p-2.5 rounded-xl transition-all ${isDownloadingPDF ? 'bg-lime-500/10 text-lime-400' : darkMode ? 'bg-white/[0.05] text-zinc-500 hover:text-lime-400 hover:bg-lime-500/10' : 'bg-gray-100 text-gray-400 hover:text-lime-600 hover:bg-emerald-50'}`}
+                        title="Download PDF"
+                      >
+                        {isDownloadingPDF ? (
+                          <Loader2 size={20} className="animate-spin" />
+                        ) : (
+                          <Download size={20} />
                         )}
-                      </div>
-                    )}
+                      </button>
+                    </div>
                   </div>
                 )}
 

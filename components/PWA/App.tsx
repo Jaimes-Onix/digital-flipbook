@@ -832,7 +832,7 @@ const App: React.FC = () => {
 
             <Route path="/reader/:bookId" element={
               selectedBook && (
-                <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative ${readerFullscreen ? '' : 'pt-14'}`}>
+                <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative bg-black ${readerFullscreen ? '' : 'pt-14'}`}>
 
                   {/* Normal (Grid/Stack) Mode */}
                   {readerViewMode === 'normal' ? (

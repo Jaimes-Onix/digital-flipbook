@@ -81,11 +81,15 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
           const viewport = page.getViewport({ scale: dpr * 1.5 });
           const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d', { alpha: false })!;
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
+
+          const ctx = canvas.getContext('2d', { alpha: true })!;
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
           await page.render({ canvasContext: ctx, viewport }).promise;
           updates.set(pageNum, canvas.toDataURL('image/jpeg', 0.85));
           canvas.width = 0;

@@ -156,7 +156,6 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const textLayerRef = useRef<HTMLDivElement>(null);
     const [rendered, setRendered] = useState(false);
-    const [canvasReady, setCanvasReady] = useState(false);
     const renderTaskRef = useRef<any>(null);
     const textLayerTaskRef = useRef<any>(null); // Added for cleanup
     const lastSearchRef = useRef('');
@@ -164,7 +163,6 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
     // Direct canvas render — no encoding, no decoding, no quality loss
     useEffect(() => {
       if (!pdfDocument || !canvasRef.current) return;
-      if (canvasReady) return;
 
       let active = true;
 
@@ -200,7 +198,9 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
           canvas.style.left = `${Math.round((pageW - natural.width * fitScale) / 2)}px`;
           canvas.style.top = `${Math.round((pageH - natural.height * fitScale) / 2)}px`;
 
-          const ctx = canvas.getContext('2d', { alpha: false })!;
+          const ctx = canvas.getContext('2d', { alpha: true })!;
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
 
@@ -212,7 +212,6 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
           await renderTaskRef.current.promise;
 
           if (!active) return;
-          setCanvasReady(true);
         } catch (e: any) {
           if (e.name === 'RenderingCancelledException') return;
           console.error('Canvas render error:', e);
@@ -232,7 +231,7 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
           canvasRef.current.height = 0;
         }
       };
-    }, [pdfDocument, number, pageW, pageH, canvasReady]);
+    }, [pdfDocument, number, pageW, pageH]);
 
     // Text layer — transparent for selection + search highlighting
     useEffect(() => {
@@ -321,37 +320,14 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
           overflow: 'hidden',
         }}
       >
-        {!canvasReady && !imageUrl && (
-          <div className="w-full h-full flex items-center justify-center bg-white">
-            <Loader2 className="animate-spin text-gray-300" size={24} />
-          </div>
-        )}
         {/* Direct canvas — PDF rendered at exact pixel ratio, zero rescaling */}
         <canvas
           ref={canvasRef}
           className="flipbook-page-canvas"
           style={{
             position: 'absolute',
-            display: canvasReady ? 'block' : 'none',
           }}
         />
-        {/* Fallback: pre-rendered image while canvas loads */}
-        {!canvasReady && imageUrl && (
-          <img
-            src={imageUrl}
-            alt={`Page ${number}`}
-            className="flipbook-page-image"
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              imageRendering: 'auto',
-            } as React.CSSProperties}
-          />
-        )}
         <div
           ref={textLayerRef}
           className="pdf-text-layer"
@@ -703,15 +679,17 @@ const BookViewer: React.FC<BookViewerProps> = ({
           const viewport = page.getViewport({ scale: QUALITY_SCALE });
 
           const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d', { alpha: false })!;
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+
+          const ctx = canvas.getContext('2d', { alpha: true })!;
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           
           // CRITICAL: Force high smoothing quality
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
           
-          canvas.width = Math.floor(viewport.width);
-          canvas.height = Math.floor(viewport.height);
-
           await page.render({ canvasContext: ctx, viewport }).promise;
 
            // Use JPEG for performance — significantly reduces memory and string size
@@ -942,7 +920,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
               contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <div 
-                className="w-full h-full flex items-center justify-center relative touch-none -translate-y-8 md:-translate-y-12"
+                className="w-full h-full flex items-center justify-center relative touch-none"
               >
                 <div style={{ pointerEvents: 'auto' }}>
                   {orientation === 'trifold' ? (
@@ -1009,7 +987,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           }}
                           ref={handleBookInit}
                           className="book-3d-flip"
-                          style={{ boxShadow: '0 5px 30px rgba(0,0,0,0.2)' }}
+                          style={{ 
+                            boxShadow: '0 5px 30px rgba(0,0,0,0.2)',
+                            backgroundColor: '#fff' // Added fallback background
+                          }}
                           startPage={0}
                           flippingTime={800}
                           usePortrait={isSinglePage}
