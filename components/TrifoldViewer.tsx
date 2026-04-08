@@ -403,7 +403,7 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
     return (
         <div
             ref={containerRef}
-            className="w-full h-full flex items-center justify-center relative touch-none"
+            className="w-full h-full flex items-center justify-center relative touch-none -translate-y-8 md:-translate-y-12"
         >
             <div className="relative flex items-center justify-center pointer-events-none" style={{
                 perspective: '3000px', transform: `scale(${scale})`, transition: 'transform 0.4s ease-out'

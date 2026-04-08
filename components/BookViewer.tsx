@@ -245,6 +245,9 @@ const Page = forwardRef<HTMLDivElement, { number: number; pdfDocument: any; page
 
           if (textLayerRef.current) {
             const textContent = await page.getTextContent();
+            // Re-check after async call to prevent TypeError if component unmounted
+            if (!textLayerRef.current) return;
+            
             const div = textLayerRef.current;
             div.innerHTML = '';
             
@@ -928,7 +931,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
               contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <div 
-                className="w-full h-full flex items-center justify-center relative touch-none"
+                className="w-full h-full flex items-center justify-center relative touch-none -translate-y-8 md:-translate-y-12"
               >
                 <div style={{ pointerEvents: 'auto' }}>
                   {orientation === 'trifold' ? (

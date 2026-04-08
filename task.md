@@ -1,7 +1,10 @@
 # Fix Navigation and Labeling in Reader
 
-The user reported they cannot go "back" a page when reading books in landscape orientation. This appears to be caused by a combination of misleading page labels and potentially buggy interaction settings- [x] Re-create `TrifoldViewer.tsx`- [x] Fix `format` detection to handle 2- [x] Global Viewport Meta Tag (`index.html`)
-- [x] Universal Background Video (Disable on Mobile/Tablet)
+The user reported they cannot go "back" a page when reading books in landscape orientation. This appears to be caused by a combination of misleading page labels and potentially buggy interaction settings- [x] Fix runtime error in `BookViewer.tsx` (null ptr innerHTML)
+- [x] Configure PWA plugin in `vite.config.ts`
+- [x] Copy PWA icons to root `public/` folder
+- [x] Update `index.html` for PWA support
+- [x] Verify fix in browser console Background Video (Disable on Mobile/Tablet)
 - [x] Home Component (Card Fan -> Horizontal Scroll)
 - [x] Library Action Modal (Responsive Padding & Scaling)
 - [x] Video Gallery Modal (Responsive Grid & Header)

@@ -208,7 +208,7 @@ const NormalModeViewer: React.FC<NormalModeViewerProps> = ({
           contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <div 
-            className="relative touch-none" 
+            className="relative touch-none -translate-y-8 md:-translate-y-12" 
             onTouchStart={handleTouchStart} 
             onTouchEnd={handleTouchEnd}
           >
