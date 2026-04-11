@@ -162,7 +162,9 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
 
     // Direct canvas render — no encoding, no decoding, no quality loss
     useEffect(() => {
-      if (!pdfDocument || !canvasRef.current) return;
+      // OPTIMIZATION: If we already have a high-quality pre-rendered image, 
+      // we SKIP the canvas rendering entirely to save CPU/GPU.
+      if (imageUrl || !pdfDocument || !canvasRef.current) return;
 
       let active = true;
 
@@ -242,6 +244,9 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
 
       const setupLayer = async () => {
         try {
+          // Delay text layer setup to prioritize visual rendering
+          await new Promise(resolve => setTimeout(resolve, imageUrl ? 100 : 500));
+          
           const page = await pdfDocument.getPage(number);
           const natural = page.getViewport({ scale: 1 });
 
@@ -320,14 +325,31 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
           overflow: 'hidden',
         }}
       >
-        {/* Direct canvas — PDF rendered at exact pixel ratio, zero rescaling */}
-        <canvas
-          ref={canvasRef}
-          className="flipbook-page-canvas"
-          style={{
-            position: 'absolute',
-          }}
-        />
+        {/* Priority Rendering: Use pre-rendered image if available (buttery smooth flips) */}
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={`Page ${number}`}
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              userSelect: 'none',
+              pointerEvents: 'none',
+              // Subtle sharpening for JPEG
+              imageRendering: 'auto'
+            }}
+          />
+        ) : (
+          <canvas
+            ref={canvasRef}
+            className="flipbook-page-canvas"
+            style={{
+              position: 'absolute',
+            }}
+          />
+        )}
         <div
           ref={textLayerRef}
           className="pdf-text-layer"
@@ -451,7 +473,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [baseScale, setBaseScale] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [loadingText, setLoadingText] = useState('Initializing...');
+  const [loadingText, setLoadingText] = useState(''); // Start empty to prevent flicker
   const [error, setError] = useState<string | null>(null);
 
   // Search state
@@ -748,9 +770,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
         const nums = Array.from({ length: pdfDocument.numPages }, (_, i) => i + 1);
         setPages(nums);
 
-        setLoadingText('Preparing High-Quality Image Engine...');
-        await new Promise(resolve => setTimeout(resolve, 300));
-
+        // Optimization starts in background, don't show a second full-screen loader
         setLoading(false);
         console.log(`BookViewer ready (Optimization phase start): ${pdfDocument.numPages} pages`);
         setTimeout(() => {
@@ -921,13 +941,15 @@ const BookViewer: React.FC<BookViewerProps> = ({
                         height: '100%',
                       }}
                     >
-                      {isParsing && (
-                        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl transition-opacity duration-300">
-                          <Loader2 className="animate-spin text-lime-500" size={16} />
+                      {isParsing && parsingProgress < 100 && (
+                        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-[#141418]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-500">
+                          <div className="relative w-4 h-4">
+                            <Loader2 className="animate-spin text-lime-500 absolute inset-0" size={16} />
+                          </div>
                           <div className="flex flex-col">
-                            <span className="text-[10px] uppercase font-bold text-white/50 leading-none mb-0.5">Optimizing Quality</span>
-                            <span className="text-xs font-semibold text-white whitespace-nowrap tracking-wide leading-none">
-                              Page {Math.min(pages.length, Math.floor((parsingProgress / 100) * pages.length) + 1)} of {pages.length} ({parsingProgress}%)
+                            <span className="text-[9px] uppercase font-black text-lime-500/80 leading-none tracking-widest mb-0.5">Enhancing</span>
+                            <span className="text-[11px] font-bold text-white/90 whitespace-nowrap leading-none">
+                              {parsingProgress}% Optimized
                             </span>
                           </div>
                         </div>
@@ -968,7 +990,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           minHeight={pageH}
                           maxHeight={pageH}
                           showCover={!isSinglePage}
-                          maxShadowOpacity={0.5}
+                          maxShadowOpacity={0.25}
                           mobileScrollSupport={true}
                           onFlip={handleFlip}
                           onChangeState={handleChangeState}
@@ -978,11 +1000,11 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           ref={handleBookInit}
                           className="book-3d-flip"
                           style={{ 
-                            boxShadow: '0 5px 30px rgba(0,0,0,0.2)',
-                            backgroundColor: '#fff' // Added fallback background
+                            boxShadow: '0 15px 60px rgba(0,0,0,0.3)',
+                            backgroundColor: '#fff'
                           }}
                           startPage={0}
-                          flippingTime={800}
+                          flippingTime={600}
                           usePortrait={isSinglePage}
                           drawShadow={true}
                           startZIndex={0}

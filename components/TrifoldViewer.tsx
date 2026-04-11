@@ -42,7 +42,8 @@ const PDFPanel: React.FC<PanelProps> = React.memo(({
     const [rendered, setRendered] = useState(false);
 
     useEffect(() => {
-        if (!pdfDocument || !canvasRef.current) return;
+        // OPTIMIZATION: If we have a pre-rendered image, skip canvas rendering logic
+        if (imageUrl || !pdfDocument || !canvasRef.current) return;
         if (pageNumber < 1 || pageNumber > pdfDocument.numPages) return;
         if (width <= 0 || height <= 0) return;
 
@@ -286,7 +287,7 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
             if (current === 'back_cover_closed') return 'back_cover_opened';
             return current;
         });
-        setTimeout(() => setIsAnimating(false), 800);
+        setTimeout(() => setIsAnimating(false), 600);
     }, [isAnimating]);
 
     const prevState = useCallback(() => {
@@ -299,7 +300,7 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
             if (current === 'opened_front_flap') return 'closed';
             return current;
         });
-        setTimeout(() => setIsAnimating(false), 800);
+        setTimeout(() => setIsAnimating(false), 600);
     }, [isAnimating]);
 
     // Refs to store latest state-dependent functions
@@ -420,7 +421,7 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
             }}>
                 <div className="relative flex" style={{
                     transformStyle: 'preserve-3d', transform: `translateX(${centerTranslateX}px) rotateY(${rotEntire}deg)`,
-                    transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)', width: panelWidth, height: panelHeight
+                    transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)', width: panelWidth, height: panelHeight
                 }}>
 
                     {/* CENTER */}
@@ -481,7 +482,7 @@ const TrifoldViewer: React.FC<TrifoldViewerProps> = ({
                     <div className="absolute top-0 left-full w-full h-full" style={{
                         transformStyle: 'preserve-3d', transformOrigin: 'left center',
                         transform: `rotateY(${rotRight}deg)`,
-                        transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                        transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
                         zIndex: foldState === 'closed' ? 0 : 20,
                         opacity: foldState === 'closed' ? 0 : 1,
                         display: foldState === 'closed' ? 'none' : 'block'
