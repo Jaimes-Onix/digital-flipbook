@@ -16,6 +16,7 @@ import LibraryActionModal from './components/LibraryActionModal';
 import UploadCategoryModal from './components/UploadCategoryModal';
 import SharedLinkResolver from './components/SharedLinkResolver';
 import FeaturedCarousel from './components/FeaturedCarousel';
+import OpeningTransition from './components/OpeningTransition';
 import SignIn from './components/SignIn';
 import { getDocument } from './utils/pdfUtils';
 import { BookRef, LibraryBook, BookCategory, CustomCategory } from './types';
@@ -109,6 +110,8 @@ const App: React.FC = () => {
   const [conversionToast, setConversionToast] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isLoadingBook, setIsLoadingBook] = useState(false);
+  const [isOpeningBookTransition, setIsOpeningBookTransition] = useState(false);
+  const [openingBookMetadata, setOpeningBookMetadata] = useState<{ name: string; coverUrl: string } | null>(null);
   const [showSearch, setShowSearch] = useState(false);
 
   // Custom categories state
@@ -128,6 +131,7 @@ const App: React.FC = () => {
   const [readerFullscreen, setReaderFullscreen] = useState(false);
   const [readerShowThumbnails, setReaderShowThumbnails] = useState(false);
   const [readerViewMode, setReaderViewMode] = useState<'flipbook' | 'normal'>('flipbook');
+  const transitionStartTimeRef = useRef<number>(0);
 
   const toggleReaderFullscreen = useCallback(() => {
     const target = readerContainerRef.current;
@@ -578,6 +582,9 @@ const App: React.FC = () => {
 
     // Show loading state
     setIsLoadingBook(true);
+    setIsOpeningBookTransition(true);
+    transitionStartTimeRef.current = Date.now();
+    setOpeningBookMetadata({ name: pendingBook.name, coverUrl: pendingBook.coverUrl });
     setReaderMode(mode);
 
     try {
@@ -630,6 +637,8 @@ const App: React.FC = () => {
       console.error('Error loading book:', error);
       setConversionToast('Failed to load book. The PDF may be corrupted.');
       setTimeout(() => setConversionToast(null), 4000);
+      setIsOpeningBookTransition(false);
+      setOpeningBookMetadata(null);
     } finally {
       setIsLoadingBook(false);
     }
@@ -884,6 +893,14 @@ const App: React.FC = () => {
                         }}
                         fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
                         orientation={selectedBook.orientation || 'portrait'}
+                        onFirstPageReady={() => {
+                          const elapsed = Date.now() - transitionStartTimeRef.current;
+                          const delay = Math.max(0, 1200 - elapsed);
+                          setTimeout(() => {
+                            setIsOpeningBookTransition(false);
+                            setOpeningBookMetadata(null);
+                          }, delay);
+                        }}
                       />
                     </div>
                   )}
@@ -948,6 +965,12 @@ const App: React.FC = () => {
           <span className="font-medium text-sm max-w-md">{conversionToast}</span>
         </div>
       )}
+      <OpeningTransition 
+        isOpen={isOpeningBookTransition}
+        coverUrl={openingBookMetadata?.coverUrl}
+        bookName={openingBookMetadata?.name}
+        darkMode={darkMode}
+      />
     </div>
   );
 };

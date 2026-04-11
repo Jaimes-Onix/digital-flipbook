@@ -4,6 +4,7 @@ import { Loader2, Moon, Sun, ArrowLeft, BookOpen } from 'lucide-react';
 import Header from './Header';
 import BookViewer from './BookViewer';
 import NormalModeViewer from './NormalModeViewer';
+import OpeningTransition from './OpeningTransition';
 import { getDocument } from '../utils/pdfUtils';
 import { loadBookById } from '../src/lib/bookStorage';
 import type { LibraryBook, BookRef } from '../types';
@@ -21,6 +22,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(true);
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
+  const [isOpeningTransition, setIsOpeningTransition] = useState(false);
 
   // Reader state
   const [readerOpen, setReaderOpen] = useState(false);
@@ -34,6 +36,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
   
   const bookRef = useRef<BookRef | null>(null);
   const readerContainerRef = useRef<HTMLDivElement>(null);
+  const transitionStartTimeRef = useRef<number>(0);
 
   const toggleReaderFullscreen = useCallback(() => {
     const target = readerContainerRef.current;
@@ -112,6 +115,8 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
         await doc.getPage(i);
       }
 
+      setIsOpeningTransition(true);
+      transitionStartTimeRef.current = Date.now();
       setReaderOpen(true);
       setCurrentPage(0);
       setShowSearch(false);
@@ -125,6 +130,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
       setTimeout(() => setError(null), 4000);
     } finally {
       setIsLoadingPdf(false);
+      // Wait for BookViewer signaling to close isOpeningTransition
     }
   }, [book]);
 
@@ -179,6 +185,12 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
 
     return (
       <div ref={readerContainerRef} className={`w-full h-full min-h-0 flex flex-col overflow-hidden relative ${readerFullscreen ? '' : 'pt-14'} bg-[#09090b]`}>
+        <OpeningTransition 
+          isOpen={isOpeningTransition}
+          coverUrl={book.coverUrl}
+          bookName={book.name}
+          darkMode={darkMode}
+        />
         {/* We use the standard app Header here but hide navigation/sidebar logic as we are in shared view */}
         {!readerFullscreen && (
         <Header
@@ -252,6 +264,11 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
               }}
               fullscreenContainerRef={readerContainerRef as React.RefObject<HTMLDivElement>}
               orientation={book.orientation}
+              onFirstPageReady={() => {
+                const elapsed = Date.now() - transitionStartTimeRef.current;
+                const delay = Math.max(0, 1200 - elapsed);
+                setTimeout(() => setIsOpeningTransition(false), delay);
+              }}
             />
           )}
         </div>

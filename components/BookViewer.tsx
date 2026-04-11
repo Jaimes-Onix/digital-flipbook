@@ -23,6 +23,7 @@ interface BookViewerProps {
   onToggleSearch?: () => void;
   fullscreenContainerRef?: React.RefObject<HTMLDivElement>;
   orientation?: 'portrait' | 'landscape' | 'trifold';
+  onFirstPageReady?: () => void; // Signal for seamless transitions
 }
 
 // Fixed page dimensions per orientation — these control the SHAPE of each flipbook page.
@@ -450,6 +451,7 @@ interface SearchResult {
 const BookViewer: React.FC<BookViewerProps> = ({
   pdfDocument, onFlip, onBookInit,
   zoomLevel = 100, onZoomIn, onZoomOut,
+  onFirstPageReady,
   isAutoPlaying = false, onToggleAutoPlay,
   isFullscreen = false, onToggleFullscreen,
   showThumbnails = false, onToggleThumbnails,
@@ -473,6 +475,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [baseScale, setBaseScale] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [hasSignaledReady, setHasSignaledReady] = useState(false);
   const [loadingText, setLoadingText] = useState(''); // Start empty to prevent flicker
   const [error, setError] = useState<string | null>(null);
 
@@ -886,14 +889,23 @@ const BookViewer: React.FC<BookViewerProps> = ({
     );
   }
 
-  // Loading state
-  if (!pdfDocument || pages.length === 0 || loading) {
+  // SIGNAL READY: Called when the flipbook component is mounted and first pages are initialized
+  useEffect(() => {
+    if (!loading && pages.length > 0 && !hasSignaledReady) {
+      // Small delay to ensure the canvas/image has painted to screen
+      const timer = setTimeout(() => {
+        onFirstPageReady?.();
+        setHasSignaledReady(true);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, pages.length, hasSignaledReady, onFirstPageReady]);
+
+  if (!pdfDocument || pages.length === 0) {
     return (
-      <div className="df-container w-full h-full flex items-center justify-center" style={{ background: '#0c0c0e' }}>
-        <div className="text-center">
-          <Loader2 className="animate-spin text-zinc-600 mx-auto mb-3" size={40} />
-          <p className="text-zinc-500 text-sm">{loadingText}</p>
-        </div>
+      <div className="df-container w-full h-full flex items-center justify-center bg-[#0c0c0e]">
+        {/* Subtle inline loader if PDF is still fetching (rare with new App-level transition) */}
+        {!pdfDocument && <Loader2 className="animate-spin text-zinc-500" size={32} />}
       </div>
     );
   }
