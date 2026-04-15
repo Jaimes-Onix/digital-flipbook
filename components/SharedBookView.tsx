@@ -85,7 +85,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
           isFavorite: stored.is_favorite,
           orientation: (stored.orientation as "portrait" | "landscape") || 'portrait',
         });
-        document.title = `${stored.title} - Lifewood Digital Flipbook`;
+        document.title = `${stored.title} - Lifewood Digital Library`;
       } catch (err: any) {
         setError(err.message || 'Failed to load book');
       } finally {
@@ -294,7 +294,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
                 stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
           </div>
-          <span className={`text-sm font-semibold tracking-tight ${titleColor}`}>Lifewood Digital Flipbook</span>
+          <span className={`text-sm font-semibold tracking-tight ${titleColor}`}>Lifewood Digital Library</span>
         </div>
         <button onClick={() => setDarkMode(d => !d)} className={`p-2.5 rounded-xl transition-colors ${toggleBtn}`}>
           {darkMode ? <Sun size={18} /> : <Moon size={18} />}

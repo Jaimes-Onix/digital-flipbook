@@ -81,7 +81,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
     if (category) {
       document.title = `${displayName} Flipbooks - Lifewood Philippines`;
     }
-    return () => { document.title = 'Lifewood Digital Flipbook'; };
+    return () => { document.title = 'Lifewood Digital Library'; };
   }, [displayName, category]);
 
   // Fetch books — query by the category slug directly (works for any category)
