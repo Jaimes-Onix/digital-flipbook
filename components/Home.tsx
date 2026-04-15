@@ -96,7 +96,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
                 ? 'from-lime-300 via-lime-400 to-teal-400'
                 : 'from-emerald-600 via-emerald-500 to-teal-500'
                 }`}>
-                Digital Flipbook
+                Digital Library
               </span>
             </motion.h1>
             <motion.p
@@ -143,7 +143,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
           </motion.div>
         </div>
 
-        {/* Featured Flipbooks - Variant 2: Card Style */}
+        {/* Featured Documents - Variant 2: Card Style */}
         {featuredBooks.length > 0 && variant === 2 && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -257,7 +257,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
           </motion.div>
         )}
 
-        {/* Featured Flipbooks - Variant 1: Infinite Carousel Style */}
+        {/* Featured Documents - Variant 1: Infinite Carousel Style */}
         {featuredBooks.length > 0 && variant === 1 && (() => {
           const bookWidth = 224;
           const gap = 32;
@@ -272,7 +272,7 @@ const Home: React.FC<HomeProps> = ({ books, darkMode, variant = 1, categoryCount
             >
               <div className="text-center mb-8">
                 <p className={`text-xs uppercase tracking-[0.3em] font-medium ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
-                  FEATURED FLIPBOOKS
+                  FEATURED DOCUMENTS
                 </p>
               </div>
 

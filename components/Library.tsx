@@ -15,13 +15,13 @@ import { BookCategory } from '../types';
 
 const BUILTIN_TITLES: Record<string, string> = {
   all: 'Your Library',
-  favorites: 'Favorite Flipbooks',
-  philippines: 'Philippines Flipbooks',
-  internal: 'Internal Flipbooks',
-  international: 'International Flipbooks',
-  ph_interns: 'PH Interns Flipbooks',
-  deseret: 'Deseret Flipbooks',
-  angelhost: 'Angelhost Flipbooks',
+  favorites: 'Favorite Library',
+  philippines: 'Philippines Library',
+  internal: 'Internal Library',
+  international: 'International Library',
+  ph_interns: 'PH Interns Library',
+  deseret: 'Deseret Library',
+  angelhost: 'Angelhost Library',
 };
 
 interface LibraryProps {
@@ -48,7 +48,7 @@ const Library: React.FC<LibraryProps> = ({ books, filter, darkMode = false, isLo
 
   // Resolve title: priority goes to custom title from DB, then built-in, then fallback
   const customTitle = customCategories.find(c => c.slug === filter)?.name;
-  const sectionTitle = customTitle ? `${customTitle} Flipbooks` : (BUILTIN_TITLES[filter] || `${filter} Flipbooks`);
+  const sectionTitle = customTitle ? `${customTitle} Library` : (BUILTIN_TITLES[filter] || `${filter} Library`);
   const [openingBookId, setOpeningBookId] = useState<string | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);

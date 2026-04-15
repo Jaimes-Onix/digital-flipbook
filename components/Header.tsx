@@ -214,7 +214,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
           <div className="flex flex-col whitespace-nowrap">
             <span className={`text-[13.5px] font-bold tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</span>
-            <span className={`text-[9.5px] uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-zinc-500' : 'text-black'}`}>Digital Flipbook</span>
+            <span className={`text-[9.5px] uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-zinc-500' : 'text-black'}`}>Digital Library</span>
           </div>
         </div>
       </div>

@@ -214,7 +214,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="px-5 space-y-0.5 pb-4">
             {/* All categories are now dynamic and come from the database */}
-            {customCategories.map(cat => (
+            {[...customCategories].sort((a, b) => a.name.localeCompare(b.name)).map(cat => (
               <NavItem
                 key={cat.id}
                 icon={getCategoryIcon(cat.icon)}
