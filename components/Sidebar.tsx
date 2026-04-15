@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home as HomeIcon,
@@ -20,7 +20,11 @@ import {
   LucideIcon,
   Pencil,
   Trash2,
-  Star
+  Star,
+  Search,
+  ArrowUpDown,
+  Check,
+  X
 } from 'lucide-react';
 import ShareLinkModal from './ShareLinkModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -59,6 +63,34 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<CustomCategory | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<CustomCategory | null>(null);
+
+  // Category Search & Sort state
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [categorySortBy, setCategorySortBy] = useState<'az' | 'za' | 'newest'>('az');
+  const [sortOpen, setSortOpen] = useState(false);
+
+  const filteredAndSortedCategories = useMemo(() => {
+    let result = [...customCategories];
+
+    if (categorySearchQuery.trim()) {
+      const q = categorySearchQuery.toLowerCase();
+      result = result.filter(cat => cat.name.toLowerCase().includes(q));
+    }
+
+    switch (categorySortBy) {
+      case 'az':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'za':
+        result.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'newest':
+        result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        break;
+    }
+
+    return result;
+  }, [customCategories, categorySearchQuery, categorySortBy]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -209,12 +241,74 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Categories */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative flex flex-col">
-          <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 ${darkMode ? 'bg-[#0e0e11]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'}`}>
-            <p className={`px-9 text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-black'}`}>Categories</p>
+          <div className={`sticky top-0 z-10 pt-1 pb-1.5 mb-1 flex flex-col gap-2 ${darkMode ? 'bg-[#0e0e11]/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'}`}>
+            <div className="flex items-center justify-between px-9">
+              <p className={`text-[11px] font-semibold uppercase tracking-[0.15em] whitespace-nowrap ${darkMode ? 'text-zinc-600' : 'text-black'}`}>Categories</p>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => setSortOpen(!sortOpen)}
+                  className={`p-1 rounded-md transition-all ${darkMode ? 'text-zinc-600 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'}`}
+                  title="Sort Categories"
+                >
+                  <ArrowUpDown size={12} />
+                </button>
+                
+                {sortOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+                    <div className={`absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-xl shadow-2xl border overflow-hidden ${darkMode
+                      ? 'bg-[#1c1c20] border-white/[0.08] shadow-black/60'
+                      : 'bg-white border-gray-200 shadow-gray-300/50'
+                      }`}>
+                      {([
+                        { value: 'az', label: 'A → Z' },
+                        { value: 'za', label: 'Z → A' },
+                        { value: 'newest', label: 'Newest' },
+                      ] as const).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => { setCategorySortBy(opt.value); setSortOpen(false); }}
+                          className={`w-full text-left px-3 py-2 text-[12px] transition-colors flex items-center justify-between ${categorySortBy === opt.value
+                            ? darkMode ? 'bg-white/[0.08] text-lime-400 font-medium' : 'bg-emerald-50 text-emerald-700 font-medium'
+                            : darkMode ? 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                        >
+                          {opt.label}
+                          {categorySortBy === opt.value && <Check size={12} />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Category Search Bar */}
+            <div className="px-5">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${darkMode
+                ? 'bg-white/[0.03] border border-white/[0.06] focus-within:border-lime-500/30'
+                : 'bg-gray-50 border border-gray-100 focus-within:border-emerald-200'
+                }`}>
+                <Search size={12} className={darkMode ? 'text-zinc-600' : 'text-gray-400'} />
+                <input 
+                  type="text"
+                  placeholder="Search categories..."
+                  value={categorySearchQuery}
+                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                  className={`bg-transparent border-none outline-none text-[12px] w-full ${darkMode ? 'text-zinc-300 placeholder:text-zinc-600' : 'text-gray-700 placeholder:text-gray-400'}`}
+                />
+                {categorySearchQuery && (
+                  <button onClick={() => setCategorySearchQuery('')}>
+                    <X size={12} className={darkMode ? 'text-zinc-600 hover:text-zinc-400' : 'text-gray-400 hover:text-gray-600'} />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
           <div className="px-5 space-y-0.5 pb-4">
             {/* All categories are now dynamic and come from the database */}
-            {[...customCategories].sort((a, b) => a.name.localeCompare(b.name)).map(cat => (
+            {filteredAndSortedCategories.map(cat => (
               <NavItem
                 key={cat.id}
                 icon={getCategoryIcon(cat.icon)}
