@@ -396,7 +396,7 @@ const Upload: React.FC<UploadProps> = ({ onFilesSelect, onBack, isLoading, statu
           : 'bg-white shadow-lg shadow-gray-200/60 border border-gray-200 rounded-[24px]'
           }`}>
           <h1 className={`text-2xl sm:text-3xl font-bold mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${darkMode ? 'from-lime-300 via-lime-400 to-teal-400' : 'from-lime-500 via-lime-600 to-teal-600'}`}>Import PDF</h1>
-          <p className={`mb-6 sm:mb-10 text-sm sm:text-base ${darkMode ? 'text-white' : 'text-gray-500'}`}>Create premium digital flipbooks from your documents.</p>
+          <p className={`mb-6 sm:mb-10 text-sm sm:text-base ${darkMode ? 'text-white' : 'text-gray-500'}`}>Create premium digital books from your documents.</p>
 
           <div
             onDragOver={handleDragOver}

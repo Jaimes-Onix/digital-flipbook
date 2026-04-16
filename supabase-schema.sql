@@ -1,4 +1,4 @@
--- Lifewood Digital Flipbook Database Schema
+-- Lifewood Digital Library Database Schema
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

@@ -342,7 +342,7 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
 
         {/* Footer */}
         <div className={`fixed bottom-0 left-0 right-0 text-center py-5 ${subtitleColor}`}>
-          <p className="text-xs">Powered by Lifewood Philippines Digital Flipbook</p>
+          <p className="text-xs">Powered by Lifewood Philippines Digital Library</p>
         </div>
       </main>
     </div>

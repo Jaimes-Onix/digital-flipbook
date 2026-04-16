@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
           manifest: {
             name: 'PH LifeBook',
             short_name: 'LifeBook',
-            description: 'Digital Flipbook Application',
+            description: 'Digital Library Application',
             theme_color: '#09090b',
             background_color: '#09090b',
             display: 'standalone',

@@ -63,8 +63,8 @@ const ConversionSuccessModal: React.FC<{
         <h2 className={`text-xl sm:text-2xl font-bold text-center mb-1 sm:mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Conversion Successful</h2>
         <p className={`text-sm sm:text-base text-center mb-6 sm:mb-8 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
           {bookCount === 1
-            ? "Your PDF has been converted to a digital flipbook!"
-            : `${bookCount} PDFs have been converted to digital flipbooks!`
+            ? "Your PDF has been converted to a digital library book!"
+            : `${bookCount} PDFs have been converted to digital library books!`
           }
         </p>
 

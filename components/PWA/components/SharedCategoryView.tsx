@@ -414,7 +414,7 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
                   stroke="currentColor" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </svg>
             </div>
-            <span className={`text-xs font-medium ${subtitleColor}`}>Lifewood Philippines Digital Flipbook</span>
+            <span className={`text-xs font-medium ${subtitleColor}`}>Lifewood Philippines Digital Library</span>
           </div>
         </div>
       </main>

@@ -1,6 +1,6 @@
-# 📚 Lifewood Digital Flipbook
+# 📚 Lifewood Digital Library
 
-A beautiful, modern digital flipbook application built with React, TypeScript, and Vite. Transform your PDFs into stunning interactive flipbooks with an Apple-inspired design.
+A beautiful, modern digital library application built with React, TypeScript, and Vite. Transform your PDFs into stunning interactive books with an Apple-inspired design.
 
 ## ✨ Features
 

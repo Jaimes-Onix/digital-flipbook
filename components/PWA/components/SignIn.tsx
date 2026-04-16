@@ -382,7 +382,7 @@ const SignIn: React.FC = () => {
               <h1 className="text-3xl xl:text-4xl font-extrabold leading-[1.15] tracking-tight mb-3 text-white">
                 Lifewood Philippines<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-lime-400 to-teal-400">
-                  Digital Flipbook
+                  Digital Library
                 </span>
               </h1>
               <p className="text-sm max-w-xs leading-relaxed text-white/30">
@@ -414,7 +414,7 @@ const SignIn: React.FC = () => {
               </div>
               <div>
                 <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>Lifewood Philippines</p>
-                <p className={`text-[10px] uppercase tracking-[0.15em] ${dark ? 'text-lime-500/60' : 'text-emerald-600/60'}`}>Digital Flipbook</p>
+                <p className={`text-[10px] uppercase tracking-[0.15em] ${dark ? 'text-lime-500/60' : 'text-emerald-600/60'}`}>Digital Library</p>
               </div>
             </div>
 

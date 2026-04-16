@@ -478,6 +478,17 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [hasSignaledReady, setHasSignaledReady] = useState(false);
   const [loadingText, setLoadingText] = useState(''); // Start empty to prevent flicker
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  const THUMBNAILS_WIDTH = 320;
+  const SEARCH_WIDTH = 320;
+  const activePanelWidth = showThumbnails ? THUMBNAILS_WIDTH : (showSearch ? SEARCH_WIDTH : 0);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -922,8 +933,13 @@ const BookViewer: React.FC<BookViewerProps> = ({
       }}
       onWheel={(e) => { if (e.ctrlKey) e.preventDefault(); }}
     >
-      {/* Main Book Area */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden book-area-container">
+      {/* Main Book Area - Slides to the side when panels open */}
+      <div 
+        className="flex-1 relative flex items-center justify-center overflow-hidden book-area-container transition-all duration-300 ease-in-out"
+        style={{
+          marginRight: !isMobile ? activePanelWidth : 0,
+        }}
+      >
          <TransformWrapper
           ref={transformRef}
           initialScale={1}
@@ -944,66 +960,69 @@ const BookViewer: React.FC<BookViewerProps> = ({
               <div 
                 className="w-full h-full flex items-center justify-center relative touch-none"
               >
-                <div style={{ pointerEvents: 'auto' }}>
-                  {orientation === 'trifold' ? (
-                    <div
-                      className="relative"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                      }}
-                    >
-                      {isParsing && parsingProgress < 100 && (
-                        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-[#141418]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-500">
-                          <div className="relative w-4 h-4">
-                            <Loader2 className="animate-spin text-lime-500 absolute inset-0" size={16} />
+                  {isMobile ? (
+                    <div className="w-screen h-full overflow-y-auto px-4 pt-12 pb-24 no-scrollbar flex flex-col items-center gap-10">
+                      {pages.map((num) => (
+                        <div 
+                          key={num} 
+                          className="w-full max-w-[100vw] flex flex-col items-center relative"
+                          style={{
+                            minHeight: '200px'
+                          }}
+                        >
+                          <div className="w-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/[0.05] rounded-xl overflow-hidden bg-white">
+                            <Page 
+                              number={num} 
+                              pdfDocument={pdfDocument} 
+                              pageW={pageW} 
+                              pageH={pageH} 
+                              imageUrl={pageImages.get(num)}
+                              searchQuery={searchQuery} 
+                            />
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-[9px] uppercase font-black text-lime-500/80 leading-none tracking-widest mb-0.5">Enhancing</span>
-                            <span className="text-[11px] font-bold text-white/90 whitespace-nowrap leading-none">
-                              {parsingProgress}% Optimized
-                            </span>
+                          <div className="mt-3 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] backdrop-blur-md text-[10px] font-bold text-zinc-500 tracking-widest uppercase">
+                            Page {num}
                           </div>
                         </div>
-                      )}
-                      <TrifoldViewer
-                        pdfDocument={pdfDocument}
-                        onFlip={handleFlip}
-                        onBookInit={handleBookInit}
-                        pageImages={pageImages}
-                      />
+                      ))}
                     </div>
                   ) : (
-                    <div
-                      style={{
-                        width: (isSinglePage ? pageW : pageW * 2) * baseScale,
-                        height: pageH * baseScale,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <div
-                        className="book-3d-container relative"
-                        style={{
-                          width: isSinglePage ? pageW : pageW * 2,
-                          height: pageH,
-                          transform: `scale(${baseScale})`, // Static fit-to-screen scale
-                          transformOrigin: 'center center',
-                        }}
-                      >
+                    <div style={{ pointerEvents: 'auto' }}>
+                      {orientation === 'trifold' ? (
+                        <div
+                          className="relative"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                          }}
+                        >
+                          {isParsing && parsingProgress < 100 && (
+                            <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-[#141418]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-500">
+                              <Loader2 className="animate-spin text-lime-500" size={16} />
+                              <span className="text-xs text-zinc-400 font-medium whitespace-nowrap">Generating cache... {parsingProgress}%</span>
+                            </div>
+                          )}
+                          <TrifoldViewer 
+                            pdfDocument={pdfDocument} 
+                            onFlip={onFlip}
+                            onBookInit={onBookInit}
+                            pageImages={pageImages}
+                          />
+                        </div>
+                      ) : (
+                      <div className="book-shadow-wrapper">
                         <HTMLFlipBook
-                          key={`${pageW}-${pageH}-${isSinglePage}`}
                           width={pageW}
                           height={pageH}
-                          size="fixed"
-                          minWidth={pageW}
-                          maxWidth={pageW}
-                          minHeight={pageH}
-                          maxHeight={pageH}
-                          showCover={!isSinglePage}
-                          maxShadowOpacity={0.25}
+                          size="stretch"
+                          minWidth={315}
+                          maxWidth={2000}
+                          minHeight={400}
+                          maxHeight={2533}
+                          showCover={true}
                           mobileScrollSupport={true}
+                          maxShadowOpacity={0.5}
+                          disableFlipByClick={false}
                           onFlip={handleFlip}
                           onChangeState={handleChangeState}
                           onInit={() => {
@@ -1026,57 +1045,56 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           swipeDistance={30}
                           showPageCorners={false}
                         >
-                        {pages.map((num) => (
-                          <Page 
-                            key={num} 
-                            number={num} 
-                            pdfDocument={pdfDocument} 
-                            pageW={pageW} 
-                            pageH={pageH} 
-                            imageUrl={pageImages.get(num)}
-                            searchQuery={searchQuery} 
-                          />
-                        ))}
-                      </HTMLFlipBook>
+                          {pages.map((num) => (
+                            <Page 
+                              key={num} 
+                              number={num} 
+                              pdfDocument={pdfDocument} 
+                              pageW={pageW} 
+                              pageH={pageH} 
+                              imageUrl={pageImages.get(num)}
+                              searchQuery={searchQuery} 
+                            />
+                          ))}
+                        </HTMLFlipBook>
+                      </div>
+                      )}
                     </div>
-                  </div>
                   )}
                 </div>
-              </div>
-            </TransformComponent>
-        </TransformWrapper>
+              </TransformComponent>
+          </TransformWrapper>
 
-        {/* Left Navigation — Must be AFTER TransformWrapper in DOM so it stacks above the absolute overlay */}
-        <button
-          onClick={flipPrev}
-          onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-0.5 sm:left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]"
-          title="Previous Page"
-        >
-          <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-        </button>
+          {/* Navigation Buttons - nested inside sliding container */}
+          {!isMobile && (
+            <button
+              onClick={flipPrev}
+              onMouseDown={(e) => e.preventDefault()}
+              className="absolute top-1/2 left-4 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]"
+              title="Previous Page"
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
+            </button>
+          )}
 
-        {/* Right Navigation */}
-        <button
-          onClick={flipNext}
-          onMouseDown={(e) => e.preventDefault()}
-          className={`absolute top-1/2 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]`}
-          style={{
-            right: rightPanelOpen ? (window.innerWidth < 640 ? 4 : window.innerWidth < 1024 ? 260 : 290) : (window.innerWidth < 640 ? 2 : window.innerWidth < 1024 ? 8 : 24),
-            transition: 'right 0.3s ease'
-          }}
-          title="Next Page"
-        >
-          <ChevronRight className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
-        </button>
+          {!isMobile && (
+            <button
+              onClick={flipNext}
+              onMouseDown={(e) => e.preventDefault()}
+              className="absolute top-1/2 right-4 -translate-y-1/2 w-7 h-7 sm:w-11 sm:h-11 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-white/40 hover:text-white/90 transition-all z-[60] rounded-full hover:bg-white/[0.08] active:bg-white/[0.15]"
+              title="Next Page"
+            >
+              <ChevronRight className="w-4 h-4 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10" />
+            </button>
+          )}
+        </div>
 
-        {/* Thumbnails Panel - Right Side */}
         <div
-          className="absolute top-0 right-0 h-full z-30 flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
+          className="absolute top-0 right-0 h-full z-[70] flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
           style={{
-            width: window.innerWidth < 640 ? '100%' : window.innerWidth < 1024 ? 260 : 280,
+            width: isMobile ? '100vw' : THUMBNAILS_WIDTH,
             transform: showThumbnails ? 'translateX(0)' : 'translateX(100%)',
-            transition: 'transform 0.3s ease',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           {/* Mobile Handle */}
@@ -1098,77 +1116,32 @@ const BookViewer: React.FC<BookViewerProps> = ({
             </button>
           </div>
 
-          {/* Thumbnails - Spread Layout (cover alone, then pairs) */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 no-scrollbar">
-            <div className="flex flex-col gap-4">
-              {/* Page 1 - Cover (centered, alone) */}
-              {pages.length > 0 && (
-                <div>
-                  <div className="flex justify-center">
-                    <div className="w-1/2">
-                      <Thumbnail
-                        number={1}
-                        pdfDocument={pdfDocument}
-                        isActive={currentPage === 0}
-                        onClick={() => goToPage(1)}
-                      />
-                    </div>
+          {/* Thumbnails Grid - Auto-filling to fill horizontal space without growing items massive */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-4">
+              {pages.map((_, idx) => (
+                <div key={`thumb-${idx + 1}`} className="flex flex-col gap-1">
+                  <Thumbnail
+                    number={idx + 1}
+                    pdfDocument={pdfDocument}
+                    isActive={currentPage === idx}
+                    onClick={() => goToPage(idx + 1)}
+                  />
+                  <div className="text-center text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">
+                    Page {idx + 1}
                   </div>
-                  <div className="text-center text-xs text-zinc-600 mt-1">1</div>
                 </div>
-              )}
-
-              {/* Remaining pages as spreads (2-3, 4-5, 6-7, ...) */}
-              {(() => {
-                const spreads: { left: number; right: number | null }[] = [];
-                for (let i = 2; i <= pages.length; i += 2) {
-                  spreads.push({
-                    left: i,
-                    right: i + 1 <= pages.length ? i + 1 : null,
-                  });
-                }
-                return spreads.map((spread) => (
-                  <div key={`spread-${spread.left}`}>
-                    <div className="flex gap-1">
-                      <div className="flex-1">
-                        <Thumbnail
-                          number={spread.left}
-                          pdfDocument={pdfDocument}
-                          isActive={currentPage === spread.left - 1 || currentPage === spread.left}
-                          onClick={() => goToPage(spread.left)}
-                        />
-                      </div>
-                      {spread.right ? (
-                        <div className="flex-1">
-                          <Thumbnail
-                            number={spread.right}
-                            pdfDocument={pdfDocument}
-                            isActive={currentPage === spread.right - 1 || currentPage === spread.right}
-                            onClick={() => goToPage(spread.right!)}
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex-1" />
-                      )}
-                    </div>
-                    <div className="flex text-center text-xs text-zinc-600 mt-1">
-                      <span className="flex-1">{spread.left}</span>
-                      {spread.right && <span className="flex-1">{spread.right}</span>}
-                    </div>
-                  </div>
-                ));
-              })()}
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Search Panel - Right Side */}
         <div
-          className="absolute top-0 right-0 h-full z-30 flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
+          className="absolute top-0 right-0 h-full z-[70] flex flex-col bg-[#111114]/95 backdrop-blur-xl border-l border-white/[0.04] shadow-2xl shadow-black/40"
           style={{
-            width: window.innerWidth < 640 ? '100%' : window.innerWidth < 1024 ? 280 : 320,
+            width: isMobile ? '100vw' : SEARCH_WIDTH,
             transform: showSearch ? 'translateX(0)' : 'translateX(100%)',
-            transition: 'transform 0.3s ease',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           {/* Mobile Handle */}
@@ -1281,10 +1254,6 @@ const BookViewer: React.FC<BookViewerProps> = ({
           </div>
         </div>
       </div>
-
-
-
-    </div>
   );
 };
 
