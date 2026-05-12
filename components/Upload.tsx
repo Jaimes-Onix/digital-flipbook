@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { UploadCloud, FileText, Loader2, ChevronLeft, X, RectangleVertical, RectangleHorizontal, Columns3, Info, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { UploadCloud, FileText, Loader2, ChevronLeft, X, RectangleVertical, RectangleHorizontal, Columns3, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 type Orientation = 'landscape' | 'portrait' | 'trifold';
 
@@ -19,318 +19,291 @@ interface OrientationModalProps {
   onCancel: () => void;
 }
 
-const ORIENTATION_DETAILS = {
+type OrientationMeta = {
+  title: string;
+  tagline: string;
+  description: string;
+  icon: React.ElementType;
+  bestFor: string;
+};
+
+const ORIENTATION_DETAILS: Record<Orientation, OrientationMeta> = {
   portrait: {
-    title: 'Portrait Format',
-    description: 'The standard vertical orientation for documents. Ideal for books, reports, and traditional reading experiences.',
-    features: ['Standard 1:1.4 aspect ratio', 'Best for single-column text', 'Classic vertical flipping'],
-    color: '#84cc16' // lime-500
+    title: 'Portrait',
+    tagline: 'Classic vertical book',
+    description: 'Standard vertical pages, perfect for books, reports, and most documents.',
+    icon: RectangleVertical,
+    bestFor: 'Books · Reports · Documents',
   },
   landscape: {
-    title: 'Landscape Format',
-    description: 'Horizontal wide-screen format. Perfect for presentations, image-heavy albums, and dual-page spreads.',
-    features: ['Wide viewing area', 'Optimized for modern monitors', 'Side-by-side page display'],
-    color: '#06b6d4' // cyan-500
+    title: 'Landscape',
+    tagline: 'Wide horizontal spread',
+    description: 'Horizontal layout, great for presentations, magazines, and visual content.',
+    icon: RectangleHorizontal,
+    bestFor: 'Presentations · Magazines · Photo books',
   },
   trifold: {
-    title: 'Trifold Brochure',
-    description: 'A specialized 3-panel folding design. Perfect for marketing brochures and innovative digital artifacts.',
-    features: ['Realistic 3-way fold', 'Continuous 3-panel spread', 'Immersive brochure behavior'],
-    color: '#10b981' // emerald-500
+    title: 'Trifold',
+    tagline: '3-panel brochure',
+    description: 'Three-panel folding layout for marketing brochures and pamphlets.',
+    icon: Columns3,
+    bestFor: 'Brochures · Flyers · Pamphlets',
+  },
+};
+
+// Realistic mini-mockup of what the book will look like in each orientation.
+// Kept monochrome (lime accents) so the three tiles read as a coherent set
+// rather than a rainbow of competing colors.
+const OrientationPreview: React.FC<{ orientation: Orientation; active: boolean }> = ({ orientation, active }) => {
+  const accent = active ? 'rgba(132, 204, 22, 0.95)' : 'rgba(255, 255, 255, 0.35)';
+  const fill = active ? 'rgba(132, 204, 22, 0.12)' : 'rgba(255, 255, 255, 0.04)';
+  const line = active ? 'rgba(132, 204, 22, 0.5)' : 'rgba(255, 255, 255, 0.18)';
+
+  if (orientation === 'portrait') {
+    return (
+      <div className="flex items-center justify-center gap-1.5">
+        {[0, 1].map(i => (
+          <div
+            key={i}
+            className="rounded-[3px] flex flex-col gap-1.5 p-2"
+            style={{ width: 46, height: 64, border: `1.5px solid ${accent}`, background: fill }}
+          >
+            <div className="h-[2px] w-full rounded-full" style={{ background: line }} />
+            <div className="h-[2px] w-5/6 rounded-full" style={{ background: line }} />
+            <div className="h-[2px] w-full rounded-full" style={{ background: line }} />
+            <div className="h-[2px] w-2/3 rounded-full" style={{ background: line }} />
+            <div className="h-[2px] w-4/5 rounded-full" style={{ background: line }} />
+          </div>
+        ))}
+      </div>
+    );
   }
+
+  if (orientation === 'landscape') {
+    return (
+      <div
+        className="rounded-[4px] flex p-2 gap-1.5"
+        style={{ width: 116, height: 64, border: `1.5px solid ${accent}`, background: fill }}
+      >
+        <div className="flex-1 flex flex-col gap-1 justify-center">
+          <div className="h-[2px] w-full rounded-full" style={{ background: line }} />
+          <div className="h-[2px] w-3/4 rounded-full" style={{ background: line }} />
+          <div className="h-[2px] w-5/6 rounded-full" style={{ background: line }} />
+        </div>
+        <div className="w-px" style={{ background: accent, opacity: 0.6 }} />
+        <div className="flex-1 flex flex-col gap-1 justify-center">
+          <div className="h-[2px] w-5/6 rounded-full" style={{ background: line }} />
+          <div className="h-[2px] w-full rounded-full" style={{ background: line }} />
+          <div className="h-[2px] w-2/3 rounded-full" style={{ background: line }} />
+        </div>
+      </div>
+    );
+  }
+
+  // trifold
+  return (
+    <div className="flex items-center" style={{ width: 122, height: 64 }}>
+      <div
+        className="rounded-l-[3px] flex flex-col gap-1 p-1.5"
+        style={{ width: 40, height: '100%', border: `1.5px solid ${accent}`, borderRight: 'none', background: fill }}
+      >
+        <div className="h-[1.5px] w-full rounded-full" style={{ background: line }} />
+        <div className="h-[1.5px] w-3/4 rounded-full" style={{ background: line }} />
+        <div className="h-[1.5px] w-5/6 rounded-full" style={{ background: line }} />
+      </div>
+      <div
+        className="flex flex-col gap-1 p-1.5"
+        style={{ width: 40, height: '100%', border: `1.5px solid ${accent}`, borderRight: 'none', background: active ? 'rgba(132, 204, 22, 0.18)' : 'rgba(255, 255, 255, 0.06)' }}
+      >
+        <div className="h-[1.5px] w-full rounded-full" style={{ background: line }} />
+        <div className="h-[1.5px] w-full rounded-full" style={{ background: line }} />
+        <div className="h-[1.5px] w-2/3 rounded-full" style={{ background: line }} />
+      </div>
+      <div
+        className="rounded-r-[3px] flex flex-col gap-1 p-1.5"
+        style={{ width: 40, height: '100%', border: `1.5px solid ${accent}`, background: fill }}
+      >
+        <div className="h-[1.5px] w-5/6 rounded-full" style={{ background: line }} />
+        <div className="h-[1.5px] w-full rounded-full" style={{ background: line }} />
+        <div className="h-[1.5px] w-3/4 rounded-full" style={{ background: line }} />
+      </div>
+    </div>
+  );
 };
 
 const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, onConfirm, onCancel }) => {
   const [selected, setSelected] = useState<Orientation>('portrait');
-  const [rotationOffset, setRotationOffset] = useState(0);
-  const [pulseTrigger, setPulseTrigger] = useState(0);
 
-  // Portrait starts at top (−90°), Landscape at bottom-right (30°), Trifold at bottom-left (150°)
-  const ORBIT_ITEMS: { type: Orientation; icon: React.ElementType; label: string; baseAngle: number }[] = [
-    { type: 'portrait',  icon: RectangleVertical,   label: 'Portrait',  baseAngle: -90 },
-    { type: 'landscape', icon: RectangleHorizontal, label: 'Landscape', baseAngle:  30 },
-    { type: 'trifold',   icon: Columns3,           label: 'Trifold',   baseAngle: 150 },
-  ];
-
-  const RADIUS = 155;
-
-  const handleSelect = (type: Orientation, baseAngle: number) => {
-    setSelected(type);
-    setPulseTrigger(prev => prev + 1);
-    setRotationOffset(prev => {
-      // Calculate delta to bring this item to −90° (top)
-      let delta = (-90 - baseAngle) - prev;
-      // Normalize to shortest path
-      delta = ((delta % 360) + 360) % 360;
-      if (delta > 180) delta -= 360;
-      return prev + delta;
-    });
-  };
-
-  const getItemPos = (baseAngle: number) => {
-    const a = ((baseAngle + rotationOffset) * Math.PI) / 180;
-    return { x: Math.cos(a) * RADIUS, y: Math.sin(a) * RADIUS };
-  };
-
-  const details = ORIENTATION_DETAILS[selected];
+  const options: Orientation[] = ['portrait', 'landscape', 'trifold'];
+  const fileCount = files.length;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-      style={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(0,0,0,0.75)' }}
+      style={{ backdropFilter: 'blur(16px)', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+      onClick={onCancel}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className={`relative w-full max-w-5xl rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-2xl flex flex-col lg:flex-row h-auto lg:h-[620px] max-h-[98vh] sm:max-h-[90vh] ${
-          darkMode ? 'bg-[#0c0c10]/95 border border-white/[0.08]' : 'bg-white/95 border border-gray-200'
+        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl ${
+          darkMode
+            ? 'bg-[#0d0d11] border border-white/[0.06]'
+            : 'bg-white border border-gray-200'
         }`}
+        style={{
+          boxShadow: darkMode
+            ? '0 24px 60px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04)'
+            : '0 24px 60px -12px rgba(0, 0, 0, 0.18)',
+        }}
       >
-        {/* Close Button */}
-        <button
-          onClick={onCancel}
-          className={`absolute top-4 right-4 sm:top-6 sm:right-6 z-[30] p-2 sm:p-2.5 rounded-full transition-all duration-200 ${
-            darkMode ? 'text-zinc-500 hover:text-white hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
-          }`}
-        >
-          <X size={18} className="sm:w-5 sm:h-5" />
-        </button>
-
-        {/* ── Left Side: Radial Orbital Selector ── */}
-        <div className="flex-1 relative flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 min-h-[320px] xs:min-h-[380px] lg:min-h-0 overflow-hidden">
-          {/* Title */}
-          <div className="absolute top-4 left-6 sm:top-8 sm:left-8 text-left z-10">
-            <h2 className={`text-base sm:text-2xl lg:text-3xl font-bold mb-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Book Orientation
+        {/* Header */}
+        <div className="px-6 sm:px-8 pt-6 sm:pt-7 pb-4 sm:pb-5 flex items-start justify-between gap-4">
+          <div>
+            <h2 className={`text-lg sm:text-xl font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Choose a format
             </h2>
-            <p className={`text-[10px] sm:text-sm ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
-              Select the structure for your digital asset
+            <p className={`mt-1 text-[13px] ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+              How should we lay out{' '}
+              <span className={`font-medium ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
+                {fileCount === 1 ? files[0].name.replace(/\.pdf$/i, '') : `${fileCount} documents`}
+              </span>
+              ?
             </p>
           </div>
+          <button
+            onClick={onCancel}
+            aria-label="Close"
+            className={`p-2 rounded-lg transition-colors shrink-0 ${
+              darkMode
+                ? 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
+                : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-          {/* Orbital Stage */}
-          <div className="relative flex items-center justify-center scale-[0.5] xs:scale-[0.7] sm:scale-90 lg:scale-100" style={{ width: 420, height: 420 }}>
-
-            {/* Click-Activated Pulsing Rings — vibrant lime green */}
-            {[0, 1, 2].map(i => (
-              <div
-                key={`${pulseTrigger}-${i}`}
-                className="absolute rounded-full pointer-events-none"
-                style={{
-                  width:  150 + i * 75,
-                  height: 150 + i * 75,
-                  left: '50%', top: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  border: '3.5px solid rgba(132, 204, 22, 0.9)',
-                  boxShadow: '0 0 35px rgba(132, 204, 22, 0.5), inset 0 0 15px rgba(132, 204, 22, 0.3)',
-                  animation: `orb-pulse 3.0s ease-in ${i * 0.4}s 1 forwards`,
-                }}
-              />
-            ))}
-
-            {/* Static faint orbit path */}
-            <div
-              className="absolute rounded-full pointer-events-none"
-              style={{
-                width: 330, height: 330,
-                left: '50%', top: '50%',
-                transform: 'translate(-50%, -50%)',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
-            />
-
-            {/* Central Book Icon */}
-            <div
-              className="absolute z-10 w-[96px] h-[96px] rounded-full flex items-center justify-center"
-              style={{
-                left: '50%', top: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: 'radial-gradient(circle at 40% 35%, rgba(132,204,22,0.25) 0%, rgba(8,8,12,0.96) 70%)',
-                border: '2px solid rgba(132,204,22,0.32)',
-                boxShadow: '0 0 50px rgba(132,204,22,0.18), 0 0 100px rgba(132,204,22,0.06), inset 0 0 24px rgba(0,0,0,0.7)',
-              }}
-            >
-              <BookOpen size={42} className="text-lime-400" strokeWidth={1.6} />
-            </div>
-
-            {/* Orbit Buttons */}
-            {ORBIT_ITEMS.map(item => {
-              const { x, y } = getItemPos(item.baseAngle);
-              const isActive = selected === item.type;
-              const Ic = item.icon as React.FC<{ size?: number; className?: string; strokeWidth?: number }>;
+        {/* Tile Grid */}
+        <div className="px-6 sm:px-8 pb-5 sm:pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {options.map((opt) => {
+              const meta = ORIENTATION_DETAILS[opt];
+              const active = selected === opt;
+              const Icon = meta.icon as React.FC<{ size?: number; className?: string; strokeWidth?: number }>;
 
               return (
-                <motion.button
-                  key={item.type}
-                  onClick={() => handleSelect(item.type, item.baseAngle)}
-                  className="absolute z-20 flex flex-col items-center"
-                  style={{ left: '50%', top: '50%', marginLeft: -40, marginTop: -40 }}
-                  animate={{ x, y }}
-                  transition={{ type: 'spring', stiffness: 190, damping: 24 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.90 }}
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setSelected(opt)}
+                  className={`group relative text-left rounded-xl p-4 sm:p-5 transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50 ${
+                    active
+                      ? darkMode
+                        ? 'bg-lime-500/[0.08] border border-lime-500/60'
+                        : 'bg-lime-50 border border-lime-500'
+                      : darkMode
+                        ? 'bg-white/[0.02] border border-white/[0.06] hover:border-white/15 hover:bg-white/[0.04]'
+                        : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                  style={
+                    active
+                      ? { boxShadow: '0 0 0 1px rgba(132, 204, 22, 0.4), 0 8px 24px -8px rgba(132, 204, 22, 0.25)' }
+                      : undefined
+                  }
                 >
-                  {/* Icon box */}
+                  {/* Checkmark on selected */}
+                  {active && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                      className="absolute top-3 right-3 w-5 h-5 rounded-full bg-lime-500 flex items-center justify-center"
+                    >
+                      <Check size={12} strokeWidth={3} className="text-white" />
+                    </motion.div>
+                  )}
+
+                  {/* Preview */}
                   <div
-                    className={`w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-300 ${
-                      isActive
-                        ? 'bg-lime-500 text-white ring-4 ring-lime-500/30'
-                        : darkMode
-                          ? 'bg-zinc-800/90 text-zinc-400 border border-white/[0.10] hover:border-lime-500/40 hover:text-lime-400'
-                          : 'bg-white text-gray-500 border border-gray-200 shadow hover:border-lime-400 hover:text-lime-600'
+                    className={`h-24 rounded-lg flex items-center justify-center mb-4 transition-colors ${
+                      darkMode
+                        ? active ? 'bg-black/40' : 'bg-black/30'
+                        : active ? 'bg-white' : 'bg-gray-50'
                     }`}
-                    style={isActive ? { boxShadow: '0 0 36px rgba(132,204,22,0.6), 0 0 12px rgba(132,204,22,0.35)' } : {}}
                   >
-                    <Ic size={32} />
+                    <OrientationPreview orientation={opt} active={active} />
                   </div>
-                  {/* Label */}
-                  <span
-                    className={`mt-2.5 text-[11px] font-bold tracking-widest uppercase whitespace-nowrap ${
-                      isActive ? 'text-lime-400' : 'text-zinc-400'
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </motion.button>
+
+                  {/* Title + icon */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon
+                      size={14}
+                      strokeWidth={2}
+                      className={active ? 'text-lime-500' : darkMode ? 'text-zinc-500' : 'text-gray-400'}
+                    />
+                    <span className={`text-[15px] font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {meta.title}
+                    </span>
+                  </div>
+
+                  <p className={`text-[12px] leading-snug ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+                    {meta.tagline}
+                  </p>
+                </button>
               );
             })}
           </div>
+
+          {/* Subtle description of the selected format */}
+          <p
+            className={`mt-5 text-[13px] leading-relaxed ${
+              darkMode ? 'text-zinc-400' : 'text-gray-600'
+            }`}
+          >
+            {ORIENTATION_DETAILS[selected].description}{' '}
+            <span className={darkMode ? 'text-zinc-600' : 'text-gray-400'}>
+              · Best for {ORIENTATION_DETAILS[selected].bestFor}.
+            </span>
+          </p>
         </div>
 
-        {/* ── Right Side: Info Panel ── */}
-        <div className={`w-full lg:w-[380px] flex flex-col transition-colors duration-300 lg:border-l shrink-0 ${
-          darkMode ? 'bg-zinc-900/60 border-white/[0.1]' : 'bg-gray-50 border-gray-200'
-        }`}>
-          {/* Scrollable Content Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 custom-scrollbar max-h-[35vh] lg:max-h-none">
-            <div className="space-y-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selected}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
-              >
-                {/* New Format Illustration */}
-                <div className={`relative h-32 sm:h-48 rounded-2xl flex items-center justify-center overflow-hidden mb-4 ${
-                  darkMode ? 'bg-white/[0.03] border border-white/[0.08]' : 'bg-gray-100 border border-gray-200'
-                }`}>
-                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA0Ii8+PHBhdGggZD0iTTAgMGg0djRIMG00IDRoNHY0SDRaIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9Ii4wNCIvPjwvc3ZnPg==')]" />
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    key={selected}
-                    className="relative z-10"
-                  >
-                    {selected === 'portrait' && (
-                      <div className="w-24 h-32 rounded-lg border-2 border-lime-500/50 bg-lime-500/10 flex flex-col p-2 gap-1.5 shadow-2xl shadow-lime-500/10">
-                        <div className="h-1.5 w-full bg-lime-500/30 rounded-full" />
-                        <div className="h-1.5 w-5/6 bg-lime-500/30 rounded-full" />
-                        <div className="flex-1" />
-                        <div className="h-1 w-1/3 bg-lime-500/20 rounded-full self-center" />
-                      </div>
-                    )}
-                    {selected === 'landscape' && (
-                      <div className="w-40 h-28 rounded-lg border-2 border-cyan-500/50 bg-cyan-500/10 flex p-2 shadow-2xl shadow-cyan-500/10 relative">
-                        <div className="flex-1 bg-cyan-500/20 rounded-l h-full" />
-                        <div className="w-[2px] h-full bg-cyan-500/40 mx-0.5" /> {/* The Divider */}
-                        <div className="flex-1 bg-cyan-500/20 rounded-r h-full" />
-                      </div>
-                    )}
-                    {selected === 'trifold' && (
-                      <div className="w-44 h-32 flex shadow-2xl shadow-emerald-500/10">
-                        <div className="w-14 h-full rounded-l-lg border-2 border-emerald-500/50 bg-emerald-500/10 transform -skew-y-3" />
-                        <div className="w-[2px] h-full bg-emerald-500/40 z-20" /> {/* Divider 1 */}
-                        <div className="w-14 h-full border-2 border-emerald-500/50 bg-emerald-500/20 z-10" />
-                        <div className="w-[2px] h-full bg-emerald-500/40 z-20" /> {/* Divider 2 */}
-                        <div className="w-14 h-full rounded-r-lg border-2 border-emerald-500/50 bg-emerald-500/10 transform skew-y-3" />
-                      </div>
-                    )}
-                  </motion.div>
-                </div>
+        {/* Footer */}
+        <div
+          className={`px-6 sm:px-8 py-4 flex items-center justify-between gap-3 border-t ${
+            darkMode ? 'border-white/[0.05] bg-black/20' : 'border-gray-100 bg-gray-50/60'
+          }`}
+        >
+          <span className={`text-[12px] ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+            Applying to{' '}
+            <span className={`font-semibold ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
+              {fileCount}
+            </span>{' '}
+            {fileCount === 1 ? 'document' : 'documents'}
+          </span>
 
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className={`p-2 rounded-xl sm:p-2.5 ${darkMode ? 'bg-lime-500/10 text-lime-400' : 'bg-lime-50 text-lime-600'}`}>
-                    <Info className="w-5 h-5 sm:w-[22px] sm:h-[22px]" />
-                  </div>
-                  <h3 className={`text-lg sm:text-2xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {details.title}
-                  </h3>
-                </div>
-
-                <p className={`text-sm sm:text-lg leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-gray-600'}`}>
-                  {details.description}
-                </p>
-
-                <div className="space-y-4 pt-2">
-                  <p className={`text-xs font-bold uppercase tracking-[0.2em] ${darkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
-                    Key Features
-                  </p>
-                  <ul className="grid grid-cols-1 gap-2 sm:gap-3">
-                    {details.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-2.5 sm:gap-3.5 text-[13px] sm:text-sm font-semibold">
-                        <div className="w-1.5 h-1.5 rounded-full bg-lime-500 shadow-lg shadow-lime-500/40" />
-                        <span className={darkMode ? 'text-zinc-200' : 'text-gray-800'}>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            </div>
-          </div>
-
-          <div className={`p-8 pt-4 lg:p-10 lg:pt-4 border-t ${darkMode ? 'border-white/[0.05]' : 'border-gray-200'} bg-opacity-50`}>
-            <div className="space-y-4">
-            <p className={`text-xs text-center mb-2 px-6 ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
-              Applying format to{' '}
-              <span className="font-semibold text-lime-500">{files.length}</span>{' '}
-              {files.length === 1 ? 'document' : 'documents'}
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => onConfirm(selected)}
-                className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-sm text-white bg-lime-500 hover:bg-lime-400 shadow-lg shadow-lime-500/20 active:scale-[0.98] transition-all"
-              >
-                Import Book
-              </button>
-              <button
-                onClick={onCancel}
-                className={`w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-medium text-[13px] sm:text-sm transition-all ${
-                  darkMode
-                    ? 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white'
-                    : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                Cancel
-              </button>
-            </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onCancel}
+              className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+                darkMode
+                  ? 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onConfirm(selected)}
+              className="px-5 py-2 rounded-lg text-[13px] font-semibold text-black bg-lime-500 hover:bg-lime-400 active:bg-lime-600 transition-colors shadow-sm shadow-lime-500/30"
+            >
+              Import book
+            </button>
           </div>
         </div>
       </motion.div>
-
-      <style>{`
-        @keyframes orb-pulse {
-          0%   { opacity: 1.0; transform: translate(-50%, -50%) scale(1);    }
-          100% { opacity: 0;   transform: translate(-50%, -50%) scale(1.75); }
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(132, 204, 22, 0.2);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(132, 204, 22, 0.4);
-        }
-      `}</style>
     </div>
   );
 };
