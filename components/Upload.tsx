@@ -55,9 +55,9 @@ const ORIENTATION_DETAILS: Record<Orientation, OrientationMeta> = {
 // Kept monochrome (lime accents) so the three tiles read as a coherent set
 // rather than a rainbow of competing colors.
 const OrientationPreview: React.FC<{ orientation: Orientation; active: boolean }> = ({ orientation, active }) => {
-  const accent = active ? 'rgba(132, 204, 22, 0.95)' : 'rgba(255, 255, 255, 0.35)';
-  const fill = active ? 'rgba(132, 204, 22, 0.12)' : 'rgba(255, 255, 255, 0.04)';
-  const line = active ? 'rgba(132, 204, 22, 0.5)' : 'rgba(255, 255, 255, 0.18)';
+  const accent = active ? 'rgba(132, 204, 22, 0.95)' : 'rgba(255, 255, 255, 0.55)';
+  const fill = active ? 'rgba(132, 204, 22, 0.12)' : 'rgba(255, 255, 255, 0.06)';
+  const line = active ? 'rgba(132, 204, 22, 0.55)' : 'rgba(255, 255, 255, 0.32)';
 
   if (orientation === 'portrait') {
     return (
@@ -113,7 +113,7 @@ const OrientationPreview: React.FC<{ orientation: Orientation; active: boolean }
       </div>
       <div
         className="flex flex-col gap-1 p-1.5"
-        style={{ width: 40, height: '100%', border: `1.5px solid ${accent}`, borderRight: 'none', background: active ? 'rgba(132, 204, 22, 0.18)' : 'rgba(255, 255, 255, 0.06)' }}
+        style={{ width: 40, height: '100%', border: `1.5px solid ${accent}`, borderRight: 'none', background: active ? 'rgba(132, 204, 22, 0.18)' : 'rgba(255, 255, 255, 0.10)' }}
       >
         <div className="h-[1.5px] w-full rounded-full" style={{ background: line }} />
         <div className="h-[1.5px] w-full rounded-full" style={{ background: line }} />
@@ -150,12 +150,12 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
         onClick={(e) => e.stopPropagation()}
         className={`relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl ${
           darkMode
-            ? 'bg-[#0d0d11] border border-white/[0.06]'
+            ? 'bg-[#1c1c22] border border-white/[0.08]'
             : 'bg-white border border-gray-200'
         }`}
         style={{
           boxShadow: darkMode
-            ? '0 24px 60px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04)'
+            ? '0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06)'
             : '0 24px 60px -12px rgba(0, 0, 0, 0.18)',
         }}
       >
@@ -165,9 +165,9 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
             <h2 className={`text-lg sm:text-xl font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Choose a format
             </h2>
-            <p className={`mt-1 text-[13px] ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+            <p className={`mt-1 text-[13px] ${darkMode ? 'text-zinc-400' : 'text-gray-500'}`}>
               How should we lay out{' '}
-              <span className={`font-medium ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
+              <span className={`font-medium ${darkMode ? 'text-zinc-200' : 'text-gray-700'}`}>
                 {fileCount === 1 ? files[0].name.replace(/\.pdf$/i, '') : `${fileCount} documents`}
               </span>
               ?
@@ -202,10 +202,10 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
                   className={`group relative text-left rounded-xl p-4 sm:p-5 transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-lime-500/50 ${
                     active
                       ? darkMode
-                        ? 'bg-lime-500/[0.08] border border-lime-500/60'
+                        ? 'bg-lime-500/[0.12] border border-lime-500/70'
                         : 'bg-lime-50 border border-lime-500'
                       : darkMode
-                        ? 'bg-white/[0.02] border border-white/[0.06] hover:border-white/15 hover:bg-white/[0.04]'
+                        ? 'bg-white/[0.05] border border-white/[0.12] hover:border-white/25 hover:bg-white/[0.08]'
                         : 'bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                   style={
@@ -230,7 +230,7 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
                   <div
                     className={`h-24 rounded-lg flex items-center justify-center mb-4 transition-colors ${
                       darkMode
-                        ? active ? 'bg-black/40' : 'bg-black/30'
+                        ? active ? 'bg-black/30 border border-white/[0.04]' : 'bg-black/20 border border-white/[0.04]'
                         : active ? 'bg-white' : 'bg-gray-50'
                     }`}
                   >
@@ -249,7 +249,7 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
                     </span>
                   </div>
 
-                  <p className={`text-[12px] leading-snug ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+                  <p className={`text-[12px] leading-snug ${darkMode ? 'text-zinc-400' : 'text-gray-500'}`}>
                     {meta.tagline}
                   </p>
                 </button>
@@ -260,11 +260,11 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
           {/* Subtle description of the selected format */}
           <p
             className={`mt-5 text-[13px] leading-relaxed ${
-              darkMode ? 'text-zinc-400' : 'text-gray-600'
+              darkMode ? 'text-zinc-300' : 'text-gray-600'
             }`}
           >
             {ORIENTATION_DETAILS[selected].description}{' '}
-            <span className={darkMode ? 'text-zinc-600' : 'text-gray-400'}>
+            <span className={darkMode ? 'text-zinc-500' : 'text-gray-400'}>
               · Best for {ORIENTATION_DETAILS[selected].bestFor}.
             </span>
           </p>
@@ -273,12 +273,12 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
         {/* Footer */}
         <div
           className={`px-6 sm:px-8 py-4 flex items-center justify-between gap-3 border-t ${
-            darkMode ? 'border-white/[0.05] bg-black/20' : 'border-gray-100 bg-gray-50/60'
+            darkMode ? 'border-white/[0.08] bg-white/[0.02]' : 'border-gray-100 bg-gray-50/60'
           }`}
         >
-          <span className={`text-[12px] ${darkMode ? 'text-zinc-500' : 'text-gray-500'}`}>
+          <span className={`text-[12px] ${darkMode ? 'text-zinc-400' : 'text-gray-500'}`}>
             Applying to{' '}
-            <span className={`font-semibold ${darkMode ? 'text-zinc-300' : 'text-gray-700'}`}>
+            <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-700'}`}>
               {fileCount}
             </span>{' '}
             {fileCount === 1 ? 'document' : 'documents'}
@@ -289,7 +289,7 @@ const OrientationModal: React.FC<OrientationModalProps> = ({ files, darkMode, on
               onClick={onCancel}
               className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors ${
                 darkMode
-                  ? 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
+                  ? 'text-zinc-300 hover:text-white hover:bg-white/[0.08]'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
