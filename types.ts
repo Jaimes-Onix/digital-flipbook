@@ -41,7 +41,6 @@ export interface LibraryBook {
   totalPages: number;
   summary?: string;
   category?: BookCategory;
-  isFavorite?: boolean;
   orientation?: 'portrait' | 'landscape' | 'trifold';
   createdAt?: string;
 }

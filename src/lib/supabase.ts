@@ -28,7 +28,6 @@ export type Book = {
   total_pages: number
   file_size?: number
   category?: 'philippines' | 'internal' | 'international' | 'ph_interns' | 'deseret' | 'angelhost'
-  is_favorite: boolean
   summary?: string
   created_at: string
   updated_at: string

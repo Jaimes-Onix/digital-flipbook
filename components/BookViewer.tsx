@@ -180,10 +180,11 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
           // This is the competitor's approach — no over-rendering, no under-rendering
           const fitScale = Math.min(pageW / natural.width, pageH / natural.height);
 
-          // The canvas backing-store must account for devicePixelRatio
-          // so the browser renders 1 PDF pixel = 1 screen pixel on retina displays
-          // OPTIMIZATION: Cap DPR to 2.0 on mobile to prevent memory lag/crashes
-          const dpr = Math.min(window.devicePixelRatio || 1, 2.0);
+          // Canvas backing = page CSS size × devicePixelRatio so 1 PDF pixel
+          // maps to 1 screen pixel on retina/3x displays. Pages are now sized
+          // to fit the viewport directly (no CSS transform downscale), so we
+          // can afford to honor up to 3x DPR for full sharpness.
+          const dpr = Math.min(window.devicePixelRatio || 1, 3.0);
           const renderScale = fitScale * dpr;
 
           const viewport = page.getViewport({ scale: renderScale });
@@ -328,9 +329,10 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
       >
         {/* Priority Rendering: Use pre-rendered image if available (buttery smooth flips) */}
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
+          <img
+            src={imageUrl}
             alt={`Page ${number}`}
+            draggable={false}
             style={{
               position: 'absolute',
               width: '100%',
@@ -338,8 +340,11 @@ const Page = React.memo(forwardRef<HTMLDivElement, { number: number; pdfDocument
               objectFit: 'contain',
               userSelect: 'none',
               pointerEvents: 'none',
-              // Subtle sharpening for JPEG
-              imageRendering: 'auto'
+              // Tell the browser to use the highest-quality interpolation when
+              // the CSS transform scales the spread down to the fitted size.
+              imageRendering: 'high-quality' as any,
+              backfaceVisibility: 'hidden',
+              transform: 'translateZ(0)',
             }}
           />
         ) : (
@@ -463,17 +468,19 @@ const BookViewer: React.FC<BookViewerProps> = ({
   const [pdfAspectRatio, setPdfAspectRatio] = useState<number>(defaultAspectRatio);
   const [isSinglePage, setIsSinglePage] = useState<boolean>(false);
 
-  // Dynamically calculate page dimensions to perfectly match the PDF aspect ratio.
-  // We use a high base resolution because CSS 3D transforms rasterize DOM layers
-  // based on their intrinsic dimensions. 
-  const baseSize = 1600;
-  const pageW = pdfAspectRatio > 1 ? baseSize : baseSize * pdfAspectRatio;
-  const pageH = pdfAspectRatio > 1 ? baseSize / pdfAspectRatio : baseSize;
+  // Page dimensions are fitted to the viewport — no CSS scaling, no two-step
+  // downscaling. The canvas renders at exactly the on-screen size × DPR, so
+  // text stays razor sharp.
+  const [pageDims, setPageDims] = useState<{ w: number; h: number }>({
+    w: Math.round(560 * defaultAspectRatio),
+    h: 560,
+  });
+  const pageW = pageDims.w;
+  const pageH = pageDims.h;
 
 
   const [pages, setPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [baseScale, setBaseScale] = useState(1);
   const [loading, setLoading] = useState(true);
   const [hasSignaledReady, setHasSignaledReady] = useState(false);
   const [loadingText, setLoadingText] = useState(''); // Start empty to prevent flicker
@@ -629,7 +636,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
 
 
 
-  // Calculate base scale to fit screen
+  // Compute the fitted page dimensions so the book renders at exactly its
+  // on-screen size — no CSS transform, no downscaling. The canvas inside each
+  // page uses these dimensions × DPR for the backing store, which is what
+  // keeps text sharp.
   useEffect(() => {
     let resizeTimeout: NodeJS.Timeout | null = null;
     let observer: ResizeObserver | null = null;
@@ -641,22 +651,35 @@ const BookViewer: React.FC<BookViewerProps> = ({
       const isMobileOrTablet = window.innerWidth < 1024;
       const singlePage = pdfAspectRatio > 1.2 || window.innerWidth < 768;
 
-      // Smaller padding on mobile/tablet for maximum book area
-      const padX = isMobileOrTablet ? 8 : 40;
-      const padY = isMobileOrTablet ? 8 : 40;
-      const w = Math.max(0, bookContainer.clientWidth - padX);
-      const h = Math.max(0, bookContainer.clientHeight - padY);
+      const padX = isMobileOrTablet ? 8 : 16;
+      const padY = isMobileOrTablet ? 8 : 16;
+      const availW = Math.max(0, bookContainer.clientWidth - padX);
+      const availH = Math.max(0, bookContainer.clientHeight - padY);
 
-      const spreadW = singlePage ? pageW : pageW * 2;
-      const scaleX = w / spreadW;
-      const scaleY = h / pageH;
+      // Fit one page (or one half of the spread) inside the available area
+      // while preserving the PDF's aspect ratio.
+      const pagesPerRow = singlePage ? 1 : 2;
+      const maxW = availW / pagesPerRow;
+      const maxH = availH;
 
-      const newScale = Math.min(scaleX, scaleY);
+      let newW: number;
+      let newH: number;
+      if (maxW / maxH > pdfAspectRatio) {
+        // Height-constrained
+        newH = maxH;
+        newW = newH * pdfAspectRatio;
+      } else {
+        // Width-constrained
+        newW = maxW;
+        newH = newW / pdfAspectRatio;
+      }
+
+      newW = Math.max(1, Math.floor(newW));
+      newH = Math.max(1, Math.floor(newH));
 
       setIsSinglePage(singlePage);
-      setBaseScale(newScale);
+      setPageDims(prev => (prev.w === newW && prev.h === newH ? prev : { w: newW, h: newH }));
 
-      // Force HTMLFlipBook to recalculate its internal canvas offset after scale applied
       setTimeout(() => {
         bookRef.current?.pageFlip()?.update();
       }, 50);
@@ -688,10 +711,15 @@ const BookViewer: React.FC<BookViewerProps> = ({
       if (observer) observer.disconnect();
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
-  }, [pageW, pageH, pdfAspectRatio]);
+  }, [pdfAspectRatio]);
 
-  // High-Resolution Image Pre-rendering Engine
+  // High-Resolution Image Pre-rendering Engine — ONLY for trifold orientation.
+  // The normal flipbook uses direct canvas rendering inside each <Page>, which
+  // renders at exactly the on-screen size × DPR and is sharper than any JPEG
+  // pipeline. Trifold still needs pre-rendered images because TrifoldViewer
+  // composites them in its own way.
   useEffect(() => {
+    if (orientation !== 'trifold') return;
     if (!pdfDocument || pages.length === 0 || isParsing || pageImages.size === pages.length) return;
 
     const renderImages = async () => {
@@ -701,10 +729,9 @@ const BookViewer: React.FC<BookViewerProps> = ({
       // QUALITY_SCALE — carefully capped on mobile/tablet to prevent GPU memory crashes
       const isMobileDevice = window.innerWidth < 1024;
       const dpr = window.devicePixelRatio || 1;
-      // With PNG (lossless), we don't need as high a scale — 2x DPR is sharp enough
       const QUALITY_SCALE = isMobileDevice
-        ? Math.min(dpr * 2.0, 3.0)   // Mobile/tablet: crisp with PNG, no compression loss
-        : Math.min(dpr * 2.0, 3.0);  // Desktop: 2x DPR capped at 3.0x (PNG has zero quality loss)
+        ? Math.min(dpr * 2.0, 3.0)
+        : Math.min(dpr * 2.5, 4.0);  // Desktop: higher scale for razor-sharp text
 
       for (let i = 0; i < total; i++) {
         const pageNum = pages[i];
@@ -721,15 +748,15 @@ const BookViewer: React.FC<BookViewerProps> = ({
           const ctx = canvas.getContext('2d', { alpha: true })!;
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
+
           // CRITICAL: Force high smoothing quality
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
-          
+
           await page.render({ canvasContext: ctx, viewport }).promise;
 
-           // Use JPEG for performance — significantly reduces memory and string size
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          // JPEG at 0.95 keeps text crisp without exploding memory like PNG would
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
           
           setPageImages(prev => {
             const next = new Map(prev);
@@ -754,7 +781,7 @@ const BookViewer: React.FC<BookViewerProps> = ({
     };
 
     renderImages();
-  }, [pdfDocument, pages, isParsing, pageImages.size]);
+  }, [pdfDocument, pages, isParsing, pageImages.size, orientation]);
 
   // Initialize pages
   useEffect(() => {
@@ -973,11 +1000,10 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           <div className="w-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/[0.05] rounded-xl overflow-hidden bg-white">
                             <Page 
                               number={num} 
-                              pdfDocument={pdfDocument} 
-                              pageW={pageW} 
-                              pageH={pageH} 
-                              imageUrl={pageImages.get(num)}
-                              searchQuery={searchQuery} 
+                              pdfDocument={pdfDocument}
+                              pageW={pageW}
+                              pageH={pageH}
+                              searchQuery={searchQuery}
                             />
                           </div>
                           <div className="mt-3 px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] backdrop-blur-md text-[10px] font-bold text-zinc-500 tracking-widest uppercase">
@@ -1002,24 +1028,31 @@ const BookViewer: React.FC<BookViewerProps> = ({
                               <span className="text-xs text-zinc-400 font-medium whitespace-nowrap">Generating cache... {parsingProgress}%</span>
                             </div>
                           )}
-                          <TrifoldViewer 
-                            pdfDocument={pdfDocument} 
+                          <TrifoldViewer
+                            pdfDocument={pdfDocument}
                             onFlip={onFlip}
                             onBookInit={onBookInit}
                             pageImages={pageImages}
                           />
                         </div>
                       ) : (
-                      <div className="book-shadow-wrapper">
+                      <div
+                        className="book-shadow-wrapper"
+                        style={{
+                          width: isSinglePage ? pageW : pageW * 2,
+                          height: pageH,
+                        }}
+                      >
                         <HTMLFlipBook
+                          key={`${pageW}-${pageH}-${isSinglePage}`}
                           width={pageW}
                           height={pageH}
-                          size="stretch"
-                          minWidth={315}
-                          maxWidth={2000}
-                          minHeight={400}
-                          maxHeight={2533}
-                          showCover={true}
+                          size="fixed"
+                          minWidth={pageW}
+                          maxWidth={pageW}
+                          minHeight={pageH}
+                          maxHeight={pageH}
+                          showCover={!isSinglePage}
                           mobileScrollSupport={true}
                           maxShadowOpacity={0.5}
                           disableFlipByClick={false}
@@ -1030,11 +1063,11 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           }}
                           ref={handleBookInit}
                           className="book-3d-flip"
-                          style={{ 
+                          style={{
                             boxShadow: '0 15px 60px rgba(0,0,0,0.3)',
                             backgroundColor: '#fff'
                           }}
-                          startPage={0}
+                          startPage={currentPage}
                           flippingTime={600}
                           usePortrait={isSinglePage}
                           drawShadow={true}
@@ -1046,14 +1079,13 @@ const BookViewer: React.FC<BookViewerProps> = ({
                           showPageCorners={false}
                         >
                           {pages.map((num) => (
-                            <Page 
-                              key={num} 
-                              number={num} 
-                              pdfDocument={pdfDocument} 
-                              pageW={pageW} 
-                              pageH={pageH} 
-                              imageUrl={pageImages.get(num)}
-                              searchQuery={searchQuery} 
+                            <Page
+                              key={num}
+                              number={num}
+                              pdfDocument={pdfDocument}
+                              pageW={pageW}
+                              pageH={pageH}
+                              searchQuery={searchQuery}
                             />
                           ))}
                         </HTMLFlipBook>

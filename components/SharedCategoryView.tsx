@@ -104,7 +104,6 @@ export default function SharedCategoryView({ categorySlug }: SharedCategoryViewP
           totalPages: s.total_pages,
           summary: s.summary || undefined,
           category: s.category || undefined,
-          isFavorite: s.is_favorite,
           orientation: (s.orientation as "portrait" | "landscape") || 'portrait',
         })));
       } catch (err: any) {

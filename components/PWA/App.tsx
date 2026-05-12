@@ -219,7 +219,6 @@ const App: React.FC = () => {
           totalPages: stored.total_pages,
           summary: stored.summary || undefined,
           category: stored.category || undefined,
-          isFavorite: stored.is_favorite,
           orientation: (stored.orientation as any) || 'portrait',
           createdAt: stored.created_at
         }));
@@ -346,7 +345,6 @@ const App: React.FC = () => {
           coverUrl: savedBook.cover_url || coverBase64,
           totalPages: savedBook.total_pages,
           category: savedBook.category || undefined,
-          isFavorite: savedBook.is_favorite,
           orientation: savedBook.orientation || orientation,
           createdAt: savedBook.created_at
         });
@@ -400,19 +398,18 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUploadCategoryConfirm = async (bookId: string, category?: BookCategory, isFavorite?: boolean) => {
+  const handleUploadCategoryConfirm = async (bookId: string, category?: BookCategory) => {
     // Update the book with category in local state
     setBooks(prev => prev.map(book =>
       book.id === bookId
-        ? { ...book, category, isFavorite: isFavorite || false }
+        ? { ...book, category }
         : book
     ));
 
     // Save to Supabase
     try {
       await updateBookInSupabase(bookId, {
-        category: category || null,
-        is_favorite: isFavorite || false
+        category: category || null
       });
     } catch (e) {
       console.error('Failed to update book in Supabase:', e);
@@ -480,7 +477,6 @@ const App: React.FC = () => {
         totalPages: stored.total_pages,
         summary: stored.summary || undefined,
         category: stored.category || undefined,
-        isFavorite: stored.is_favorite,
         orientation: (stored.orientation as any) || 'portrait',
         createdAt: stored.created_at
       }));
@@ -544,21 +540,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleToggleFavorite = async (bookId: string) => {
-    const book = books.find(b => b.id === bookId);
-    const newFavoriteState = !book?.isFavorite;
 
-    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, isFavorite: newFavoriteState } : b));
-    if (pendingBook?.id === bookId) {
-      setPendingBook(prev => prev ? { ...prev, isFavorite: newFavoriteState } : null);
-    }
-    // Save to Supabase
-    try {
-      await updateBookInSupabase(bookId, { is_favorite: newFavoriteState });
-    } catch (e) {
-      console.error('Failed to save favorite to Supabase:', e);
-    }
-  };
 
   const handleSelectMode = async (mode: 'manual' | 'preview') => {
     if (!pendingBook) return;
@@ -889,7 +871,6 @@ const App: React.FC = () => {
         onSelectMode={handleSelectMode}
         onUpdateCategory={handleUpdateBookCategory}
         onUpdateName={handleUpdateBookName}
-        onToggleFavorite={handleToggleFavorite}
         isLoadingBook={isLoadingBook}
         onRemove={handleRemoveBook}
       />

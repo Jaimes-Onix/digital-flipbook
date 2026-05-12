@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS public.books (
   total_pages INTEGER NOT NULL DEFAULT 0,
   file_size BIGINT,
   category TEXT CHECK (category IN ('philippines', 'internal', 'international', 'ph_interns', 'deseret', 'angelhost')),
-  is_favorite BOOLEAN DEFAULT FALSE,
   summary TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -115,7 +114,7 @@ CREATE TRIGGER update_books_updated_at
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS books_user_id_idx ON public.books(user_id);
 CREATE INDEX IF NOT EXISTS books_category_idx ON public.books(category);
-CREATE INDEX IF NOT EXISTS books_is_favorite_idx ON public.books(is_favorite);
+
 CREATE INDEX IF NOT EXISTS books_created_at_idx ON public.books(created_at DESC);
 CREATE INDEX IF NOT EXISTS reading_progress_user_id_idx ON public.reading_progress(user_id);
 CREATE INDEX IF NOT EXISTS reading_progress_book_id_idx ON public.reading_progress(book_id);

@@ -125,7 +125,6 @@ export interface StoredBook {
   total_pages: number;
   file_size: number | null;
   category: string | null;
-  is_favorite: boolean;
   summary: string | null;
   created_at: string;
   orientation?: 'portrait' | 'landscape' | 'trifold';
@@ -205,7 +204,6 @@ export async function saveBookMetadata(book: {
   total_pages: number;
   file_size: number | null;
   category?: BookCategory;
-  is_favorite?: boolean;
   summary?: string;
   orientation?: 'portrait' | 'landscape' | 'trifold';
 }): Promise<StoredBook> {
@@ -231,7 +229,6 @@ export async function saveBookMetadata(book: {
     total_pages: book.total_pages,
     file_size: book.file_size,
     category: book.category || null,
-    is_favorite: book.is_favorite || false,
     summary: book.summary || null,
     orientation: book.orientation || 'portrait'
   };
@@ -346,7 +343,7 @@ export async function loadBooksByCategory(category: string): Promise<StoredBook[
  */
 export async function updateBook(
   bookId: string,
-  updates: Partial<Pick<StoredBook, 'title' | 'category' | 'is_favorite' | 'summary'>>
+  updates: Partial<Pick<StoredBook, 'title' | 'category' | 'summary'>>
 ): Promise<void> {
   const { error } = await supabase
     .from('books')

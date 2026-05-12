@@ -82,7 +82,6 @@ export default function SharedBookView({ bookIdOverride }: SharedBookViewProps) 
           totalPages: stored.total_pages,
           summary: stored.summary || undefined,
           category: stored.category || undefined,
-          isFavorite: stored.is_favorite,
           orientation: (stored.orientation as "portrait" | "landscape") || 'portrait',
         });
         document.title = `${stored.title} - Lifewood Digital Library`;
